@@ -1,5 +1,6 @@
 name: nekos
-description: Work in progress mobile app for https:&#x2F;&#x2F;nekos.moe
+description: Work in progress mobile app for https://nekos.moe
+version: 0.0.1
 
 dependencies:
   flutter:
