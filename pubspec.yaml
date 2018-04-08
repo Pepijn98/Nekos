@@ -1,11 +1,10 @@
 name: nekos
-description: Work in progress mobile app for https://nekos.moe
-version: 0.0.1
+description: Work in progress mobile app for https:&#x2F;&#x2F;nekos.moe
 
 dependencies:
   flutter:
     sdk: flutter
-  share: "^0.4.0"
+  share: ^0.4.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -29,7 +28,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-   - assets/images/background.png
+     - assets/images/background.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.io/assets-and-images/#resolution-aware.
