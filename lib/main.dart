@@ -168,7 +168,10 @@ class _MyHomePageState extends State<MyHomePage> {
             floatingActionButton: new FloatingActionButton(
                 tooltip: 'Next page',
                 onPressed: _getNewNekos,
-                child: new Icon(Icons.arrow_right),
+                child: new Icon(
+                    Icons.arrow_right,
+                    color: Colors.white,
+                ),
             ),
         );
     }
