@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:share/share.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 import 'dart:async';
 
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
                     800: const Color(0xFF96abec),
                     900: const Color(0xFF96abec)
                 }),
+                fontFamily: 'Nunito',
             ),
             home: new MyHomePage(title: 'Nekos Alpha App'),
         );
@@ -42,6 +44,7 @@ class _MyHomePageState extends State<MyHomePage> {
     List<String> _images = [];
     Map<String, dynamic> _nekos;
     bool _nsfw = false;
+    bool _timeout = false;
 
     @override
     initState() {
@@ -50,9 +53,10 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     Future _getNewNekos() async {
+        if (_timeout == true) return;
         http.Response data = await http.get('https://nekos.moe/api/v1/random/image?count=9&nsfw=$_nsfw', headers: {
             'User-Agent':
-            'NekosApp/v0.0.2 (https://github.com/KurozeroPB/nekos-app)'
+            'NekosApp/v0.0.3 (https://github.com/KurozeroPB/nekos-app)'
         });
         Map<String, dynamic> nekos = json.decode(data.body);
 
@@ -63,42 +67,120 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {
             _images = images;
             _nekos = nekos;
-        });
-    }
+            _timeout = true;
 
-    Future _saveNeko(int index) async {
-        // TODO: Figure out how to download and save image to device
+            new Timer(const Duration(milliseconds: 3000), () => _timeout = false);
+        });
     }
 
     Future _shareNeko(int index) async {
         await share('https://nekos.moe/image/${_images[index]}');
     }
 
+    Future _openNekoInBrowser(int index) async {
+        String url = 'https://nekos.moe/image/${_images[index]}';
+        if (await canLaunch(url)) {
+            await launch(url);
+        } else {
+            throw 'Could not launch $url';
+        }
+    }
+
+    // ignore: unused_element
+    Future _saveNeko(int index) async {
+        // TODO: Figure out how to download and save image to device
+        // For now one can open the image in a browser and save it
+    }
+
     Future _imageTapped(int index) async {
+        // final ThemeData themeData = Theme.of(context);
         await showDialog(
             context: context,
             child: new SimpleDialog(
-                title: new Text('Artist: ${_nekos['images'][index]['artist']}'),
                 children: <Widget>[
                     new Stack(
                         children: <Widget>[
                             new Container(
-                                margin: new EdgeInsets.all(100.0),
+                                margin: new EdgeInsets.only(left: 150.0, right: 150.0, top: 150.0),
                                 child: new Center(child: new CircularProgressIndicator()),
                             ),
                             new Center(
                                 child: new Image.network(
                                     'https://nekos.moe/image/${_images[index]}',
-                                    height: 250.0,
+                                    height: 350.0,
                                 ),
                             ),
                         ],
                     ),
-                    new Center(
-                        child: new Text(
-                            'Likes: **  '
-                            'Favorites: **\n'
-                            'Uploader: ******'
+                    new Container(
+                        padding: const EdgeInsets.only(top: 10.0),
+                        child: new Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                                new Text(
+                                    'Uploaded by ${_nekos['images'][index]['uploader']['username']}',
+                                    style: new TextStyle(
+                                        fontSize: 15.0
+                                    ),
+                                ),
+                            ],
+                        ),
+                    ),
+                    new Container(
+                        padding: const EdgeInsets.only(top: 1.0),
+                        child: new Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                                new Icon(
+                                    Icons.palette,
+                                    color: Colors.teal,
+                                    size: 20.0,
+                                ),
+                                new Text(
+                                    ' Artist: ${_nekos['images'][index]['artist']}',
+                                    style: new TextStyle(
+                                        fontSize: 15.0
+                                    ),
+                                ),
+                            ],
+                        ),
+                    ),
+                    new Container(
+                        padding: const EdgeInsets.only(top: 1.0),
+                        child: new Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                                new Icon(
+                                    Icons.thumb_up,
+                                    color: Colors.lightGreen,
+                                    size: 20.0,
+                                ),
+                                new Text(
+                                    ' Likes: ${_nekos['images'][index]['likes']}',
+                                    style: new TextStyle(
+                                        fontSize: 15.0
+                                    ),
+                                ),
+                            ],
+                        ),
+                    ),
+                    new Container(
+                        padding: const EdgeInsets.only(top: 1.0),
+                        child: new Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                                new Icon(
+                                    Icons.favorite,
+                                    color: Colors.red,
+                                    size: 20.0,
+                                ),
+                                new Text(
+                                    ' Favorites: ${_nekos['images'][index]['favorites']}',
+                                    style: new TextStyle(
+                                        fontSize: 15.0
+                                    ),
+                                ),
+                            ],
                         ),
                     ),
                     new ButtonBar(
@@ -106,10 +188,18 @@ class _MyHomePageState extends State<MyHomePage> {
                         children: <Widget>[
                             new MaterialButton(
                                 onPressed: () => _shareNeko(index),
+                                minWidth: 1.0,
                                 child: new Icon(Icons.share),
                             ),
                             new MaterialButton(
-                                onPressed: () => _saveNeko(index),
+                                onPressed: () => _openNekoInBrowser(index),
+                                minWidth: 1.0,
+                                child: new Icon(Icons.open_in_browser),
+                            ),
+                            new MaterialButton(
+                                // onPressed: () => _saveNeko(index),
+                                onPressed: null,
+                                minWidth: 1.0,
                                 child: new Icon(Icons.save),
                             ),
                         ],
@@ -195,10 +285,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
             ),
             floatingActionButton: new FloatingActionButton(
-                tooltip: 'Next page',
+                tooltip: 'Get New Images',
                 onPressed: _getNewNekos,
                 child: new Icon(
-                    Icons.arrow_right,
+                    Icons.refresh,
                     color: Colors.white,
                 ),
             ),

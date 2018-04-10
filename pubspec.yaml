@@ -1,11 +1,12 @@
 name: nekos
 description: Work in progress mobile app for https://nekos.moe
-version: 0.0.2
+version: 0.0.3
 
 dependencies:
   flutter:
     sdk: flutter
   share: ^0.4.0
+  url_launcher: ^3.0.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -42,17 +43,23 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-Black.ttf
+        - asset: assets/fonts/Nunito-BlackItalic.ttf
+        - asset: assets/fonts/Nunito-Bold.ttf
+        - asset: assets/fonts/Nunito-BoldItalic.ttf
+        - asset: assets/fonts/Nunito-ExtraBold.ttf
+        - asset: assets/fonts/Nunito-ExtraBoldItalic.ttf
+        - asset: assets/fonts/Nunito-ExtraLight.ttf
+        - asset: assets/fonts/Nunito-ExtraLightItalic.ttf
+        - asset: assets/fonts/Nunito-Italic.ttf
+        - asset: assets/fonts/Nunito-Light.ttf
+        - asset: assets/fonts/Nunito-LightItalic.ttf
+        - asset: assets/fonts/Nunito-Regular.ttf
+        - asset: assets/fonts/Nunito-SemiBold.ttf
+        - asset: assets/fonts/Nunito-SemiBoldItalic.ttf
   #
   # For details regarding fonts from package dependencies, 
   # see https://flutter.io/custom-fonts/#from-packages
