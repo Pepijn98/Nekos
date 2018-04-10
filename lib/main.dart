@@ -50,15 +50,14 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     Future _getNewNekos() async {
-        http.Response data = await http.get(
-            'https://nekos.moe/api/v1/random/image?count=12&nsfw=$_nsfw',
-            headers: {
-                'User-Agent': 'NekosApp/v0.0.1 (https://github.com/KurozeroPB/nekos-app)'
-            });
+        http.Response data = await http.get('https://nekos.moe/api/v1/random/image?count=9&nsfw=$_nsfw', headers: {
+            'User-Agent':
+            'NekosApp/v0.0.2 (https://github.com/KurozeroPB/nekos-app)'
+        });
         Map<String, dynamic> nekos = json.decode(data.body);
 
         List<String> images = nekos['images'].map((Map<String, dynamic> img) {
-            return 'https://nekos.moe/image/' + img['id'];
+            return img['id'];
         }).toList();
 
         setState(() {
@@ -72,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     Future _shareNeko(int index) async {
-        await share(_images[index]);
+        await share('https://nekos.moe/image/${_images[index]}');
     }
 
     Future _imageTapped(int index) async {
@@ -81,7 +80,27 @@ class _MyHomePageState extends State<MyHomePage> {
             child: new SimpleDialog(
                 title: new Text('Artist: ${_nekos['images'][index]['artist']}'),
                 children: <Widget>[
-                    new Image.network(_images[index]),
+                    new Stack(
+                        children: <Widget>[
+                            new Container(
+                                margin: new EdgeInsets.all(100.0),
+                                child: new Center(child: new CircularProgressIndicator()),
+                            ),
+                            new Center(
+                                child: new Image.network(
+                                    'https://nekos.moe/image/${_images[index]}',
+                                    height: 250.0,
+                                ),
+                            ),
+                        ],
+                    ),
+                    new Center(
+                        child: new Text(
+                            'Likes: **  '
+                            'Favorites: **\n'
+                            'Uploader: ******'
+                        ),
+                    ),
                     new ButtonBar(
                         alignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -103,15 +122,27 @@ class _MyHomePageState extends State<MyHomePage> {
     List<Widget> _getTiles(List<String> imageList) {
         final List<Widget> tiles = <Widget>[];
         for (int i = 0; i < imageList.length; i++) {
-            tiles.add(new GridTile(
-                child: new InkResponse(
-                    enableFeedback: true,
-                    onTap: () => _imageTapped(i),
+            tiles.add(new InkResponse(
+                enableFeedback: true,
+                onTap: () => _imageTapped(i),
+                child: new GridTile(
                     child: new Stack(
                         children: <Widget>[
                             new Center(child: new CircularProgressIndicator()),
-                            new Center(child: new Image.network(
-                                imageList[i], fit: BoxFit.cover)),
+                            new Container(
+                                margin: new EdgeInsets.all(2.0),
+                                decoration: new BoxDecoration(
+                                    borderRadius: new BorderRadius.all(new Radius.circular(5.0)),
+                                    border: new Border.all(
+                                        color: const Color(0xFF96abec),
+                                        width: 2.0,
+                                    ),
+                                    image: new DecorationImage(
+                                        fit: BoxFit.cover,
+                                        image: new NetworkImage('https://nekos.moe/thumbnail/${imageList[i]}')
+                                    ),
+                                ),
+                            ),
                         ],
                     ),
                 ),
@@ -156,15 +187,11 @@ class _MyHomePageState extends State<MyHomePage> {
                         repeat: ImageRepeat.repeat,
                     ),
                 ),
-                child: new Center(
-                    child: new GridView.count(
-                        crossAxisCount: 3,
-                        childAspectRatio: 1.0,
-                        padding: const EdgeInsets.only(top: 10.0),
-                        mainAxisSpacing: 30.0,
-                        crossAxisSpacing: 10.0,
-                        children: _getTiles(_images),
-                    ),
+                child: new GridView.count(
+                    crossAxisCount: 3,
+                    padding: const EdgeInsets.only(top: 10.0),
+                    mainAxisSpacing: 50.0,
+                    children: _getTiles(_images),
                 ),
             ),
             floatingActionButton: new FloatingActionButton(
