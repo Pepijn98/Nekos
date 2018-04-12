@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
+// import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:convert';
 import 'dart:async';
 
@@ -13,18 +16,8 @@ class MyApp extends StatelessWidget {
         return new MaterialApp(
             title: 'Nekos',
             theme: new ThemeData(
-                primarySwatch: const MaterialColor(0xFF96abec, const {
-                    50: const Color(0xFF96abec),
-                    100: const Color(0xFF96abec),
-                    200: const Color(0xFF96abec),
-                    300: const Color(0xFF96abec),
-                    400: const Color(0xFF96abec),
-                    500: const Color(0xFF96abec),
-                    600: const Color(0xFF96abec),
-                    700: const Color(0xFF96abec),
-                    800: const Color(0xFF96abec),
-                    900: const Color(0xFF96abec)
-                }),
+                primaryColor: const Color(0xFF96abec),
+                accentColor: const Color(0xFF96abec),
                 fontFamily: 'Nunito',
             ),
             home: new MyHomePage(title: 'Nekos Alpha App'),
@@ -41,23 +34,93 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+    static const IconData LoginIcon = const IconData(0xF342, fontFamily: 'mdi');
+    static const IconData LogoutIcon = const IconData(0xF343, fontFamily: 'mdi');
+    static const String UserAgent = 'NekosApp/v0.0.3 (https://github.com/KurozeroPB/nekos-app)';
+
+    final scaffoldKey = new GlobalKey<ScaffoldState>();
+    final formKey = new GlobalKey<FormState>();
+    final loginKey = new GlobalKey<OverlayState>();
+
+    String _username;
+    String _password;
+    String _token;
     List<String> _images = [];
     Map<String, dynamic> _nekos;
     bool _nsfw = false;
     bool _timeout = false;
+    bool _loginEnabled = true;
+    bool _logoutEnabled = false;
+    bool _profileEnabled = false;
 
     @override
     initState() {
         super.initState();
         _getNewNekos();
+
+        SharedPreferences.getInstance().then((SharedPreferences prefs) {
+            String token = prefs.get('token');
+            if (token != null && token.isNotEmpty) {
+                _loginEnabled = false;
+                _logoutEnabled = true;
+                _profileEnabled = true;
+            }
+        });
+    }
+
+    Future _submit() async {
+        final form = formKey.currentState;
+
+        if (form.validate()) {
+            form.save();
+
+            _performLogin();
+        }
+    }
+
+    Future _performLogin() async {
+        http.Response data = await http.post(
+            'https://nekos.moe/api/v1/auth',
+            headers: {
+                'User-Agent': UserAgent
+            },
+            body: {
+                'username': _username,
+                'password': _password
+            }
+        );
+        Map<String, dynamic> auth = json.decode(data.body);
+        _token = auth['token'];
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('username', _username);
+        bool valid = await prefs.setString('token', _token);
+        if (valid) {
+            setState(() {
+                _loginEnabled = false;
+                _logoutEnabled = true;
+                _profileEnabled = true;
+            });
+        } else {
+            showDialog(
+                context: context,
+                child: new AlertDialog(
+                    title: new Text('Error', textAlign: TextAlign.center),
+                    content: new Text('Something went wrong while logging in', textAlign: TextAlign.center),
+                ),
+            );
+        }
     }
 
     Future _getNewNekos() async {
         if (_timeout == true) return;
-        http.Response data = await http.get('https://nekos.moe/api/v1/random/image?count=9&nsfw=$_nsfw', headers: {
-            'User-Agent':
-            'NekosApp/v0.0.3 (https://github.com/KurozeroPB/nekos-app)'
-        });
+        http.Response data = await http.get(
+            'https://nekos.moe/api/v1/random/image?count=9&nsfw=$_nsfw',
+            headers: {
+                'User-Agent': UserAgent,
+                'Content-Type': 'application/json'
+            }
+        );
         Map<String, dynamic> nekos = json.decode(data.body);
 
         List<String> images = nekos['images'].map((Map<String, dynamic> img) {
@@ -93,7 +156,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     Future _imageTapped(int index) async {
-        // final ThemeData themeData = Theme.of(context);
         await showDialog(
             context: context,
             child: new SimpleDialog(
@@ -243,10 +305,196 @@ class _MyHomePageState extends State<MyHomePage> {
 
     @override
     Widget build(BuildContext context) {
+        final ThemeData themeData = Theme.of(context);
         return new Scaffold(
+            key: scaffoldKey,
+            drawer: new Drawer(
+                child: new ListView(
+                    padding: EdgeInsets.zero,
+                    children: <Widget>[
+                        new DrawerHeader(
+                            child: new Text(
+                                'Options',
+                                style: new TextStyle(
+                                    color: Colors.white
+                                ),
+                            ),
+                            decoration: new BoxDecoration(
+                                color: themeData.primaryColor,
+                            ),
+                        ),
+                        new ListTile(
+                            key: loginKey,
+                            enabled: _loginEnabled,
+                            leading: new Icon(
+                                LoginIcon,
+                                color: themeData.primaryColor,
+                            ),
+                            title: new Text(
+                                'Log In',
+                                style: new TextStyle(
+                                    color: themeData.primaryColor
+                                ),
+                            ),
+                            onTap: () async {
+                                await showDialog(
+                                    context: context,
+                                    child: new SimpleDialog(
+                                        title: new Text(
+                                            'Log In',
+                                            textAlign: TextAlign.center,
+                                        ),
+                                        children: <Widget>[
+                                            new Form(
+                                                key: formKey,
+                                                child: new Column(
+                                                    children: <Widget>[
+                                                        new Padding(
+                                                            padding: new EdgeInsets.only(left: 20.0, right: 20.0, bottom: 10.0),
+                                                            child: new TextFormField(
+                                                                decoration: new InputDecoration(labelText: 'Username'),
+                                                                validator: (String val) => val.isEmpty ? "Username can't be empty" : null,
+                                                                onSaved: (String val) => _username = val,
+                                                            ),
+                                                        ),
+                                                        new Padding(
+                                                            padding: new EdgeInsets.only(left: 20.0, right: 20.0, bottom: 10.0),
+                                                            child: new TextFormField(
+                                                                decoration: new InputDecoration(labelText: 'Password'),
+                                                                validator: (String val) => val.isEmpty ? "Password can't be empty" : null,
+                                                                onSaved: (String val) => _password = val,
+                                                                // obscureText: true,
+                                                            ),
+                                                        ),
+                                                        new Padding(
+                                                            padding: new EdgeInsets.only(left: 20.0, right: 20.0, bottom: 10.0),
+                                                            child: new MaterialButton(
+                                                                color: themeData.primaryColor,
+                                                                textColor: Colors.white,
+                                                                onPressed: _submit,
+                                                                child: new Text('Login'),
+                                                            ),
+                                                        ),
+                                                    ],
+                                                ),
+                                            ),
+                                            // new Image(image: new AssetImage('assets/images/placeholder.gif')),
+                                        ],
+                                    ),
+                                );
+                            },
+                        ),
+                        new ListTile(
+                            enabled: _logoutEnabled,
+                            leading: new Icon(
+                                LogoutIcon,
+                                color: themeData.primaryColor,
+                            ),
+                            title: new Text(
+                                'Log Out',
+                                style: new TextStyle(
+                                    color: themeData.primaryColor
+                                ),
+                            ),
+                            onTap: () async {
+                                setState(() {
+                                    _loginEnabled = true;
+                                    _logoutEnabled = false;
+                                    _profileEnabled = false;
+                                });
+
+                                SharedPreferences prefs = await SharedPreferences.getInstance();
+                                bool valid = await prefs.remove('token');
+                                if (!valid) {
+                                    showDialog(
+                                        context: context,
+                                        child: new AlertDialog(
+                                            title: new Text('Error', textAlign: TextAlign.center),
+                                            content: new Text('Something went wrong while logging out', textAlign: TextAlign.center),
+                                        ),
+                                    );
+                                }
+                            },
+                        ),
+                        new ListTile(
+                            leading: new Icon(
+                                Icons.file_upload,
+                                color: themeData.primaryColor,
+                            ),
+                            title: new Text(
+                                'Upload a neko',
+                                style: new TextStyle(
+                                    color: themeData.primaryColor
+                                ),
+                            ),
+                            onTap: () async {
+                                await showDialog(
+                                    context: context,
+                                    child: new SimpleDialog(
+                                        title: new Text(
+                                            'Soon™',
+                                            textAlign: TextAlign.center,
+                                        ),
+                                        children: <Widget>[
+                                            new Image(image: new AssetImage('assets/images/placeholder.gif')),
+                                        ],
+                                    ),
+                                );
+                            },
+                        ),
+                        new ListTile(
+                            enabled: _profileEnabled,
+                            leading: new Icon(
+                                Icons.account_box,
+                                color: themeData.primaryColor,
+                            ),
+                            title: new Text(
+                                'Profile',
+                                style: new TextStyle(
+                                    color: themeData.primaryColor
+                                ),
+                            ),
+                            onTap: () async {
+                                http.Response resp = await http.post(
+                                    'https://nekos.moe/api/v1/users/search',
+                                    headers: {
+                                        'User-Agent': UserAgent
+                                    },
+                                    body: {
+                                        'query': _username
+                                    }
+                                );
+                                Map<String, dynamic> data = json.decode(resp.body);
+                                Map<String, dynamic> profile = data['users'][0];
+
+                                DateFormat formatter = new DateFormat('hh:mm:ss dd-MM-yyyy');
+
+                                await showDialog(
+                                    context: context,
+                                    child: new SimpleDialog(
+                                        title: new Text(
+                                            'Username: ${profile['username']}',
+                                            textAlign: TextAlign.center,
+                                        ),
+                                        children: <Widget>[
+                                            new Text(
+                                                'Created on: ${formatter.format(DateTime.parse(profile['createdAt']))}',
+                                                textAlign: TextAlign.center,
+                                            ),
+                                            new Image(image: new AssetImage('assets/images/placeholder.gif')),
+                                        ],
+                                    ),
+                                );
+                            },
+                        ),
+                    ],
+                ),
+            ),
             appBar: new AppBar(
+                centerTitle: true,
                 title: new Text(
                     widget.title,
+                    textAlign: TextAlign.center,
                     style: new TextStyle(color: Colors.white),
                 ),
                 actions: <Widget>[
