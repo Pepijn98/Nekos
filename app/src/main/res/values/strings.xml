@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Nekos</string>
+    <string name="app_title">Nekos.moe</string>
+    <string name="login_out">%1$s</string>
+    <string name="neko">Neko</string>
+    <string name="nekos">Nekos</string>
+    <string name="artist">Artist: %1$s</string>
+    <string name="view_account">View account</string>
+    <string name="soon">soon™</string>
+    <string name="switch_nsfw">%1$s nsfw</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="random">Random</string>
+</resources>
