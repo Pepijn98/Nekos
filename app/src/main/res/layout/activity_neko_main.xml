@@ -18,7 +18,8 @@
             android:layout_width="match_parent"
             android:layout_height="?android:attr/actionBarSize"
             android:background="?android:attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay" />
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            app:title="Nekos.moe" />
 
     </android.support.design.widget.AppBarLayout>
 
@@ -31,7 +32,7 @@
         android:background="@android:color/transparent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:context=".NekoMain"
-        tools:showIn="@layout/activity_main">
+        tools:showIn="@layout/activity_neko_main">
 
         <GridView
             android:id="@+id/nekoImages"

@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">Nekos</string>
-    <string name="app_title">Nekos.moe</string>
     <string name="login_out">%1$s</string>
     <string name="neko">Neko</string>
     <string name="nekos">Nekos</string>
@@ -11,4 +10,5 @@
     <string name="next">Next</string>
     <string name="previous">Previous</string>
     <string name="random">Random</string>
+    <string name="sort">Sort</string>
 </resources>

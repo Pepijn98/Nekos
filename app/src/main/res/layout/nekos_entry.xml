@@ -9,10 +9,10 @@
     android:orientation="vertical"
     android:padding="5dp">
 
-    <ImageView
+    <xyz.kurozero.nekos.ProportionalImageView
         android:id="@+id/imgNeko"
-        android:layout_width="180dp"
-        android:layout_height="180dp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:contentDescription="@string/neko"
