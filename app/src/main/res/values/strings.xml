@@ -11,4 +11,12 @@
     <string name="previous">Previous</string>
     <string name="random">Random</string>
     <string name="sort">Sort</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="acc_username">%1$s</string>
+    <string name="likes">Likes: %1$d</string>
+    <string name="favorites">Favorites: %1$d</string>
+    <string name="joined">Joined %1$s</string>
+    <string name="posted">Posted %1$s</string>
+    <string name="given">Has given %1$d likes and %2$d favorites</string>
 </resources>
