@@ -377,9 +377,9 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
 
                 val response = client.newCall(request).execute()
                 if (!response.isSuccessful) {
-                    Snackbar.make(nekoImages, Json(response.body()?.string()!!).obj().get("message") as String, Snackbar.LENGTH_LONG)
+                    Snackbar.make(nekoImages, Json(response.body()?.string()!!).obj().get("message") as String, Snackbar.LENGTH_LONG).show()
                 } else {
-                    Snackbar.make(nekoImages, "Success uploading neko, awaiting approval of an admin", Snackbar.LENGTH_SHORT)
+                    Snackbar.make(nekoImages, "Success uploading neko, awaiting approval of an admin", Snackbar.LENGTH_SHORT).show()
                 }
                 response.close()
             }
