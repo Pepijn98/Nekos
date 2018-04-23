@@ -7,9 +7,9 @@
         android:title="@string/previous"/>
 
     <item
-        android:id="@+id/navigation_random"
+        android:id="@+id/navigation_refresh"
         android:icon="@android:drawable/stat_notify_sync"
-        android:title="@string/random"/>
+        android:title="@string/refresh"/>
 
     <item
         android:id="@+id/navigation_next"

@@ -9,7 +9,7 @@
     <string name="switch_nsfw">%1$s nsfw</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
-    <string name="random">Random</string>
+    <string name="refresh">Refresh</string>
     <string name="sort">Sort</string>
     <string name="username">Username</string>
     <string name="password">Password</string>
@@ -19,4 +19,8 @@
     <string name="joined">Joined %1$s</string>
     <string name="posted">Posted %1$s</string>
     <string name="given">Has given %1$d likes and %2$d favorites</string>
+    <string name="upload">Upload</string>
+    <string name="tags">Tags</string>
+    <string name="te_artist">Artist</string>
+    <string name="nsfw">nsfw</string>
 </resources>

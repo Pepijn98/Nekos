@@ -12,16 +12,13 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.*
 import android.widget.*
-import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
-import android.util.Log
 import android.net.ConnectivityManager
+import android.net.Uri
+import android.provider.MediaStore
 import android.text.format.DateUtils
-import java.io.FileOutputStream
-import java.io.File
 import com.github.kittinunf.fuel.android.extension.responseJson
 import com.google.gson.Gson
 import com.github.kittinunf.fuel.Fuel
@@ -31,18 +28,23 @@ import com.github.kittinunf.fuel.httpGet
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.selector
 import kotlinx.android.synthetic.main.activity_neko_main.*
+import okhttp3.*
+import okhttp3.Request
+import java.io.File
+
+const val userAgent = "NekosApp/v0.4.0 (https://github.com/KurozeroPB/nekos-app)"
+val File.extension: String
+    get() = name.substringAfterLast('.', "")
 
 class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverListener {
 
     private val url = "https://nekos.moe/api/v1"
-    private val userAgent = "NekosApp/v0.3.0 (https://github.com/KurozeroPB/nekos-app)"
     private var toSkip = 0
     private var page = 1
     private var isNew = true
     private var nsfw = false
     private var sort = "newest"
     private var nekos: Nekos? = null
-    private var user: User? = null
     private var adapter: NekoAdapter? = null
     private var optionsMenu: Menu? = null
     private var connected: Boolean = true
@@ -58,22 +60,24 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         setContentView(R.layout.activity_neko_main)
         setSupportActionBar(toolbar)
         sharedPreferences = getSharedPreferences("nekos.moe", Context.MODE_PRIVATE)
-        val token = sharedPreferences!!.getString("token", "")
 
         if (!hasPermissions(this, permissions)) {
             ActivityCompat.requestPermissions(this, permissions, 999)
         }
 
         val navNext = navigationView.menu.findItem(R.id.navigation_next)
-        val navRand = navigationView.menu.findItem(R.id.navigation_random)
+        val navRefrsh = navigationView.menu.findItem(R.id.navigation_refresh)
         val navPrev = navigationView.menu.findItem(R.id.navigation_previous)
         navNext.setOnMenuItemClickListener {
             requestNeko(true)
             true
         }
 
-        navRand.setOnMenuItemClickListener {
-            Snackbar.make(nekoImages, "Soon™", Snackbar.LENGTH_SHORT).show()
+        navRefrsh.setOnMenuItemClickListener {
+            isNew = true
+            page = 1
+            toSkip = 0
+            requestNeko(false)
             true
         }
 
@@ -84,7 +88,8 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
 
         FuelManager.instance.basePath = url
 
-        if (token.isNullOrBlank()) {
+        val token = sharedPreferences!!.getString("token", "")
+        if (token.isNullOrBlank() || token.isNullOrEmpty()) {
             FuelManager.instance.baseHeaders = mapOf("User-Agent" to userAgent)
         } else {
             FuelManager.instance.baseHeaders = mapOf(
@@ -103,6 +108,9 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
 
     override fun onNetworkConnectionChanged(isConnected: Boolean) {
         connected = isConnected
+        if (!connected || !isConnected(this)) {
+            Snackbar.make(nekoImages, "Lost network connection", Snackbar.LENGTH_INDEFINITE).show()
+        }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -132,7 +140,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         val switchNsfw = menu.findItem(R.id.switch_nsfw)
 
         val token = sharedPreferences!!.getString("token", "")
-        if (token.isNullOrBlank()) {
+        if (token.isNullOrBlank() || token.isNullOrEmpty()) {
             loginOut.title = getString(R.string.login_out, "Login")
         } else {
             loginOut.title = getString(R.string.login_out, "Logout")
@@ -143,58 +151,18 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         return true
     }
 
-    @SuppressLint("InflateParams")
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.login_out -> {
-                if (!connected || !isConnected(this)) {
-                    Snackbar.make(nekoImages, "No network connection", Snackbar.LENGTH_INDEFINITE).show()
-                    return false
-                }
                 if (item.title == "Login") {
-                    val loginDialog = AlertDialog.Builder(this)
-                    val factory = LayoutInflater.from(this)
-                    val view = factory.inflate(R.layout.login_dialog, null)
-                    loginDialog.setView(view)
-                    loginDialog.setNegativeButton("Cancel", { dialog, _ -> dialog.dismiss() })
-                    loginDialog.setPositiveButton("Login", { _, _ ->
-                        doAsync {
-                            val username = view.findViewById<EditText>(R.id.usernameInput)
-                            val password = view.findViewById<EditText>(R.id.passwordInput)
-                            Fuel.post("/auth")
-                                    .header(mapOf("Content-Type" to "application/json"))
-                                    .body("{\"username\": \"${username.text}\", \"password\": \"${password.text}\"}")
-                                    .responseJson { _, _, result ->
-                                        val (data, error) = result
-                                        if (data != null) {
-                                            val token = data.obj().get("token") as String
-                                            sharedPreferences!!.edit().putString("token", token).apply()
-                                            updateUI(true)
-                                            FuelManager.instance.baseHeaders = mapOf(
-                                                    "User-Agent" to userAgent,
-                                                    "Authorization" to token
-                                            )
-                                            Snackbar.make(nekoImages, "Success logging in", Snackbar.LENGTH_SHORT).show()
-                                        } else if (error != null) {
-                                            updateUI(false)
-                                            val msg =
-                                                    Json(String(error.errorData)).obj().get("message") as String?
-                                                            ?: error.message
-                                                            ?: "Something went wrong"
-                                            Snackbar.make(nekoImages, msg, Snackbar.LENGTH_LONG).show()
-                                        }
-                                    }
-                        }
-                    })
-                    loginDialog.show()
+                    login()
                 } else {
                     updateUI(false)
                 }
                 true
             }
             R.id.view_account -> {
-                if (user == null) requestMe()
-                else loadUser()
+                loadMe()
                 true
             }
             R.id.switch_nsfw -> {
@@ -202,8 +170,6 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
 
                 isNew = true
                 page = 1
-                requestNeko(false)
-
                 if (!nsfw) {
                     nsfw = true
                     switchNsfw?.title = getString(R.string.switch_nsfw, "Disable")
@@ -213,6 +179,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                     switchNsfw?.title = getString(R.string.switch_nsfw, "Enable")
                     Snackbar.make(nekoImages, "Disabled nsfw images", Snackbar.LENGTH_SHORT).show()
                 }
+                requestNeko(false)
                 true
             }
             R.id.sort -> {
@@ -242,23 +209,62 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                 })
                 true
             }
+            R.id.upload -> {
+                val intent = Intent()
+                intent.type = "image/*"
+                intent.action = Intent.ACTION_GET_CONTENT
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 998)
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
 
-    private fun requestMe() {
+    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+        super.onActivityResult(requestCode, resultCode, intent)
+        if (resultCode == RESULT_CANCELED) return
+        if (requestCode == 998) {
+            uploadNeko(intent!!.data)
+        }
+    }
+
+    @SuppressLint("InflateParams")
+    private fun loadMe() {
+        if (!connected || !isConnected(this)) {
+            Snackbar.make(nekoImages, "No network connection", Snackbar.LENGTH_INDEFINITE).show()
+            return
+        }
         val token = sharedPreferences!!.getString("token", "")
-        if (token.isNullOrBlank()) {
+        if (token.isNullOrBlank() || token.isNullOrEmpty()) {
             Snackbar.make(nekoImages, "You need to login first", Snackbar.LENGTH_LONG).show()
             return
         }
         doAsync {
             "user/@me".httpGet().responseJson { _, _, result ->
-                val (data, error) = result
-                if (data != null) {
-                    val newUser = checkNotNull(User.Deserializer().deserialize(data.obj().get("user").toString()))
-                    user = newUser
-                    loadUser()
+                val (resp, error) = result
+                if (resp != null) {
+                    val user = checkNotNull(User.Deserializer().deserialize(resp.obj().get("user").toString()))
+                    val userDialog = AlertDialog.Builder(this@NekoMain)
+                    val factory = LayoutInflater.from(this@NekoMain)
+                    val view = factory.inflate(R.layout.user_dialog, null)
+                    userDialog.setView(view)
+
+                    val username = view.findViewById<TextView>(R.id.tvUsername)
+                    val likes = view.findViewById<TextView>(R.id.tvLikes)
+                    val favorites = view.findViewById<TextView>(R.id.tvFavorites)
+                    val joined = view.findViewById<TextView>(R.id.tvJoined)
+                    val posted = view.findViewById<TextView>(R.id.tvPosted)
+                    val given = view.findViewById<TextView>(R.id.tvGiven)
+
+                    val suffix = if (user.uploads == 1) "image" else "images"
+
+                    username.text = getString(R.string.acc_username, user.username)
+                    likes.text = getString(R.string.likes, user.likesReceived)
+                    favorites.text = getString(R.string.favorites, user.favoritesReceived)
+                    joined.text = getString(R.string.joined, timestamp(user.createdAt))
+                    posted.text = getString(R.string.posted, "${user.uploads} $suffix")
+                    given.text = getString(R.string.given, user.likes.size, user.favorites.size)
+                    userDialog.show()
                 } else if (error != null) {
                     val msg =
                             Json(String(error.errorData)).obj().get("message") as String?
@@ -268,41 +274,6 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                 }
             }
         }
-    }
-
-    @SuppressLint("InflateParams")
-    private fun loadUser() {
-        val userDialog = AlertDialog.Builder(this)
-        val factory = LayoutInflater.from(this)
-        val view = factory.inflate(R.layout.user_dialog, null)
-        userDialog.setView(view)
-
-        val username = view.findViewById<TextView>(R.id.tvUsername)
-        val likes = view.findViewById<TextView>(R.id.tvLikes)
-        val favorites = view.findViewById<TextView>(R.id.tvFavorites)
-        val joined = view.findViewById<TextView>(R.id.tvJoined)
-        val posted = view.findViewById<TextView>(R.id.tvPosted)
-        val given = view.findViewById<TextView>(R.id.tvGiven)
-
-        val suffix = if (user?.uploads == 1) "image" else "images"
-
-        if (user != null) {
-            username.text = getString(R.string.acc_username, user?.username)
-            likes.text = getString(R.string.likes, user?.likesReceived)
-            favorites.text = getString(R.string.favorites, user?.favoritesReceived)
-            joined.text = getString(R.string.joined, timestamp(user?.createdAt!!))
-            posted.text = getString(R.string.posted, "${user?.uploads} $suffix")
-            given.text = getString(R.string.given, user?.likes!!.size, user?.favorites!!.size)
-        } else {
-            requestMe()
-        }
-        userDialog.show()
-    }
-
-    private fun timestamp(timeCreated: String): String {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-        val timeCreatedDate = dateFormat.parse(timeCreated)
-        return DateUtils.getRelativeTimeSpanString(timeCreatedDate.time, System.currentTimeMillis(),  DateUtils.SECOND_IN_MILLIS) as String
     }
 
     private fun requestNeko(next: Boolean) {
@@ -337,7 +308,6 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                             nekos = newNekos
                             adapter = NekoAdapter(this@NekoMain, newNekos)
                             nekoImages.adapter = adapter
-                            // nekos.images.find { s -> s.id == "" }
                         } else if (error != null) {
                             val msg =
                                     Json(String(error.errorData)).obj().get("message") as String?
@@ -348,6 +318,117 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                     }
             isNew = false
         }
+    }
+
+    @SuppressLint("InflateParams")
+    private fun uploadNeko(uri: Uri) {
+        if (!connected || !isConnected(this)) {
+            Snackbar.make(nekoImages, "No network connection", Snackbar.LENGTH_INDEFINITE).show()
+            return
+        }
+        val token = sharedPreferences!!.getString("token", "")
+        if (token.isNullOrBlank() || token.isNullOrEmpty()) {
+            Snackbar.make(nekoImages, "You need to login first", Snackbar.LENGTH_LONG).show()
+            return
+        }
+
+        val imgPath = FilePickUtils.getSmartFilePath(this, uri)
+        val file = File(imgPath)
+
+        val uploadDialog = AlertDialog.Builder(this)
+        val factory = LayoutInflater.from(this)
+        val view = factory.inflate(R.layout.upload_dialog, null)
+        uploadDialog.setView(view)
+
+        val uploadImage = view.findViewById<ImageView>(R.id.uploadImage)
+        val bitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, uri)
+        uploadImage.setImageBitmap(bitmap)
+
+        uploadDialog.setNegativeButton("Cancel", { dialog, _ -> dialog.cancel() })
+        uploadDialog.setPositiveButton("Upload", { _, _ ->
+            val strtags = view.findViewById<EditText>(R.id.etTags).text.toString()
+            val artist = view.findViewById<EditText>(R.id.etArtist).text.toString()
+            val nsfw = view.findViewById<Switch>(R.id.swNsfw).isChecked
+            val tags = strtags.split(Regex(", ?"), 0)
+
+            doAsync {
+                val mediaType = MediaType.parse("image/${file.extension}")
+                val client = OkHttpClient()
+                val builder = MultipartBody.Builder()
+
+                builder.setType(MultipartBody.FORM)
+                builder.addFormDataPart("image", file.nameWithoutExtension, RequestBody.create(mediaType, file))
+                tags.forEach { tag -> builder.addFormDataPart("tags[]", tag) }
+                builder.addFormDataPart("artist", artist)
+                builder.addFormDataPart("nsfw", nsfw.toString())
+                builder.setType(MediaType.parse("multipart/form-data")!!)
+                val requestBody = builder.build()
+
+                val headers = Headers.Builder()
+                        .add("Authorization", token)
+                        .add("User-Agent", userAgent)
+                        .build()
+
+                val request = Request.Builder()
+                        .url("$url/images")
+                        .headers(headers)
+                        .post(requestBody)
+                        .build()
+
+                val response = client.newCall(request).execute()
+                if (!response.isSuccessful) {
+                    Snackbar.make(nekoImages, Json(response.body()?.string()!!).obj().get("message") as String, Snackbar.LENGTH_LONG)
+                } else {
+                    Snackbar.make(nekoImages, "Success uploading neko, awaiting approval of an admin", Snackbar.LENGTH_SHORT)
+                }
+                response.close()
+            }
+        })
+
+        uploadDialog.show()
+    }
+
+    @SuppressLint("InflateParams")
+    private fun login() {
+        if (!connected || !isConnected(this)) {
+            Snackbar.make(nekoImages, "No network connection", Snackbar.LENGTH_INDEFINITE).show()
+            return
+        }
+        val loginDialog = AlertDialog.Builder(this)
+        val factory = LayoutInflater.from(this)
+        val view = factory.inflate(R.layout.login_dialog, null)
+        loginDialog.setView(view)
+        loginDialog.setNegativeButton("Cancel", { dialog, _ -> dialog.cancel() })
+        loginDialog.setPositiveButton("Login", { _, _ ->
+            doAsync {
+                val username = view.findViewById<EditText>(R.id.usernameInput)
+                val password = view.findViewById<EditText>(R.id.passwordInput)
+                Fuel.post("/auth")
+                        .header(mapOf("Content-Type" to "application/json"))
+                        .body("{\"username\": \"${username.text}\", \"password\": \"${password.text}\"}")
+                        .responseJson { _, _, result ->
+                            val (data, error) = result
+                            if (data != null) {
+                                val token = data.obj().get("token") as String
+                                sharedPreferences!!.edit().putString("token", token).apply()
+                                updateUI(true)
+                                FuelManager.instance.baseHeaders = mapOf(
+                                        "User-Agent" to userAgent,
+                                        "Authorization" to token
+                                )
+                                Snackbar.make(nekoImages, "Success logging in", Snackbar.LENGTH_SHORT).show()
+                            } else if (error != null) {
+                                updateUI(false)
+                                val msg =
+                                        Json(String(error.errorData)).obj().get("message") as String?
+                                                ?: error.message
+                                                ?: "Something went wrong"
+                                Snackbar.make(nekoImages, msg, Snackbar.LENGTH_LONG).show()
+                            }
+                        }
+            }
+        })
+        loginDialog.show()
     }
 
     private fun updateUI(success: Boolean) {
@@ -361,35 +442,10 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
     }
 }
 
-fun downloadAndSave(neko: Neko, main: NekoMain) {
-    val mediaStorageDir = File(Environment.getExternalStorageDirectory().toString() + "/Nekos/")
-    if (!mediaStorageDir.exists()) mediaStorageDir.mkdirs()
-    val file = File(mediaStorageDir, "${neko.id}.jpeg")
-
-    Fuel.download("https://nekos.moe/image/${neko.id}").destination { response, _ ->
-        Log.w("Response", response.toString())
-        file
-    }.response { request, response, result ->
-        Log.w("Request", request.toString())
-        Log.w("Response", response.toString())
-        Log.w("Result", result.toString())
-
-        val (data, err) = result
-        if (data != null) {
-            val fileOutput = FileOutputStream(file)
-            fileOutput.write(data, 0, data.size)
-
-            main.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
-            Snackbar.make(main.findViewById<GridView>(R.id.nekoImages), "Saved as ${neko.id}.jpeg", Snackbar.LENGTH_SHORT).show()
-            fileOutput.close()
-        } else if (err != null) {
-            val msg =
-                    Json(String(err.errorData)).obj().get("message") as String?
-                            ?: err.message
-                            ?: "Something went wrong"
-            Snackbar.make(main.nekoImages, msg, Snackbar.LENGTH_LONG).show()
-        }
-    }
+fun timestamp(timeCreated: String): String {
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    val timeCreatedDate = dateFormat.parse(timeCreated)
+    return DateUtils.getRelativeTimeSpanString(timeCreatedDate.time, System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS) as String
 }
 
 fun hasPermissions(context: Context?, permissions: Array<String>): Boolean {
