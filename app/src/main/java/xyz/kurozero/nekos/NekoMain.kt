@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.Typeface
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -30,9 +31,10 @@ import org.jetbrains.anko.selector
 import kotlinx.android.synthetic.main.activity_neko_main.*
 import okhttp3.*
 import okhttp3.Request
+import org.jetbrains.anko.backgroundColor
 import java.io.File
 
-const val userAgent = "NekosApp/v0.4.0 (https://github.com/KurozeroPB/nekos-app)"
+const val userAgent = "NekosApp/v0.5.0 (https://github.com/KurozeroPB/nekos-app)"
 val File.extension: String
     get() = name.substringAfterLast('.', "")
 
@@ -42,13 +44,14 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
     private var toSkip = 0
     private var page = 1
     private var isNew = true
-    private var nsfw = false
     private var sort = "newest"
     private var nekos: Nekos? = null
     private var adapter: NekoAdapter? = null
     private var optionsMenu: Menu? = null
     private var connected: Boolean = true
     private var sharedPreferences: SharedPreferences? = null
+    private var typeFace: Typeface? = null
+    var nsfw = false
     val permissions = arrayOf(
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
             android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -59,6 +62,15 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         registerReceiver(ConnectivityReceiver(), IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION))
         setContentView(R.layout.activity_neko_main)
         setSupportActionBar(toolbar)
+        supportActionBar?.title = null
+        typeFace = Typeface.createFromAsset(assets, "fonts/nunito.ttf")
+        toolbar_title.typeface = typeFace
+
+        FontsOverride.setDefaultFont(this, "DEFAULT", "fonts/nunito.ttf")
+        FontsOverride.setDefaultFont(this, "MONOSPACE", "fonts/nunito.ttf")
+        FontsOverride.setDefaultFont(this, "SERIF", "fonts/nunito.ttf")
+        FontsOverride.setDefaultFont(this, "SANS_SERIF", "fonts/nunito.ttf")
+
         sharedPreferences = getSharedPreferences("nekos.moe", Context.MODE_PRIVATE)
 
         if (!hasPermissions(this, permissions)) {
@@ -171,10 +183,12 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                 isNew = true
                 page = 1
                 if (!nsfw) {
+                    updateNsfwUI(true)
                     nsfw = true
                     switchNsfw?.title = getString(R.string.switch_nsfw, "Disable")
                     Snackbar.make(nekoImages, "Enabled nsfw images", Snackbar.LENGTH_SHORT).show()
                 } else {
+                    updateNsfwUI(false)
                     nsfw = false
                     switchNsfw?.title = getString(R.string.switch_nsfw, "Enable")
                     Snackbar.make(nekoImages, "Disabled nsfw images", Snackbar.LENGTH_SHORT).show()
@@ -438,6 +452,20 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         } else {
             sharedPreferences!!.edit().remove("token").apply()
             loginOut.title = getString(R.string.login_out, "Login")
+        }
+    }
+
+    private fun updateNsfwUI(nsfw: Boolean) {
+        if (nsfw) {
+            setTheme(R.style.AppThemeNsfw)
+            window.statusBarColor = getColor(R.color.nsfw_colorPrimaryDark)
+            toolbar.backgroundColor = getColor(R.color.nsfw_colorPrimary)
+            navigationView.setBackgroundColor(getColor(R.color.nsfw_colorPrimary))
+        } else {
+            setTheme(R.style.AppTheme)
+            window.statusBarColor = getColor(R.color.colorPrimaryDark)
+            toolbar.backgroundColor = getColor(R.color.colorPrimary)
+            navigationView.setBackgroundColor(getColor(R.color.colorPrimary))
         }
     }
 }

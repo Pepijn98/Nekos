@@ -3,4 +3,8 @@
     <color name="colorPrimary">#96abec</color>
     <color name="colorPrimaryDark">#809ae8</color>
     <color name="colorAccent">#ee6e73</color>
+
+    <color name="nsfw_colorPrimary">#ff3860</color>
+    <color name="nsfw_colorPrimaryDark">#da2f52</color>
+    <color name="nsfw_colorAccent">#ee6e73</color>
 </resources>

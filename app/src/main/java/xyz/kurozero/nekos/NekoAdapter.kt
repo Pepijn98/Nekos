@@ -8,18 +8,17 @@ import android.net.Uri
 import android.os.Environment
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
+import android.support.v7.widget.CardView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
-import android.widget.GridView
-import android.widget.ImageView
+import android.widget.*
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.android.core.Json
 import com.squareup.picasso.Picasso
-import jp.wasabeef.picasso.transformations.RoundedCornersTransformation
 import kotlinx.android.synthetic.main.activity_neko_main.*
+import kotlinx.android.synthetic.main.nekos_entry.*
 import kotlinx.android.synthetic.main.nekos_entry.view.*
 import org.jetbrains.anko.doAsync
 import java.io.File
@@ -47,17 +46,17 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
         val inflator = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val imageView = inflator.inflate(R.layout.nekos_entry, null)
 
-        imageView.imgNeko.foreground = main.getDrawable(R.drawable.border)
+        val cardView = imageView.findViewById<CardView>(R.id.nekoCardView)
+        cardView.preventCornerOverlap = true
+        cardView.radius = 40f
 
-        val radius = 50
-        val margin = 0
-        val transformation = RoundedCornersTransformation(radius, margin)
+        if (main.nsfw) {
+            cardView.foreground = main.getDrawable(R.drawable.border_nsfw)
+        } else {
+            cardView.foreground = main.getDrawable(R.drawable.border_sfw)
+        }
 
-        Picasso.get()
-                .load("https://nekos.moe/thumbnail/${neko.id}")
-                .transform(transformation)
-                .fit()
-                .into(imageView.imgNeko)
+        Picasso.get().load("https://nekos.moe/thumbnail/${neko.id}").into(imageView.imgNeko)
 
         imageView.setOnClickListener {
             val alertadd = AlertDialog.Builder(main)
@@ -67,7 +66,7 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
             alertadd.setView(view)
             Picasso.get().load("https://nekos.moe/image/${neko.id}").into(view.findViewById<ImageView>(R.id.dialog_imageview))
 
-            alertadd.setNeutralButton("Save", { _, _ ->
+            alertadd.setPositiveButton("Save", { _, _ ->
                 if (!hasPermissions(main, main.permissions)) {
                     ActivityCompat.requestPermissions(main, main.permissions, 999)
                 } else {
@@ -77,7 +76,7 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
                 }
             })
 
-            alertadd.setPositiveButton("Close", { dialog, _ -> dialog.dismiss() })
+            alertadd.setNegativeButton("Close", { dialog, _ -> dialog.dismiss() })
 
             alertadd.show()
         }
