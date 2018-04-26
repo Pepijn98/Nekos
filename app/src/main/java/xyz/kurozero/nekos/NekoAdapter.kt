@@ -6,9 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Environment
-import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
-import android.support.v7.widget.CardView
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -16,13 +14,14 @@ import android.view.ViewGroup
 import android.widget.*
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.android.core.Json
-import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.activity_neko_main.*
-import kotlinx.android.synthetic.main.nekos_entry.*
+import com.hendraanggrian.pikasso.picasso
+import com.hendraanggrian.pikasso.*
 import kotlinx.android.synthetic.main.nekos_entry.view.*
-import org.jetbrains.anko.doAsync
+import kotlinx.android.synthetic.main.view_neko_dialog.view.*
 import java.io.File
 import java.io.FileOutputStream
+import android.provider.MediaStore
+import org.jetbrains.anko.*
 
 class NekoAdapter(private val context: Context, private var nekos: Nekos) : BaseAdapter() {
     private val main = context as NekoMain
@@ -42,13 +41,15 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
     @SuppressLint("ViewHolder", "InflateParams")
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val neko = this.nekos.images[position]
+        val thumbnailImage = "https://nekos.moe/thumbnail/${neko.id}"
+        val fullImage = "https://nekos.moe/image/${neko.id}"
 
         val inflator = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val imageView = inflator.inflate(R.layout.nekos_entry, null)
 
-        val cardView = imageView.findViewById<CardView>(R.id.nekoCardView)
+        val cardView = imageView.nekoCardView
         cardView.preventCornerOverlap = true
-        cardView.radius = 40f
+        cardView.radius = 50f
 
         if (main.nsfw) {
             cardView.foreground = main.getDrawable(R.drawable.border_nsfw)
@@ -56,17 +57,30 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
             cardView.foreground = main.getDrawable(R.drawable.border_sfw)
         }
 
-        Picasso.get().load("https://nekos.moe/thumbnail/${neko.id}").into(imageView.imgNeko)
+        picasso.load(thumbnailImage)
+                .into(imageView.imgNeko.toProgressTarget())
 
         imageView.setOnClickListener {
-            val alertadd = AlertDialog.Builder(main)
+            val builder = AlertDialog.Builder(main)
+            val nekoDialog = builder.create()
             val factory = LayoutInflater.from(main)
 
-            val view = factory.inflate(R.layout.alert_dialog, null)
-            alertadd.setView(view)
-            Picasso.get().load("https://nekos.moe/image/${neko.id}").into(view.findViewById<ImageView>(R.id.dialog_imageview))
+            val view = factory.inflate(R.layout.view_neko_dialog, null)
 
-            alertadd.setPositiveButton("Save", { _, _ ->
+            if (main.nsfw) {
+                view.btnSaveNeko?.setTextColor(main.getColor(R.color.nsfw_colorPrimary))
+                view.btnShareNeko?.setTextColor(main.getColor(R.color.nsfw_colorPrimary))
+                view.btnCloseNeko?.setTextColor(main.getColor(R.color.nsfw_colorPrimary))
+            } else {
+                view.btnSaveNeko?.setTextColor(main.getColor(R.color.colorPrimary))
+                view.btnShareNeko?.setTextColor(main.getColor(R.color.colorPrimary))
+                view.btnCloseNeko?.setTextColor(main.getColor(R.color.colorPrimary))
+            }
+
+            nekoDialog.setView(view)
+            picasso.load(fullImage).into(view.fullNekoImg.toProgressTarget())
+
+            view.btnSaveNeko.setOnClickListener {
                 if (!hasPermissions(main, main.permissions)) {
                     ActivityCompat.requestPermissions(main, main.permissions, 999)
                 } else {
@@ -74,11 +88,35 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
                         downloadAndSave(neko)
                     }
                 }
-            })
+            }
 
-            alertadd.setNegativeButton("Close", { dialog, _ -> dialog.dismiss() })
+            view.btnCloseNeko.setOnClickListener {
+                nekoDialog.cancel()
+            }
 
-            alertadd.show()
+            view.btnShareNeko.setOnClickListener {
+                if (!main.connected || !isConnected(main)) {
+                    main.toast("No network connection")
+                } else {
+                    picasso.load(fullImage).into {
+                        onFailed { e, _ ->
+                            main.toast(e.message ?: "Something went wrong")
+                        }
+                        onLoaded { bitmap, _ ->
+                            val intent = Intent(Intent.ACTION_SEND)
+                            intent.putExtra(Intent.EXTRA_TEXT, "Want to see more cute nekos like this? Visit https://nekos.moe or download the the android app from https://github.com/KurozeroPB/Nekos")
+                            val path = MediaStore.Images.Media.insertImage(main.contentResolver, bitmap, "", null)
+                            val uri = Uri.parse(path)
+
+                            intent.putExtra(Intent.EXTRA_STREAM, uri)
+                            intent.type = "image/*"
+                            main.startActivity(Intent.createChooser(intent, "Share image via..."))
+                        }
+                    }
+                }
+            }
+
+            nekoDialog.show()
         }
 
         return imageView
@@ -103,14 +141,14 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
                 fileOutput.write(data, 0, data.size)
 
                 main.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
-                Snackbar.make(main.findViewById<GridView>(R.id.nekoImages), "Saved as ${neko.id}.jpeg", Snackbar.LENGTH_SHORT).show()
+                main.toast("Saved as ${neko.id}.jpeg")
                 fileOutput.close()
             } else if (err != null) {
                 val msg =
                         Json(String(err.errorData)).obj().get("message") as String?
                                 ?: err.message
                                 ?: "Something went wrong"
-                Snackbar.make(main.nekoImages, msg, Snackbar.LENGTH_LONG).show()
+                main.toast(msg)
             }
         }
     }

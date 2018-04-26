@@ -1,13 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="5dp">
 
-    <ImageView
-        android:id="@+id/dialog_imageview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:src="@drawable/placeholder"
-        android:contentDescription="@string/soon" />
+    <TextView
+        android:id="@+id/txtTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="@string/high_data_usage"
+        android:textStyle="bold"
+        android:gravity="center_vertical"
+        android:drawableStart="@drawable/alert_circle_outline"
+        android:drawablePadding="5dp"
+        app:layout_constraintBottom_toTopOf="@+id/alertMessage"
+        app:layout_constraintEnd_toEndOf="@+id/alertMessage"
+        app:layout_constraintStart_toStartOf="@+id/alertMessage" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/alertMessage"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</android.support.constraint.ConstraintLayout>

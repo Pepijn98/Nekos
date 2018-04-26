@@ -9,15 +9,14 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.icu.text.SimpleDateFormat
+import android.net.*
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.*
 import android.widget.*
 import android.os.Build
-import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
-import android.net.ConnectivityManager
-import android.net.Uri
 import android.provider.MediaStore
 import android.text.format.DateUtils
 import com.github.kittinunf.fuel.android.extension.responseJson
@@ -26,15 +25,18 @@ import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.android.core.Json
 import com.github.kittinunf.fuel.core.*
 import com.github.kittinunf.fuel.httpGet
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.selector
+import org.jetbrains.anko.*
+import org.json.JSONException
+import nl.komponents.kovenant.task
+import nl.komponents.kovenant.then
 import kotlinx.android.synthetic.main.activity_neko_main.*
+import kotlinx.android.synthetic.main.alert_dialog.view.*
+import kotlinx.android.synthetic.main.view_neko_dialog.*
 import okhttp3.*
 import okhttp3.Request
-import org.jetbrains.anko.backgroundColor
 import java.io.File
 
-const val userAgent = "NekosApp/v0.5.0 (https://github.com/KurozeroPB/nekos-app)"
+const val userAgent = "NekosApp/v0.5.1 (https://github.com/KurozeroPB/nekos-app)"
 val File.extension: String
     get() = name.substringAfterLast('.', "")
 
@@ -44,13 +46,14 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
     private var toSkip = 0
     private var page = 1
     private var isNew = true
+    private var init = true
     private var sort = "newest"
     private var nekos: Nekos? = null
     private var adapter: NekoAdapter? = null
     private var optionsMenu: Menu? = null
-    private var connected: Boolean = true
     private var sharedPreferences: SharedPreferences? = null
     private var typeFace: Typeface? = null
+    var connected: Boolean = true
     var nsfw = false
     val permissions = arrayOf(
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
@@ -111,6 +114,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         }
 
         requestNeko(false)
+        setInit()
     }
 
     override fun onResume() {
@@ -120,8 +124,13 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
 
     override fun onNetworkConnectionChanged(isConnected: Boolean) {
         connected = isConnected
+
+        val isMobile = checkConnectionType()
+        if (isMobile) return
         if (!connected || !isConnected(this)) {
-            Snackbar.make(nekoImages, "Lost network connection", Snackbar.LENGTH_INDEFINITE).show()
+            longToast("Lost network connection")
+        } else {
+            if (!init) toast("Network connection restored")
         }
     }
 
@@ -130,17 +139,9 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         when (requestCode) {
             999 -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Snackbar.make(
-                            nekoImages,
-                            "The app can now save images to your storage",
-                            Snackbar.LENGTH_LONG
-                    ).show()
+                    longToast("The app can now save images to your storage")
                 } else {
-                    Snackbar.make(
-                            nekoImages,
-                            "The app was not allowed to write in your storage",
-                            Snackbar.LENGTH_LONG
-                    ).show()
+                    longToast("The app was not allowed to write in your storage")
                 }
             }
         }
@@ -186,12 +187,12 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                     updateNsfwUI(true)
                     nsfw = true
                     switchNsfw?.title = getString(R.string.switch_nsfw, "Disable")
-                    Snackbar.make(nekoImages, "Enabled nsfw images", Snackbar.LENGTH_SHORT).show()
+                    toast("Enabled nsfw images")
                 } else {
                     updateNsfwUI(false)
                     nsfw = false
                     switchNsfw?.title = getString(R.string.switch_nsfw, "Enable")
-                    Snackbar.make(nekoImages, "Disabled nsfw images", Snackbar.LENGTH_SHORT).show()
+                    toast("Disabled nsfw images")
                 }
                 requestNeko(false)
                 true
@@ -237,20 +238,20 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
         if (resultCode == RESULT_CANCELED) return
-        if (requestCode == 998) {
-            uploadNeko(intent!!.data)
+        when (requestCode) {
+            998 -> uploadNeko(intent!!.data)
         }
     }
 
     @SuppressLint("InflateParams")
     private fun loadMe() {
         if (!connected || !isConnected(this)) {
-            Snackbar.make(nekoImages, "No network connection", Snackbar.LENGTH_INDEFINITE).show()
+            toast("No network connection")
             return
         }
         val token = sharedPreferences!!.getString("token", "")
         if (token.isNullOrBlank() || token.isNullOrEmpty()) {
-            Snackbar.make(nekoImages, "You need to login first", Snackbar.LENGTH_LONG).show()
+            longToast("You need to login first")
             return
         }
         doAsync {
@@ -280,11 +281,14 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                     given.text = getString(R.string.given, user.likes.size, user.favorites.size)
                     userDialog.show()
                 } else if (error != null) {
-                    val msg =
-                            Json(String(error.errorData)).obj().get("message") as String?
-                                    ?: error.message
-                                    ?: "Something went wrong"
-                    Snackbar.make(nekoImages, msg, Snackbar.LENGTH_LONG).show()
+                    val msg = try {
+                        Json(String(error.errorData)).obj().get("message") as String?
+                                ?: error.message
+                                ?: "Something went wrong"
+                    } catch (e: JSONException) {
+                        e.message ?: "Something went wrong"
+                    }
+                    longToast(msg)
                 }
             }
         }
@@ -292,7 +296,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
 
     private fun requestNeko(next: Boolean) {
         if (!connected || !isConnected(this)) {
-            Snackbar.make(nekoImages, "No network connection", Snackbar.LENGTH_INDEFINITE).show()
+            toast("No network connection")
             return
         }
         val oldPage = page
@@ -327,7 +331,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                     Json(String(error.errorData)).obj().get("message") as String?
                                             ?: error.message
                                             ?: "Something went wrong"
-                            Snackbar.make(nekoImages, msg, Snackbar.LENGTH_LONG).show()
+                            longToast(msg)
                         }
                     }
             isNew = false
@@ -337,12 +341,12 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
     @SuppressLint("InflateParams")
     private fun uploadNeko(uri: Uri) {
         if (!connected || !isConnected(this)) {
-            Snackbar.make(nekoImages, "No network connection", Snackbar.LENGTH_INDEFINITE).show()
+            toast("No network connection")
             return
         }
         val token = sharedPreferences!!.getString("token", "")
         if (token.isNullOrBlank() || token.isNullOrEmpty()) {
-            Snackbar.make(nekoImages, "You need to login first", Snackbar.LENGTH_LONG).show()
+            longToast("You need to login first")
             return
         }
 
@@ -358,7 +362,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         val bitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, uri)
         uploadImage.setImageBitmap(bitmap)
 
-        uploadDialog.setNegativeButton("Cancel", { dialog, _ -> dialog.cancel() })
+        uploadDialog.setNegativeButton("Cancel", null)
         uploadDialog.setPositiveButton("Upload", { _, _ ->
             val strtags = view.findViewById<EditText>(R.id.etTags).text.toString()
             val artist = view.findViewById<EditText>(R.id.etArtist).text.toString()
@@ -391,9 +395,9 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
 
                 val response = client.newCall(request).execute()
                 if (!response.isSuccessful) {
-                    Snackbar.make(nekoImages, Json(response.body()?.string()!!).obj().get("message") as String, Snackbar.LENGTH_LONG).show()
+                    longToast(Json(response.body()?.string()!!).obj().get("message") as String)
                 } else {
-                    Snackbar.make(nekoImages, "Success uploading neko, awaiting approval of an admin", Snackbar.LENGTH_SHORT).show()
+                    toast("Success uploading neko, awaiting approval of an admin")
                 }
                 response.close()
             }
@@ -405,7 +409,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
     @SuppressLint("InflateParams")
     private fun login() {
         if (!connected || !isConnected(this)) {
-            Snackbar.make(nekoImages, "No network connection", Snackbar.LENGTH_INDEFINITE).show()
+            toast("No network connection")
             return
         }
         val loginDialog = AlertDialog.Builder(this)
@@ -430,14 +434,14 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                         "User-Agent" to userAgent,
                                         "Authorization" to token
                                 )
-                                Snackbar.make(nekoImages, "Success logging in", Snackbar.LENGTH_SHORT).show()
+                                toast("Success logging in")
                             } else if (error != null) {
                                 updateUI(false)
                                 val msg =
                                         Json(String(error.errorData)).obj().get("message") as String?
                                                 ?: error.message
                                                 ?: "Something went wrong"
-                                Snackbar.make(nekoImages, msg, Snackbar.LENGTH_LONG).show()
+                                longToast(msg)
                             }
                         }
             }
@@ -461,11 +465,52 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
             window.statusBarColor = getColor(R.color.nsfw_colorPrimaryDark)
             toolbar.backgroundColor = getColor(R.color.nsfw_colorPrimary)
             navigationView.setBackgroundColor(getColor(R.color.nsfw_colorPrimary))
+            btnSaveNeko?.setTextColor(getColor(R.color.nsfw_colorPrimary))
+            btnShareNeko?.setTextColor(getColor(R.color.nsfw_colorPrimary))
+            btnCloseNeko?.setTextColor(getColor(R.color.nsfw_colorPrimary))
         } else {
             setTheme(R.style.AppTheme)
             window.statusBarColor = getColor(R.color.colorPrimaryDark)
             toolbar.backgroundColor = getColor(R.color.colorPrimary)
             navigationView.setBackgroundColor(getColor(R.color.colorPrimary))
+            btnSaveNeko?.setTextColor(getColor(R.color.colorPrimary))
+            btnShareNeko?.setTextColor(getColor(R.color.colorPrimary))
+            btnCloseNeko?.setTextColor(getColor(R.color.colorPrimary))
+        }
+    }
+
+    @SuppressLint("InflateParams")
+    private fun checkConnectionType(): Boolean {
+        val conn = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val netInfo = conn.activeNetworkInfo
+        if (netInfo?.type == ConnectivityManager.TYPE_MOBILE) {
+            val alertDialog = AlertDialog.Builder(this)
+            val factory = LayoutInflater.from(this)
+            val view = factory.inflate(R.layout.alert_dialog, null)
+            alertDialog.setView(view)
+            alertDialog.setNegativeButton("Close", null)
+            alertDialog.setPositiveButton("Switch", { _, _ ->
+                val wifi = getSystemService(Context.WIFI_SERVICE) as WifiManager
+                wifi.isWifiEnabled = true
+                toast("Enabled wifi, have fun browsing!")
+            })
+            view.alertMessage.text = getString(R.string.network_usage_alert)
+            alertDialog.show()
+            return true
+        }
+        return false
+    }
+
+    // I wish I could hide functions like these, this is disgusting
+    private fun setInit() {
+        task {
+            var i = 0
+            while (i<100000000) i++
+            i
+        } then {
+            i -> i != 100000000
+        } success {
+            value -> init = value; println(init)
         }
     }
 }

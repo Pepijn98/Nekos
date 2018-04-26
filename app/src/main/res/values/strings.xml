@@ -24,4 +24,9 @@
     <string name="te_artist">Artist</string>
     <string name="nsfw">nsfw</string>
     <string name="nekos_moe">Nekos.moe</string>
+    <string name="close">Close</string>
+    <string name="save">Save</string>
+    <string name="share">Share</string>
+    <string name="network_usage_alert">It seems like you\'re using a mobile network connection. Keep in mind this app uses a lot of data, consider switching to a wifi connection.</string>
+    <string name="high_data_usage">High data usage</string>
 </resources>

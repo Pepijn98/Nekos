@@ -10,7 +10,6 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.graphics.Typeface
-import java.lang.reflect.Field
 
 object FilePickUtils {
     fun getPathDeprecated(ctx: Context, uri: Uri?): String? {

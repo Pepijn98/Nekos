@@ -1,11 +1,19 @@
 # Nekos
-Work in progress mobile app for https://nekos.moe
+Work in progress mobile app for https://nekos.moe\
+Pre-release apk's can be found [here](https://github.com/KurozeroPB/Nekos/releases)\
+Future plan is to at least finish the todos below that have a "*" and put a release version on the play store
 
 ## Todos
-- Snackbar when network connection is back
-- Alert when someone is using 3g/4g about high data usage
-- Like/favorite buttons for images
-- Show the image information on the pop-up
-- Edit account settings
-- Share button on the image pop-up
+#### Planned
+- Like/favorite buttons for images *
+- Show the image information on the pop-up -> should be in some menu list *
+- Edit account settings *
+- Network preferences
+- Logout confirmation to prevent accidental logouts
 - ...
+
+#### Finished
+- Toast when network connection is back
+- Alert when someone is using 3g/4g about high data usage -> also added an option to let the app enable wifi
+- Share button on the image pop-up
+- Loading indicators
