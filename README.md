@@ -7,4 +7,5 @@ Work in progress mobile app for https://nekos.moe
 - Like/favorite buttons for images
 - Show the image information on the pop-up
 - Edit account settings
+- Share button on the image pop-up
 - ...
