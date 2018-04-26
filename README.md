@@ -1,6 +1,6 @@
 # Nekos
-Work in progress mobile app for https://nekos.moe\
-Pre-release apk's can be found [here](https://github.com/KurozeroPB/Nekos/releases)\
+Work in progress mobile app for https://nekos.moe \
+Pre-release apk's can be found [here](https://github.com/KurozeroPB/Nekos/releases) \
 Future plan is to at least finish the todos below that have a "*" and put a release version on the play store
 
 ## Todos
