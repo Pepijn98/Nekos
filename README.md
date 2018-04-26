@@ -8,6 +8,7 @@ Future plan is to at least finish the todos below that have a "*" and put a rele
 - Like/favorite buttons for images *
 - Show the image information on the pop-up -> should be in some menu list *
 - Edit account settings *
+- Creating/verify an account *
 - Network preferences
 - Logout confirmation to prevent accidental logouts
 - ...
