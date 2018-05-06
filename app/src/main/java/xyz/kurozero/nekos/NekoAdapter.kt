@@ -51,7 +51,7 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
         cardView.preventCornerOverlap = true
         cardView.radius = 50f
 
-        if (main.nsfw) {
+        if (neko.nsfw) {
             cardView.foreground = main.getDrawable(R.drawable.border_nsfw)
         } else {
             cardView.foreground = main.getDrawable(R.drawable.border_sfw)
@@ -67,7 +67,7 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
 
             val view = factory.inflate(R.layout.view_neko_dialog, null)
 
-            if (main.nsfw) {
+            if (neko.nsfw) {
                 view.btnSaveNeko?.setTextColor(main.getColor(R.color.nsfw_colorPrimary))
                 view.btnShareNeko?.setTextColor(main.getColor(R.color.nsfw_colorPrimary))
                 view.btnCloseNeko?.setTextColor(main.getColor(R.color.nsfw_colorPrimary))

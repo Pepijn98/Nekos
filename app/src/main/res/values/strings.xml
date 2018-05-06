@@ -4,9 +4,9 @@
     <string name="neko">Neko</string>
     <string name="nekos">Nekos</string>
     <string name="artist">Artist: %1$s</string>
-    <string name="view_account">View account</string>
+    <string name="view_profile">Profile</string>
     <string name="soon">soon™</string>
-    <string name="switch_nsfw">%1$s nsfw</string>
+    <string name="switch_nsfw">nsfw</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
     <string name="refresh">Refresh</string>
@@ -29,4 +29,7 @@
     <string name="share">Share</string>
     <string name="network_usage_alert">It seems like you\'re using a mobile network connection. Keep in mind this app uses a lot of data, consider switching to a wifi connection.</string>
     <string name="high_data_usage">High data usage</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="sync">Sync</string>
 </resources>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/neko_drawer"
+    tools:showIn="@+id/nav_view">
+
+    <group>
+        <item
+            android:id="@+id/login_out"
+            android:title="@string/login_out"
+            android:icon="@drawable/ic_menu_login" />
+        <item
+            android:id="@+id/view_account"
+            android:title="@string/view_profile"
+            android:icon="@drawable/ic_menu_account" />
+        <item
+            android:id="@+id/switch_nsfw"
+            android:title="@string/switch_nsfw"
+            android:icon="@drawable/ic_menu_age_restriction" />
+        <item
+            android:id="@+id/sort"
+            android:title="@string/sort"
+            android:icon="@drawable/ic_menu_sort" />
+        <item
+            android:id="@+id/upload"
+            android:title="@string/upload"
+            android:icon="@drawable/ic_menu_upload" />
+    </group>
+
+</menu>

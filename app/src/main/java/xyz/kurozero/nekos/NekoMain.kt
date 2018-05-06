@@ -8,39 +8,40 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Typeface
-import android.icu.text.SimpleDateFormat
 import android.net.*
 import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.*
 import android.widget.*
-import android.os.Build
 import android.support.v4.app.ActivityCompat
 import android.provider.MediaStore
-import android.text.format.DateUtils
+import android.support.design.widget.NavigationView
+import android.support.v4.view.GravityCompat
+import android.support.v7.app.ActionBarDrawerToggle
 import com.github.kittinunf.fuel.android.extension.responseJson
-import com.google.gson.Gson
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.android.core.Json
 import com.github.kittinunf.fuel.core.*
 import com.github.kittinunf.fuel.httpGet
+import kotlinx.android.synthetic.main.activity_neko_main.*
 import org.jetbrains.anko.*
 import org.json.JSONException
 import nl.komponents.kovenant.task
 import nl.komponents.kovenant.then
-import kotlinx.android.synthetic.main.activity_neko_main.*
+import kotlinx.android.synthetic.main.app_bar_neko_main.*
 import kotlinx.android.synthetic.main.alert_dialog.view.*
-import kotlinx.android.synthetic.main.view_neko_dialog.*
+import kotlinx.android.synthetic.main.content_neko_main.*
+import kotlinx.android.synthetic.main.nav_header_neko_main.view.*
 import okhttp3.*
 import okhttp3.Request
 import java.io.File
 
-const val userAgent = "NekosApp/v0.5.1 (https://github.com/KurozeroPB/nekos-app)"
+const val userAgent = "NekosApp/v0.5.2 (https://github.com/KurozeroPB/nekos-app)"
 val File.extension: String
     get() = name.substringAfterLast('.', "")
 
-class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverListener {
+class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverListener, NavigationView.OnNavigationItemSelectedListener {
 
     private val url = "https://nekos.moe/api/v1"
     private var toSkip = 0
@@ -50,11 +51,12 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
     private var sort = "newest"
     private var nekos: Nekos? = null
     private var adapter: NekoAdapter? = null
-    private var optionsMenu: Menu? = null
     private var sharedPreferences: SharedPreferences? = null
     private var typeFace: Typeface? = null
+    private var isLoggedin: Boolean = false
+    private var user: User? = null
     var connected: Boolean = true
-    var nsfw = false
+    var nsfw: Boolean? = false
     val permissions = arrayOf(
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
             android.Manifest.permission.READ_EXTERNAL_STORAGE
@@ -68,13 +70,35 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         supportActionBar?.title = null
         typeFace = Typeface.createFromAsset(assets, "fonts/nunito.ttf")
         toolbar_title.typeface = typeFace
+        sharedPreferences = getSharedPreferences("nekos.moe", Context.MODE_PRIVATE)
+
+        val toggle = ActionBarDrawerToggle(this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawer_layout.addDrawerListener(toggle)
+        toggle.syncState()
+        nav_view.setNavigationItemSelectedListener(this)
+
+        val loginOut = nav_view.menu.findItem(R.id.login_out)
+        val token = sharedPreferences!!.getString("token", "")
+        val userstr = sharedPreferences!!.getString("user", "")
+        user = if (!userstr.isNullOrEmpty() || !userstr.isNullOrBlank()) User.Deserializer().deserialize(userstr) else null
+
+        isLoggedin = !token.isNullOrBlank() || !token.isNullOrEmpty()
+        val headerView = nav_view.getHeaderView(0)
+
+        if (isLoggedin) {
+            loginOut.title = getString(R.string.login_out, "Logout")
+            loginOut.icon = getDrawable(R.drawable.ic_menu_logout)
+            headerView.headerTitle.text = user?.username ?: "-"
+        } else {
+            loginOut.title = getString(R.string.login_out, "Login")
+            loginOut.icon = getDrawable(R.drawable.ic_menu_login)
+            headerView.headerTitle.text = "-"
+        }
 
         FontsOverride.setDefaultFont(this, "DEFAULT", "fonts/nunito.ttf")
         FontsOverride.setDefaultFont(this, "MONOSPACE", "fonts/nunito.ttf")
         FontsOverride.setDefaultFont(this, "SERIF", "fonts/nunito.ttf")
         FontsOverride.setDefaultFont(this, "SANS_SERIF", "fonts/nunito.ttf")
-
-        sharedPreferences = getSharedPreferences("nekos.moe", Context.MODE_PRIVATE)
 
         if (!hasPermissions(this, permissions)) {
             ActivityCompat.requestPermissions(this, permissions, 999)
@@ -103,14 +127,13 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
 
         FuelManager.instance.basePath = url
 
-        val token = sharedPreferences!!.getString("token", "")
-        if (token.isNullOrBlank() || token.isNullOrEmpty()) {
-            FuelManager.instance.baseHeaders = mapOf("User-Agent" to userAgent)
-        } else {
+        if (isLoggedin) {
             FuelManager.instance.baseHeaders = mapOf(
                     "User-Agent" to userAgent,
                     "Authorization" to token
             )
+        } else {
+            FuelManager.instance.baseHeaders = mapOf("User-Agent" to userAgent)
         }
 
         requestNeko(false)
@@ -147,55 +170,37 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_main, menu)
-        val loginOut = menu.findItem(R.id.login_out)
-        val switchNsfw = menu.findItem(R.id.switch_nsfw)
-
-        val token = sharedPreferences!!.getString("token", "")
-        if (token.isNullOrBlank() || token.isNullOrEmpty()) {
-            loginOut.title = getString(R.string.login_out, "Login")
-        } else {
-            loginOut.title = getString(R.string.login_out, "Logout")
-        }
-
-        switchNsfw.title = getString(R.string.switch_nsfw, "Enable")
-        optionsMenu = menu
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             R.id.login_out -> {
-                if (item.title == "Login") {
+                if (!isLoggedin) {
                     login()
                 } else {
                     updateUI(false)
                 }
-                true
             }
-            R.id.view_account -> {
-                loadMe()
-                true
-            }
+            R.id.view_account -> viewProfile()
             R.id.switch_nsfw -> {
-                val switchNsfw = optionsMenu?.findItem(R.id.switch_nsfw)
-
+                val buttons = listOf("Show me everything", "Only NSFW", "Block NSFW")
                 isNew = true
                 page = 1
-                if (!nsfw) {
-                    updateNsfwUI(true)
-                    nsfw = true
-                    switchNsfw?.title = getString(R.string.switch_nsfw, "Disable")
-                    toast("Enabled nsfw images")
-                } else {
-                    updateNsfwUI(false)
-                    nsfw = false
-                    switchNsfw?.title = getString(R.string.switch_nsfw, "Enable")
-                    toast("Disabled nsfw images")
-                }
-                requestNeko(false)
-                true
+                selector(null, buttons, { _, i ->
+                    when (i) {
+                        0 -> {
+                            nsfw = null
+                            requestNeko(false)
+                        }
+                        1 -> {
+                            nsfw = true
+                            requestNeko(false)
+                        }
+                        2 -> {
+                            nsfw = false
+                            requestNeko(false)
+                        }
+                        else -> return@selector
+                    }
+                })
             }
             R.id.sort -> {
                 val buttons = listOf("New", "Old", "Likes")
@@ -222,17 +227,17 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                         else -> return@selector
                     }
                 })
-                true
             }
             R.id.upload -> {
                 val intent = Intent()
                 intent.type = "image/*"
                 intent.action = Intent.ACTION_GET_CONTENT
                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), 998)
-                true
             }
-            else -> super.onOptionsItemSelected(item)
         }
+
+        drawer_layout.closeDrawer(GravityCompat.START)
+        return true
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -243,55 +248,81 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         }
     }
 
-    @SuppressLint("InflateParams")
-    private fun loadMe() {
-        if (!connected || !isConnected(this)) {
-            toast("No network connection")
-            return
-        }
-        val token = sharedPreferences!!.getString("token", "")
-        if (token.isNullOrBlank() || token.isNullOrEmpty()) {
-            longToast("You need to login first")
-            return
-        }
+    private fun getMe() {
+        if (!connected || !isConnected(this)) return
         doAsync {
             "user/@me".httpGet().responseJson { _, _, result ->
-                val (resp, error) = result
+                val (resp, _) = result
                 if (resp != null) {
-                    val user = checkNotNull(User.Deserializer().deserialize(resp.obj().get("user").toString()))
-                    val userDialog = AlertDialog.Builder(this@NekoMain)
-                    val factory = LayoutInflater.from(this@NekoMain)
-                    val view = factory.inflate(R.layout.user_dialog, null)
-                    userDialog.setView(view)
-
-                    val username = view.findViewById<TextView>(R.id.tvUsername)
-                    val likes = view.findViewById<TextView>(R.id.tvLikes)
-                    val favorites = view.findViewById<TextView>(R.id.tvFavorites)
-                    val joined = view.findViewById<TextView>(R.id.tvJoined)
-                    val posted = view.findViewById<TextView>(R.id.tvPosted)
-                    val given = view.findViewById<TextView>(R.id.tvGiven)
-
-                    val suffix = if (user.uploads == 1) "image" else "images"
-
-                    username.text = getString(R.string.acc_username, user.username)
-                    likes.text = getString(R.string.likes, user.likesReceived)
-                    favorites.text = getString(R.string.favorites, user.favoritesReceived)
-                    joined.text = getString(R.string.joined, timestamp(user.createdAt))
-                    posted.text = getString(R.string.posted, "${user.uploads} $suffix")
-                    given.text = getString(R.string.given, user.likes.size, user.favorites.size)
-                    userDialog.show()
-                } else if (error != null) {
-                    val msg = try {
-                        Json(String(error.errorData)).obj().get("message") as String?
-                                ?: error.message
-                                ?: "Something went wrong"
-                    } catch (e: JSONException) {
-                        e.message ?: "Something went wrong"
-                    }
-                    longToast(msg)
+                    user = User.Deserializer().deserialize(resp.obj().get("user").toString())
+                    sharedPreferences!!.edit().putString("user", resp.obj().get("user").toString()).apply()
+                    updateUI(true)
                 }
             }
         }
+    }
+
+    @SuppressLint("InflateParams")
+    private fun viewProfile() {
+        if (!isLoggedin) {
+            longToast("You need to be logged in")
+            return
+        }
+
+        val userDialog = AlertDialog.Builder(this@NekoMain)
+        val factory = LayoutInflater.from(this@NekoMain)
+        val view = factory.inflate(R.layout.user_dialog, null)
+        userDialog.setView(view)
+
+        val username = view.findViewById<TextView>(R.id.tvUsername)
+        val likes = view.findViewById<TextView>(R.id.tvLikes)
+        val favorites = view.findViewById<TextView>(R.id.tvFavorites)
+        val joined = view.findViewById<TextView>(R.id.tvJoined)
+        val posted = view.findViewById<TextView>(R.id.tvPosted)
+        val given = view.findViewById<TextView>(R.id.tvGiven)
+        val sync = view.findViewById<Button>(R.id.btnSync)
+
+        val suffix = if (user!!.uploads == 1) "image" else "images"
+
+        username.text = getString(R.string.acc_username, user!!.username)
+        likes.text = getString(R.string.likes, user!!.likesReceived)
+        favorites.text = getString(R.string.favorites, user!!.favoritesReceived)
+        joined.text = getString(R.string.joined, timestamp(user!!.createdAt))
+        posted.text = getString(R.string.posted, "${user!!.uploads} $suffix")
+        given.text = getString(R.string.given, user!!.likes.size, user!!.favorites.size)
+
+        sync.setOnClickListener {
+            if (!connected || !isConnected(this@NekoMain)) {
+                longToast("No network connection")
+                return@setOnClickListener
+            }
+            doAsync {
+                "user/@me".httpGet().responseJson { _, _, result ->
+                    val (resp, error) = result
+                    if (resp != null) {
+                        user = User.Deserializer().deserialize(resp.obj().get("user").toString())
+                        sharedPreferences!!.edit().putString("user", resp.obj().get("user").toString()).apply()
+                        username.text = getString(R.string.acc_username, user!!.username)
+                        likes.text = getString(R.string.likes, user!!.likesReceived)
+                        favorites.text = getString(R.string.favorites, user!!.favoritesReceived)
+                        joined.text = getString(R.string.joined, timestamp(user!!.createdAt))
+                        posted.text = getString(R.string.posted, "${user!!.uploads} $suffix")
+                        given.text = getString(R.string.given, user!!.likes.size, user!!.favorites.size)
+                    } else if (error != null) {
+                        val msg = try {
+                            Json(String(error.errorData)).obj().get("message") as String?
+                                    ?: error.message
+                                    ?: "Something went wrong"
+                        } catch (e: JSONException) {
+                            e.message ?: "Something went wrong"
+                        }
+                        longToast(msg)
+                    }
+                }
+            }
+        }
+
+        userDialog.show()
     }
 
     private fun requestNeko(next: Boolean) {
@@ -315,10 +346,14 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
 
         if (page <= 1 && !isNew && oldPage != 2) return
 
+        val reqbody =
+                if (nsfw != null) "{\"nsfw\": $nsfw, \"limit\": 10, \"skip\": $toSkip, \"sort\": \"$sort\"}"
+                else "{\"limit\": 10, \"skip\": $toSkip, \"sort\": \"$sort\"}"
+
         doAsync {
             Fuel.post("/images/search")
                     .header(mapOf("Content-Type" to "application/json"))
-                    .body("{\"nsfw\": $nsfw, \"limit\": 10, \"skip\": $toSkip, \"sort\": \"$sort\"}")
+                    .body(reqbody)
                     .responseJson { _, _, result ->
                         val (neko, error) = result
                         if (neko != null) {
@@ -344,12 +379,13 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
             toast("No network connection")
             return
         }
-        val token = sharedPreferences!!.getString("token", "")
-        if (token.isNullOrBlank() || token.isNullOrEmpty()) {
+
+        if (!isLoggedin) {
             longToast("You need to login first")
             return
         }
 
+        val token = sharedPreferences!!.getString("token", "")
         val imgPath = FilePickUtils.getSmartFilePath(this, uri)
         val file = File(imgPath)
 
@@ -429,11 +465,11 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                             if (data != null) {
                                 val token = data.obj().get("token") as String
                                 sharedPreferences!!.edit().putString("token", token).apply()
-                                updateUI(true)
                                 FuelManager.instance.baseHeaders = mapOf(
                                         "User-Agent" to userAgent,
                                         "Authorization" to token
                                 )
+                                getMe()
                                 toast("Success logging in")
                             } else if (error != null) {
                                 updateUI(false)
@@ -450,32 +486,20 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
     }
 
     private fun updateUI(success: Boolean) {
-        val loginOut = optionsMenu!!.findItem(R.id.login_out)
+        val loginOut = nav_view.menu.findItem(R.id.login_out)
+        val headerView = nav_view.getHeaderView(0)
         if (success) {
+            isLoggedin = true
+            headerView.headerTitle.text = user!!.username
             loginOut.title = getString(R.string.login_out, "Logout")
+            loginOut.icon = getDrawable(R.drawable.ic_menu_logout)
         } else {
+            isLoggedin = false
             sharedPreferences!!.edit().remove("token").apply()
+            headerView.headerTitle.text = "-"
             loginOut.title = getString(R.string.login_out, "Login")
-        }
-    }
-
-    private fun updateNsfwUI(nsfw: Boolean) {
-        if (nsfw) {
-            setTheme(R.style.AppThemeNsfw)
-            window.statusBarColor = getColor(R.color.nsfw_colorPrimaryDark)
-            toolbar.backgroundColor = getColor(R.color.nsfw_colorPrimary)
-            navigationView.setBackgroundColor(getColor(R.color.nsfw_colorPrimary))
-            btnSaveNeko?.setTextColor(getColor(R.color.nsfw_colorPrimary))
-            btnShareNeko?.setTextColor(getColor(R.color.nsfw_colorPrimary))
-            btnCloseNeko?.setTextColor(getColor(R.color.nsfw_colorPrimary))
-        } else {
-            setTheme(R.style.AppTheme)
-            window.statusBarColor = getColor(R.color.colorPrimaryDark)
-            toolbar.backgroundColor = getColor(R.color.colorPrimary)
-            navigationView.setBackgroundColor(getColor(R.color.colorPrimary))
-            btnSaveNeko?.setTextColor(getColor(R.color.colorPrimary))
-            btnShareNeko?.setTextColor(getColor(R.color.colorPrimary))
-            btnCloseNeko?.setTextColor(getColor(R.color.colorPrimary))
+            loginOut.icon = getDrawable(R.drawable.ic_menu_login)
+            toast("You're now logged out")
         }
     }
 
@@ -505,86 +529,12 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
     private fun setInit() {
         task {
             var i = 0
-            while (i<100000000) i++
+            while (i < 100000000) i++
             i
-        } then {
-            i -> i != 100000000
-        } success {
-            value -> init = value; println(init)
+        } then { i ->
+            i != 100000000
+        } success { value ->
+            init = value; println(init)
         }
-    }
-}
-
-fun timestamp(timeCreated: String): String {
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
-    val timeCreatedDate = dateFormat.parse(timeCreated)
-    return DateUtils.getRelativeTimeSpanString(timeCreatedDate.time, System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS) as String
-}
-
-fun hasPermissions(context: Context?, permissions: Array<String>): Boolean {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && context != null) {
-        for (permission in permissions) {
-            if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
-                return false
-            }
-        }
-    }
-    return true
-}
-
-fun isConnected(context: Context): Boolean {
-    val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    val activeNetwork = cm.activeNetworkInfo
-    return activeNetwork != null && activeNetwork.isConnected
-}
-
-// Deserialize response json
-data class Nekos(
-        val images: ArrayList<Neko>
-) {
-    class Deserializer : ResponseDeserializable<Nekos> {
-        override fun deserialize(content: String): Nekos? = Gson().fromJson(content, Nekos::class.java)
-    }
-}
-
-data class Neko(
-        val id: String,
-        val originalHash: String,
-        val uploader: NekoUploader,
-        val approver: NekoApprover,
-        val nsfw: Boolean,
-        val artist: String,
-        val tags: ArrayList<String>,
-        val comments: ArrayList<String>,
-        val createdAt: String,
-        val likes: Int,
-        val favorites: Int
-)
-
-data class NekoUploader(
-        val id: String,
-        val username: String
-)
-
-data class NekoApprover(
-        val id: String,
-        val username: String
-)
-
-data class User(
-        val id: String,
-        val username: String,
-        val createdAt: String,
-        val favoritesReceived: Int,
-        val likesReceived: Int,
-        val favorites: ArrayList<String>,
-        val likes: ArrayList<String>,
-        val uploads: Int,
-        val roles: ArrayList<String>,
-        val verified: Boolean,
-        val savedTags: ArrayList<String>
-) {
-    class Deserializer : ResponseDeserializable<User> {
-        override fun deserialize(content: String): User? = Gson().fromJson(content, User::class.java)
     }
 }

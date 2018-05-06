@@ -5,6 +5,7 @@ Future plan is to at least finish the todos below that have a "*" and put a rele
 
 ## Todos
 #### Planned
+- Drawer layout *
 - Like/favorite buttons for images *
 - Show the image information on the pop-up -> should be in some menu list *
 - Edit account settings *

@@ -3,6 +3,7 @@ package xyz.kurozero.nekos
 import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.Context
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
@@ -10,6 +11,10 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.graphics.Typeface
+import android.icu.text.SimpleDateFormat
+import android.net.ConnectivityManager
+import android.support.v4.app.ActivityCompat
+import android.text.format.DateUtils
 
 object FilePickUtils {
     fun getPathDeprecated(ctx: Context, uri: Uri?): String? {
@@ -126,4 +131,27 @@ object FontsOverride {
         }
 
     }
+}
+
+fun timestamp(timeCreated: String): String {
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    val timeCreatedDate = dateFormat.parse(timeCreated)
+    return DateUtils.getRelativeTimeSpanString(timeCreatedDate.time, System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS) as String
+}
+
+fun hasPermissions(context: Context?, permissions: Array<String>): Boolean {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && context != null) {
+        for (permission in permissions) {
+            if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                return false
+            }
+        }
+    }
+    return true
+}
+
+fun isConnected(context: Context): Boolean {
+    val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val activeNetwork = cm.activeNetworkInfo
+    return activeNetwork != null && activeNetwork.isConnected
 }

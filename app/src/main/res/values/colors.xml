@@ -4,7 +4,7 @@
     <color name="colorPrimaryDark">#809ae8</color>
     <color name="colorAccent">#c7d4fa</color>
 
-    <color name="nsfw_colorPrimary">#ff3860</color>
-    <color name="nsfw_colorPrimaryDark">#da2f52</color>
-    <color name="nsfw_colorAccent">#fab4c2</color>
+    <color name="nsfw_colorPrimary">#ff3f65</color>
+    <color name="nsfw_colorPrimaryDark">#e63458</color>
+    <color name="nsfw_colorAccent">#ff5c7c</color>
 </resources>
