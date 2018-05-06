@@ -5,7 +5,6 @@ Future plan is to at least finish the todos below that have a "*" and put a rele
 
 ## Todos
 #### Planned
-- Drawer layout *
 - Like/favorite buttons for images *
 - Show the image information on the pop-up -> should be in some menu list *
 - Edit account settings *
@@ -19,3 +18,4 @@ Future plan is to at least finish the todos below that have a "*" and put a rele
 - Alert when someone is using 3g/4g about high data usage -> also added an option to let the app enable wifi
 - Share button on the image pop-up
 - Loading indicators
+- Drawer layout *
