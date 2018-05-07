@@ -67,31 +67,25 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
 
             val view = factory.inflate(R.layout.view_neko_dialog, null)
 
-            if (neko.nsfw) {
-                view.btnSaveNeko?.setTextColor(main.getColor(R.color.nsfw_colorPrimary))
-                view.btnShareNeko?.setTextColor(main.getColor(R.color.nsfw_colorPrimary))
-                view.btnCloseNeko?.setTextColor(main.getColor(R.color.nsfw_colorPrimary))
-            } else {
-                view.btnSaveNeko?.setTextColor(main.getColor(R.color.colorPrimary))
-                view.btnShareNeko?.setTextColor(main.getColor(R.color.colorPrimary))
-                view.btnCloseNeko?.setTextColor(main.getColor(R.color.colorPrimary))
-            }
-
             nekoDialog.setView(view)
             picasso.load(fullImage).into(view.fullNekoImg.toProgressTarget())
 
             view.btnSaveNeko.setOnClickListener {
-                if (!hasPermissions(main, main.permissions)) {
-                    ActivityCompat.requestPermissions(main, main.permissions, 999)
+                if (!main.connected || !isConnected(main)) {
+                    main.toast("No network connection")
                 } else {
-                    doAsync {
-                        downloadAndSave(neko)
+                    if (!hasPermissions(main, main.permissions)) {
+                        ActivityCompat.requestPermissions(main, main.permissions, 999)
+                    } else {
+                        doAsync {
+                            downloadAndSave(neko, nekoDialog)
+                        }
                     }
                 }
             }
 
             view.btnCloseNeko.setOnClickListener {
-                nekoDialog.cancel()
+                nekoDialog.dismiss()
             }
 
             view.btnShareNeko.setOnClickListener {
@@ -122,23 +116,24 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
         return imageView
     }
 
-    private fun downloadAndSave(neko: Neko) {
+    private fun downloadAndSave(neko: Neko, dialog: AlertDialog) {
         val mediaStorageDir = File(Environment.getExternalStorageDirectory().toString() + "/Nekos/")
         if (!mediaStorageDir.exists()) mediaStorageDir.mkdirs()
         val file = File(mediaStorageDir, "${neko.id}.jpeg")
 
         Fuel.download("https://nekos.moe/image/${neko.id}").destination { response, _ ->
-            Log.w("Response", response.toString())
+            response.toString()
             file
         }.response { request, response, result ->
-            Log.w("Request", request.toString())
-            Log.w("Response", response.toString())
-            Log.w("Result", result.toString())
+            request.toString()
+            response.toString()
+            result.toString()
 
             val (data, err) = result
             if (data != null) {
                 val fileOutput = FileOutputStream(file)
                 fileOutput.write(data, 0, data.size)
+                dialog.dismiss()
 
                 main.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
                 main.toast("Saved as ${neko.id}.jpeg")
