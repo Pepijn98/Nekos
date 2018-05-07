@@ -9,7 +9,7 @@ android {
         applicationId "xyz.kurozero.nekos"
         minSdkVersion 24
         targetSdkVersion 27
-        versionCode 5
+        versionCode 6
         versionName "0.6.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
