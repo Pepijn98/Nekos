@@ -40,4 +40,5 @@
     <string name="neko_tags">%1$s</string>
     <string name="btn_like">Like</string>
     <string name="btn_favorite">Favorite</string>
+    <string name="header_title">-</string>
 </resources>

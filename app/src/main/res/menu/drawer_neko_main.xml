@@ -7,24 +7,24 @@
     <group>
         <item
             android:id="@+id/login_out"
-            android:title="@string/login_out"
-            android:icon="@drawable/ic_menu_login" />
+            android:icon="@drawable/ic_menu_login"
+            android:title="@string/login_out" />
         <item
             android:id="@+id/view_account"
-            android:title="@string/view_profile"
-            android:icon="@drawable/ic_menu_account" />
+            android:icon="@drawable/ic_menu_account"
+            android:title="@string/view_profile" />
         <item
             android:id="@+id/switch_nsfw"
-            android:title="@string/switch_nsfw"
-            android:icon="@drawable/ic_menu_age_restriction" />
+            android:icon="@drawable/ic_menu_age_restriction"
+            android:title="@string/switch_nsfw" />
         <item
             android:id="@+id/sort"
-            android:title="@string/sort"
-            android:icon="@drawable/ic_menu_sort" />
+            android:icon="@drawable/ic_menu_sort"
+            android:title="@string/sort" />
         <item
             android:id="@+id/upload"
-            android:title="@string/upload"
-            android:icon="@drawable/ic_menu_upload" />
+            android:icon="@drawable/ic_menu_upload"
+            android:title="@string/upload" />
     </group>
 
 </menu>

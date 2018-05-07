@@ -41,7 +41,7 @@ import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipelineConfig
 import com.facebook.imagepipeline.decoder.SimpleProgressiveJpegConfig
 
-const val userAgent = "NekosApp/v0.5.2 (https://github.com/KurozeroPB/nekos-app)"
+const val userAgent = "NekosApp/v0.6.0 (https://github.com/KurozeroPB/nekos-app)"
 val File.extension: String
     get() = name.substringAfterLast('.', "")
 
