@@ -19,6 +19,7 @@ import android.provider.MediaStore
 import android.support.design.widget.NavigationView
 import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
+import android.support.v7.widget.GridLayoutManager
 import com.github.kittinunf.fuel.android.extension.responseJson
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.android.core.Json
@@ -36,6 +37,9 @@ import kotlinx.android.synthetic.main.nav_header_neko_main.view.*
 import okhttp3.*
 import okhttp3.Request
 import java.io.File
+import com.facebook.drawee.backends.pipeline.Fresco
+import com.facebook.imagepipeline.core.ImagePipelineConfig
+import com.facebook.imagepipeline.decoder.SimpleProgressiveJpegConfig
 
 const val userAgent = "NekosApp/v0.5.2 (https://github.com/KurozeroPB/nekos-app)"
 val File.extension: String
@@ -136,6 +140,14 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
             FuelManager.instance.baseHeaders = mapOf("User-Agent" to userAgent)
         }
 
+        val config = ImagePipelineConfig.newBuilder(this)
+                .setProgressiveJpegConfig(SimpleProgressiveJpegConfig())
+                .setResizeAndRotateEnabledForNetwork(true)
+                .setDownsampleEnabled(true)
+                .build()
+        Fresco.initialize(this, config)
+
+        nekoImages.layoutManager = GridLayoutManager(this, 2)
         requestNeko(false)
         setInit()
     }

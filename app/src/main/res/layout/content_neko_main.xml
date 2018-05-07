@@ -9,16 +9,11 @@
     tools:context=".NekoMain"
     tools:showIn="@layout/activity_neko_main">
 
-    <GridView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/nekoImages"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:background="@android:color/transparent"
-        android:columnWidth="150dp"
-        android:horizontalSpacing="5dp"
-        android:numColumns="auto_fit"
-        android:scrollingCache="true"
-        android:verticalSpacing="5dp"
         app:layout_constraintBottom_toTopOf="@+id/navigationView"
         app:layout_constraintTop_toTopOf="parent" />
 

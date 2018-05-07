@@ -21,54 +21,58 @@ import kotlinx.android.synthetic.main.view_neko_dialog.view.*
 import java.io.File
 import java.io.FileOutputStream
 import android.provider.MediaStore
+import android.support.v7.widget.RecyclerView
+import com.stfalcon.frescoimageviewer.ImageViewer
 import org.jetbrains.anko.*
 
-class NekoAdapter(private val context: Context, private var nekos: Nekos) : BaseAdapter() {
+class NekoAdapter(private val context: Context, private var nekos: Nekos) : RecyclerView.Adapter<NekoViewHolder>() {
     private val main = context as NekoMain
 
-    override fun getCount(): Int {
+    // Gets the number of animals in the list
+    override fun getItemCount(): Int {
         return nekos.images.size
     }
 
-    override fun getItem(position: Int): Any {
-        return nekos.images[position]
+    // Inflates the item views
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NekoViewHolder {
+        return NekoViewHolder(LayoutInflater.from(context).inflate(R.layout.nekos_entry, parent, false), parent)
     }
 
-    override fun getItemId(position: Int): Long {
-        return position.toLong()
-    }
-
-    @SuppressLint("ViewHolder", "InflateParams")
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-        val neko = this.nekos.images[position]
+    // Binds each animal in the ArrayList to a view
+    override fun onBindViewHolder(holder: NekoViewHolder, position: Int) {
+        val neko = nekos.images[position]
         val thumbnailImage = "https://nekos.moe/thumbnail/${neko.id}"
         val fullImage = "https://nekos.moe/image/${neko.id}"
 
-        val inflator = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        val imageView = inflator.inflate(R.layout.nekos_entry, null)
-
-        val cardView = imageView.nekoCardView
-        cardView.preventCornerOverlap = true
-        cardView.radius = 50f
-
         if (neko.nsfw) {
-            cardView.foreground = main.getDrawable(R.drawable.border_nsfw)
+            holder.imgNeko.foreground = main.getDrawable(R.drawable.border_nsfw)
         } else {
-            cardView.foreground = main.getDrawable(R.drawable.border_sfw)
+            holder.imgNeko.foreground = main.getDrawable(R.drawable.border_sfw)
         }
 
         picasso.load(thumbnailImage)
-                .into(imageView.imgNeko.toProgressTarget())
+                .square()
+                .rounded(32f, 0f)
+                .into(holder.imgNeko.toProgressTarget())
 
-        imageView.setOnClickListener {
+        holder.imgNeko.setOnClickListener {
             val builder = AlertDialog.Builder(main)
             val nekoDialog = builder.create()
-            val factory = LayoutInflater.from(main)
-
-            val view = factory.inflate(R.layout.view_neko_dialog, null)
-
+            val view = LayoutInflater.from(main).inflate(R.layout.view_neko_dialog, holder.parent, false)
             nekoDialog.setView(view)
+
+            view.tvUploader.text = main.getString(R.string.uploaded_by, neko.uploader.username)
+            view.tvApproved.text = main.getString(R.string.approved_by, neko.approver.username)
+            view.tvFavorites.text = main.getString(R.string.neko_favorites, neko.favorites)
+            view.tvLikes.text = main.getString(R.string.neko_likes, neko.likes)
+            view.tvArtist.text = main.getString(R.string.neko_artist, neko.artist)
+            view.tvTags.text = main.getString(R.string.neko_tags, neko.tags.joinToString(", "))
+
             picasso.load(fullImage).into(view.fullNekoImg.toProgressTarget())
+
+            view.fullNekoImg.setOnClickListener {
+                ImageViewer.Builder(context, arrayOf(fullImage)).show()
+            }
 
             view.btnSaveNeko.setOnClickListener {
                 if (!main.connected || !isConnected(main)) {
@@ -112,8 +116,6 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
 
             nekoDialog.show()
         }
-
-        return imageView
     }
 
     private fun downloadAndSave(neko: Neko, dialog: AlertDialog) {
@@ -124,11 +126,7 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
         Fuel.download("https://nekos.moe/image/${neko.id}").destination { response, _ ->
             response.toString()
             file
-        }.response { request, response, result ->
-            request.toString()
-            response.toString()
-            result.toString()
-
+        }.response { _, _, result ->
             val (data, err) = result
             if (data != null) {
                 val fileOutput = FileOutputStream(file)
@@ -147,4 +145,8 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Base
             }
         }
     }
+}
+
+class NekoViewHolder (view: View, val parent: ViewGroup) : RecyclerView.ViewHolder(view) {
+    val imgNeko: ImageView = view.imgNeko
 }

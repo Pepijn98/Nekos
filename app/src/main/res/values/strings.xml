@@ -32,4 +32,10 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="sync">Sync</string>
+    <string name="uploaded_by">Uploaded by %1$s</string>
+    <string name="approved_by">Approved by %1$s</string>
+    <string name="neko_favorites">Favorites: %1$d</string>
+    <string name="neko_likes">Likes: %1$d</string>
+    <string name="neko_artist">Artist: %1$s</string>
+    <string name="neko_tags">%1$s</string>
 </resources>
