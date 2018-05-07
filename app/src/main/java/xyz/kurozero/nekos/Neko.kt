@@ -2,6 +2,8 @@ package xyz.kurozero.nekos
 
 import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.google.gson.Gson
+import kotlinx.serialization.*
+import kotlinx.serialization.json.JSON
 
 data class Nekos(
         val images: ArrayList<Neko>
@@ -35,6 +37,7 @@ data class NekoApprover(
         val username: String
 )
 
+@Serializable
 data class User(
         val id: String,
         val username: String,

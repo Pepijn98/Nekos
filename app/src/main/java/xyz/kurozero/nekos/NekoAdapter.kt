@@ -7,7 +7,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.support.v4.app.ActivityCompat
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,22 +22,22 @@ import java.io.FileOutputStream
 import android.provider.MediaStore
 import android.support.v7.widget.RecyclerView
 import com.stfalcon.frescoimageviewer.ImageViewer
+import okhttp3.*
 import org.jetbrains.anko.*
+import kotlinx.serialization.json.JSON
 
 class NekoAdapter(private val context: Context, private var nekos: Nekos) : RecyclerView.Adapter<NekoViewHolder>() {
     private val main = context as NekoMain
 
-    // Gets the number of animals in the list
     override fun getItemCount(): Int {
         return nekos.images.size
     }
 
-    // Inflates the item views
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NekoViewHolder {
         return NekoViewHolder(LayoutInflater.from(context).inflate(R.layout.nekos_entry, parent, false), parent)
     }
 
-    // Binds each animal in the ArrayList to a view
+    @SuppressLint("SetTextI18n")
     override fun onBindViewHolder(holder: NekoViewHolder, position: Int) {
         val neko = nekos.images[position]
         val thumbnailImage = "https://nekos.moe/thumbnail/${neko.id}"
@@ -72,6 +71,125 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
 
             view.fullNekoImg.setOnClickListener {
                 ImageViewer.Builder(context, arrayOf(fullImage)).show()
+            }
+
+            if (main.isLoggedin) {
+                val liked = main.user!!.likes.find { it == neko.id }
+                val faved = main.user!!.favorites.find { it == neko.id }
+                view.btnLikeNeko.text = if (liked.isNullOrBlank()) "Like" else "Unlike"
+                view.btnFavNeko.text = if (faved.isNullOrBlank()) "Favorite" else "Unfavorite"
+            }
+
+            if (!main.connected || !isConnected(main)) {
+                main.toast("No network connection")
+            } else {
+                val token = main.sharedPreferences!!.getString("token", "")
+                view.btnLikeNeko.setOnClickListener {
+                    if (main.isLoggedin) {
+                        doAsync {
+                            val likedNeko = main.user!!.likes.find { it == neko.id }
+                            val reqbodystr =
+                                    if (likedNeko.isNullOrBlank()) "{\"create\": true, \"type\": \"like\"}"
+                                    else "{\"create\": false, \"type\": \"like\"}"
+
+                            val client = OkHttpClient()
+                            val reqbody = RequestBody.create(MediaType.parse("application/json"), reqbodystr)
+
+                            val headers = okhttp3.Headers.Builder()
+                                    .add("Authorization", token)
+                                    .add("User-Agent", userAgent)
+                                    .add("Content-Type", "application/json;charset=utf-8")
+                                    .build()
+
+                            val request = Request.Builder()
+                                    .url("https://nekos.moe/api/v1/image/${neko.id}/relationship")
+                                    .headers(headers)
+                                    .patch(reqbody)
+                                    .build()
+
+                            val response = client.newCall(request).execute()
+                            if (!response.isSuccessful && response.code() > 204) {
+                                uiThread {
+                                    val msg = if (likedNeko.isNullOrBlank()) "Failed to like" else "Failed to unlike"
+                                    main.toast(msg)
+                                }
+                            } else {
+                                uiThread {
+                                    if (likedNeko.isNullOrBlank()) {
+                                        main.user!!.likes.add(neko.id)
+                                        main.sharedPreferences!!.edit().putString("user", JSON.stringify(main.user!!)).apply()
+                                        uiThread {
+                                            main.toast("Liked")
+                                            view.btnLikeNeko.text = "Unlike"
+                                        }
+                                    } else {
+                                        main.user!!.likes.remove(neko.id)
+                                        main.sharedPreferences!!.edit().putString("user", JSON.stringify(main.user!!)).apply()
+                                        uiThread {
+                                            main.toast("Unliked")
+                                            view.btnLikeNeko.text = "Like"
+                                        }
+                                    }
+                                }
+                            }
+                            response.close()
+                        }
+                    } else {
+                        main.longToast("You need to be logged in to use this action")
+                    }
+                }
+
+                view.btnFavNeko.setOnClickListener {
+                    if (main.isLoggedin) {
+                        doAsync {
+                            val favedNeko = main.user!!.favorites.find { it == neko.id }
+                            val reqbodystr =
+                                    if (favedNeko.isNullOrBlank()) "{\"create\": true, \"type\": \"favorite\"}"
+                                    else "{\"create\": false, \"type\": \"favorite\"}"
+
+                            val client = OkHttpClient()
+                            val reqbody = RequestBody.create(MediaType.parse("application/json"), reqbodystr)
+
+                            val headers = okhttp3.Headers.Builder()
+                                    .add("Authorization", token)
+                                    .add("User-Agent", userAgent)
+                                    .build()
+
+                            val request = Request.Builder()
+                                    .url("https://nekos.moe/api/v1/image/${neko.id}/relationship")
+                                    .headers(headers)
+                                    .patch(reqbody)
+                                    .build()
+
+                            val response = client.newCall(request).execute()
+                            if (!response.isSuccessful && response.code() > 204) {
+                                uiThread {
+                                    val msg = if (favedNeko.isNullOrBlank()) "Failed to favorite" else "Failed to unfavorite"
+                                    main.toast(msg)
+                                }
+                            } else {
+                                if (favedNeko.isNullOrBlank()) {
+                                    main.user!!.favorites.add(neko.id)
+                                    main.sharedPreferences!!.edit().putString("user", JSON.stringify(main.user!!)).apply()
+                                    uiThread {
+                                        main.toast("Favorited")
+                                        view.btnFavNeko.text = "Unfavorite"
+                                    }
+                                } else {
+                                    main.user!!.favorites.remove(neko.id)
+                                    main.sharedPreferences!!.edit().putString("user", JSON.stringify(main.user!!)).apply()
+                                    uiThread {
+                                        main.toast("Unfavorited")
+                                        view.btnFavNeko.text = "Favorite"
+                                    }
+                                }
+                            }
+                            response.close()
+                        }
+                    } else {
+                        main.longToast("You need to be logged in to use this action")
+                    }
+                }
             }
 
             view.btnSaveNeko.setOnClickListener {
@@ -147,6 +265,6 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
     }
 }
 
-class NekoViewHolder (view: View, val parent: ViewGroup) : RecyclerView.ViewHolder(view) {
+class NekoViewHolder(view: View, val parent: ViewGroup) : RecyclerView.ViewHolder(view) {
     val imgNeko: ImageView = view.imgNeko
 }

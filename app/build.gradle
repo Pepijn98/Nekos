@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlinx-serialization'
 
 android {
     compileSdkVersion 27
@@ -18,11 +19,20 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    packagingOptions {
+        exclude 'META-INF/main.kotlin_module'
+    }
+}
+
+repositories {
+    jcenter()
+    maven { url "https://kotlin.bintray.com/kotlinx" }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version"
     implementation 'org.jetbrains.anko:anko:0.10.4'
     //noinspection GradleCompatible
     implementation 'com.android.support:appcompat-v7:27.1.1'

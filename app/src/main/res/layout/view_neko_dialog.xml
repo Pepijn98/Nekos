@@ -30,17 +30,49 @@
     </android.support.v7.widget.CardView>
 
     <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btnLikeNeko"
+        android:layout_width="80dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:drawableStart="@drawable/ic_neko_thumbsup"
+        android:drawableTint="#209cee"
+        android:text="@string/btn_like"
+        android:textColor="#209cee"
+        android:textSize="12sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvArtist" />
+
+    <android.support.v7.widget.AppCompatButton
+        android:id="@+id/btnFavNeko"
+        android:layout_width="105dp"
+        android:layout_height="35dp"
+        android:layout_marginStart="8dp"
+        android:drawableStart="@drawable/ic_neko_heart"
+        android:drawableTint="#ff3860"
+        android:text="@string/btn_favorite"
+        android:textColor="#ff3860"
+        android:textSize="12sp"
+        app:layout_constraintStart_toEndOf="@+id/btnLikeNeko"
+        app:layout_constraintTop_toTopOf="@+id/btnLikeNeko" />
+
+    <android.support.v7.widget.AppCompatButton
         android:id="@+id/btnShareNeko"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="@string/share"
         android:textColor="@color/colorPrimary"
+        android:textSize="12sp"
+        android:drawableStart="@drawable/ic_neko_share"
+        android:drawableTint="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnSaveNeko"
         app:layout_constraintStart_toEndOf="@+id/btnCloseNeko"
-        app:layout_constraintTop_toBottomOf="@+id/tvArtist" />
+        app:layout_constraintTop_toBottomOf="@+id/btnLikeNeko" />
 
     <android.support.v7.widget.AppCompatButton
         android:id="@+id/btnSaveNeko"
@@ -50,9 +82,12 @@
         android:layout_marginTop="8dp"
         android:text="@string/save"
         android:textColor="@color/colorPrimary"
+        android:textSize="12sp"
+        android:drawableStart="@drawable/ic_neko_save"
+        android:drawableTint="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvArtist" />
+        app:layout_constraintTop_toBottomOf="@+id/btnLikeNeko" />
 
     <android.support.v7.widget.AppCompatButton
         android:id="@+id/btnCloseNeko"
@@ -62,9 +97,12 @@
         android:layout_marginTop="8dp"
         android:text="@string/close"
         android:textColor="@color/colorPrimary"
+        android:textSize="12sp"
+        android:drawableStart="@drawable/ic_neko_close"
+        android:drawableTint="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvArtist" />
+        app:layout_constraintTop_toBottomOf="@+id/btnLikeNeko" />
 
     <TextView
         android:id="@+id/tvUploader"
@@ -73,6 +111,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="@string/uploaded_by"
+        android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/viewNekoCard" />
 
@@ -81,8 +120,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="2dp"
         android:text="@string/approved_by"
+        android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvUploader" />
 
@@ -91,8 +131,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="2dp"
         android:text="@string/neko_favorites"
+        android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvApproved" />
 
@@ -101,8 +142,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="2dp"
         android:text="@string/neko_likes"
+        android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvFavorites" />
 
@@ -111,8 +153,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="2dp"
         android:text="@string/neko_artist"
+        android:textSize="12sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvLikes" />
 
@@ -120,15 +163,15 @@
         android:id="@+id/tvTags"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:text="@string/neko_tags"
         android:textSize="10sp"
-        app:layout_constraintBottom_toTopOf="@+id/btnShareNeko"
+        app:layout_constraintBottom_toBottomOf="@+id/tvArtist"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/viewNekoCard"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="SmallSp" />
 
 </android.support.constraint.ConstraintLayout>

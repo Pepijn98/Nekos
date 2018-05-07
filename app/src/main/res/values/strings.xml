@@ -38,4 +38,6 @@
     <string name="neko_likes">Likes: %1$d</string>
     <string name="neko_artist">Artist: %1$s</string>
     <string name="neko_tags">%1$s</string>
+    <string name="btn_like">Like</string>
+    <string name="btn_favorite">Favorite</string>
 </resources>

@@ -55,10 +55,10 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
     private var sort = "newest"
     private var nekos: Nekos? = null
     private var adapter: NekoAdapter? = null
-    private var sharedPreferences: SharedPreferences? = null
     private var typeFace: Typeface? = null
-    private var isLoggedin: Boolean = false
-    private var user: User? = null
+    var sharedPreferences: SharedPreferences? = null
+    var user: User? = null
+    var isLoggedin: Boolean = false
     var connected: Boolean = true
     var nsfw: Boolean? = false
     val permissions = arrayOf(
