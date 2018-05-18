@@ -13,7 +13,6 @@ import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.*
-import android.widget.*
 import android.support.v4.app.ActivityCompat
 import android.provider.MediaStore
 import android.support.design.widget.NavigationView
@@ -40,6 +39,9 @@ import java.io.File
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipelineConfig
 import com.facebook.imagepipeline.decoder.SimpleProgressiveJpegConfig
+import kotlinx.android.synthetic.main.login_dialog.view.*
+import kotlinx.android.synthetic.main.upload_dialog.view.*
+import kotlinx.android.synthetic.main.user_dialog.view.*
 
 const val userAgent = "NekosApp/v0.6.0 (https://github.com/KurozeroPB/nekos-app)"
 val File.extension: String
@@ -286,24 +288,16 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         val view = factory.inflate(R.layout.user_dialog, null)
         userDialog.setView(view)
 
-        val username = view.findViewById<TextView>(R.id.tvUsername)
-        val likes = view.findViewById<TextView>(R.id.tvLikes)
-        val favorites = view.findViewById<TextView>(R.id.tvFavorites)
-        val joined = view.findViewById<TextView>(R.id.tvJoined)
-        val posted = view.findViewById<TextView>(R.id.tvPosted)
-        val given = view.findViewById<TextView>(R.id.tvGiven)
-        val sync = view.findViewById<Button>(R.id.btnSync)
-
         val suffix = if (user!!.uploads == 1) "image" else "images"
 
-        username.text = getString(R.string.acc_username, user!!.username)
-        likes.text = getString(R.string.likes, user!!.likesReceived)
-        favorites.text = getString(R.string.favorites, user!!.favoritesReceived)
-        joined.text = getString(R.string.joined, timestamp(user!!.createdAt))
-        posted.text = getString(R.string.posted, "${user!!.uploads} $suffix")
-        given.text = getString(R.string.given, user!!.likes.size, user!!.favorites.size)
+        view.tvUsername.text = getString(R.string.acc_username, user!!.username)
+        view.tvLikes.text = getString(R.string.likes, user!!.likesReceived)
+        view.tvFavorites.text = getString(R.string.favorites, user!!.favoritesReceived)
+        view.tvJoined.text = getString(R.string.joined, timestamp(user!!.createdAt))
+        view.tvPosted.text = getString(R.string.posted, "${user!!.uploads} $suffix")
+        view.tvGiven.text = getString(R.string.given, user!!.likes.size, user!!.favorites.size)
 
-        sync.setOnClickListener {
+        view.btnSync.setOnClickListener {
             if (!connected || !isConnected(this@NekoMain)) {
                 longToast("No network connection")
                 return@setOnClickListener
@@ -314,12 +308,12 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                     if (resp != null) {
                         user = User.Deserializer().deserialize(resp.obj().get("user").toString())
                         sharedPreferences!!.edit().putString("user", resp.obj().get("user").toString()).apply()
-                        username.text = getString(R.string.acc_username, user!!.username)
-                        likes.text = getString(R.string.likes, user!!.likesReceived)
-                        favorites.text = getString(R.string.favorites, user!!.favoritesReceived)
-                        joined.text = getString(R.string.joined, timestamp(user!!.createdAt))
-                        posted.text = getString(R.string.posted, "${user!!.uploads} $suffix")
-                        given.text = getString(R.string.given, user!!.likes.size, user!!.favorites.size)
+                        view.tvUsername.text = getString(R.string.acc_username, user!!.username)
+                        view.tvLikes.text = getString(R.string.likes, user!!.likesReceived)
+                        view.tvFavorites.text = getString(R.string.favorites, user!!.favoritesReceived)
+                        view.tvJoined.text = getString(R.string.joined, timestamp(user!!.createdAt))
+                        view.tvPosted.text = getString(R.string.posted, "${user!!.uploads} $suffix")
+                        view.tvGiven.text = getString(R.string.given, user!!.likes.size, user!!.favorites.size)
                     } else if (error != null) {
                         val msg = try {
                             Json(String(error.errorData)).obj().get("message") as String?
@@ -406,15 +400,14 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         val view = factory.inflate(R.layout.upload_dialog, null)
         uploadDialog.setView(view)
 
-        val uploadImage = view.findViewById<ImageView>(R.id.uploadImage)
         val bitmap = MediaStore.Images.Media.getBitmap(this.contentResolver, uri)
-        uploadImage.setImageBitmap(bitmap)
+        view.uploadImage.setImageBitmap(bitmap)
 
         uploadDialog.setNegativeButton("Cancel", null)
         uploadDialog.setPositiveButton("Upload", { _, _ ->
-            val strtags = view.findViewById<EditText>(R.id.etTags).text.toString()
-            val artist = view.findViewById<EditText>(R.id.etArtist).text.toString()
-            val nsfw = view.findViewById<Switch>(R.id.swNsfw).isChecked
+            val strtags = view.etTags.text.toString()
+            val artist = view.etArtist.text.toString()
+            val nsfw = view.swNsfw.isChecked
             val tags = strtags.split(Regex(", ?"), 0)
 
             doAsync {
@@ -467,11 +460,9 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         loginDialog.setNegativeButton("Cancel", { dialog, _ -> dialog.cancel() })
         loginDialog.setPositiveButton("Login", { _, _ ->
             doAsync {
-                val username = view.findViewById<EditText>(R.id.usernameInput)
-                val password = view.findViewById<EditText>(R.id.passwordInput)
                 Fuel.post("/auth")
                         .header(mapOf("Content-Type" to "application/json"))
-                        .body("{\"username\": \"${username.text}\", \"password\": \"${password.text}\"}")
+                        .body("{\"username\": \"${view.usernameInput.text}\", \"password\": \"${view.passwordInput.text}\"}")
                         .responseJson { _, _, result ->
                             val (data, error) = result
                             if (data != null) {

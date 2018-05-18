@@ -61,7 +61,7 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
             nekoDialog.setView(view)
 
             view.tvUploader.text = main.getString(R.string.uploaded_by, neko.uploader.username)
-            view.tvApproved.text = main.getString(R.string.approved_by, neko.approver.username)
+            view.tvApproved.text = main.getString(R.string.approved_by, neko.approver?.username ?: "-")
             view.tvFavorites.text = main.getString(R.string.neko_favorites, neko.favorites)
             view.tvLikes.text = main.getString(R.string.neko_likes, neko.likes)
             view.tvArtist.text = main.getString(R.string.neko_artist, neko.artist)
