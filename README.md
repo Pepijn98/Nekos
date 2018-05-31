@@ -5,6 +5,7 @@ Future plan is to at least finish the todos below that have a "*" and put a rele
 
 ## Todos
 #### Planned
+- Better exception handling *
 - Edit account settings *
 - Network preferences
 - Logout confirmation to prevent accidental logouts
