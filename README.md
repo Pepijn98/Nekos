@@ -5,7 +5,6 @@ Future plan is to at least finish the todos below that have a "*" and put a rele
 
 ## Todos
 #### Planned
-- Better exception handling *
 - Edit account settings *
 - Network preferences
 - Logout confirmation to prevent accidental logouts
@@ -20,4 +19,5 @@ Future plan is to at least finish the todos below that have a "*" and put a rele
 - Show the image information on the pop-up *
 - Like/favorite buttons for images *
 - Creating an account *
+- Better exception handling *
 
