@@ -6,7 +6,6 @@ Future plan is to at least finish the todos below that have a "*" and put a rele
 ## Todos
 #### Planned
 - Edit account settings *
-- Creating/verify an account *
 - Network preferences
 - Logout confirmation to prevent accidental logouts
 - ...
@@ -19,3 +18,5 @@ Future plan is to at least finish the todos below that have a "*" and put a rele
 - Drawer layout *
 - Show the image information on the pop-up *
 - Like/favorite buttons for images *
+- Creating an account *
+
