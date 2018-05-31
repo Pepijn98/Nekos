@@ -2,10 +2,7 @@ package xyz.kurozero.nekos
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.content.SharedPreferences
+import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Typeface
 import android.net.*
@@ -40,15 +37,18 @@ import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipelineConfig
 import com.facebook.imagepipeline.decoder.SimpleProgressiveJpegConfig
 import kotlinx.android.synthetic.main.login_dialog.view.*
+import kotlinx.android.synthetic.main.register_dialog.view.*
 import kotlinx.android.synthetic.main.upload_dialog.view.*
 import kotlinx.android.synthetic.main.user_dialog.view.*
 
-const val userAgent = "NekosApp/v0.6.0 (https://github.com/KurozeroPB/nekos-app)"
+const val userAgent = "NekosApp/v0.7.0 (https://github.com/KurozeroPB/nekos-app)"
 val File.extension: String
     get() = name.substringAfterLast('.', "")
 
 class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverListener, NavigationView.OnNavigationItemSelectedListener {
 
+    // https://nekos.moe/api/v1
+    // http://localhost:8080/api/v1
     private val url = "https://nekos.moe/api/v1"
     private var toSkip = 0
     private var page = 1
@@ -454,15 +454,73 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
             return
         }
         val loginDialog = AlertDialog.Builder(this)
-        val factory = LayoutInflater.from(this)
-        val view = factory.inflate(R.layout.login_dialog, null)
-        loginDialog.setView(view)
+        val loginFactory = LayoutInflater.from(this)
+        val loginView = loginFactory.inflate(R.layout.login_dialog, null)
+        loginDialog.setView(loginView)
         loginDialog.setNegativeButton("Cancel", { dialog, _ -> dialog.cancel() })
+        loginDialog.setNeutralButton("Register", { dialog, _ ->
+            dialog.dismiss()
+            val registerFactory = LayoutInflater.from(this)
+            val registerView = registerFactory.inflate(R.layout.register_dialog, null)
+
+            val registerDialog = AlertDialog.Builder(this)
+                    .setView(registerView)
+                    .setNegativeButton("Cancel", { d, _ -> d.dismiss() })
+                    .setPositiveButton("Confirm", { _, _ ->
+                        if (registerView.userInput.text.isNullOrEmpty() || registerView.passInput.text.isNullOrEmpty() || registerView.emailInput.text.isNullOrEmpty()) {
+                            longToast("Please complete all fields")
+                            return@setPositiveButton
+                        }
+                        if (registerView.userInput.text.contains("@")) {
+                            longToast("Usernames cannot contain an @ symbol")
+                            return@setPositiveButton
+                        }
+                        if (registerView.passInput.text.length < 8) {
+                            longToast("Password needs to be atleast 8 characters long")
+                            return@setPositiveButton
+                        }
+
+                        if (registerView.passInput.text.toString() != registerView.cPasswordInput.text.toString()) {
+                            longToast("Passwords do not match")
+                            return@setPositiveButton
+                        }
+                        if (registerView.ageCheckBox.isChecked.not()) {
+                            longToast("You must be at least 13 years old to make an account")
+                            return@setPositiveButton
+                        }
+
+                        Fuel.post("/register")
+                                .header(mapOf("Content-Type" to "application/json"))
+                                .body("""
+                                    {
+                                        "email": "${registerView.emailInput.text}",
+                                        "username": "${registerView.userInput.text}",
+                                        "password": "${registerView.passInput.text}"
+                                    }
+                                    """.trimMargin())
+                                .responseJson { _, response, result ->
+                                    if (response.statusCode == 201) {
+                                        longToast("A confirmation mail has been send to your email")
+                                    } else {
+                                        val (_, error) = result
+                                        if (error != null) {
+                                            val msg =
+                                                    Json(String(error.errorData)).obj().get("message") as String?
+                                                            ?: error.message
+                                                            ?: "Something went wrong"
+                                            longToast(msg)
+                                        }
+                                    }
+                                }
+                    }).create()
+            registerDialog.show()
+        })
+
         loginDialog.setPositiveButton("Login", { _, _ ->
             doAsync {
                 Fuel.post("/auth")
                         .header(mapOf("Content-Type" to "application/json"))
-                        .body("{\"username\": \"${view.usernameInput.text}\", \"password\": \"${view.passwordInput.text}\"}")
+                        .body("{\"username\": \"${loginView.usernameInput.text}\", \"password\": \"${loginView.passwordInput.text}\"}")
                         .responseJson { _, _, result ->
                             val (data, error) = result
                             if (data != null) {

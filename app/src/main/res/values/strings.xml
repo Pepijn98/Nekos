@@ -41,4 +41,9 @@
     <string name="btn_like">Like</string>
     <string name="btn_favorite">Favorite</string>
     <string name="header_title">-</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="email">Email</string>
+    <string name="age_check">I am 13+ years old</string>
+    <string name="must_not_contain_an_symbol">  Must not contain an @ symbol</string>
+    <string name="min_8_characters">  Min 8 characters</string>
 </resources>

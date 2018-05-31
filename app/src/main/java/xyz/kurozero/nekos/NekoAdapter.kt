@@ -43,11 +43,9 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
         val thumbnailImage = "https://nekos.moe/thumbnail/${neko.id}"
         val fullImage = "https://nekos.moe/image/${neko.id}"
 
-        if (neko.nsfw) {
-            holder.imgNeko.foreground = main.getDrawable(R.drawable.border_nsfw)
-        } else {
-            holder.imgNeko.foreground = main.getDrawable(R.drawable.border_sfw)
-        }
+        holder.imgNeko.foreground =
+                if (neko.nsfw) main.getDrawable(R.drawable.border_nsfw)
+                else main.getDrawable(R.drawable.border_sfw)
 
         picasso.load(thumbnailImage)
                 .square()
