@@ -36,6 +36,14 @@ data class NekoApprover(
         val username: String
 )
 
+data class NekoException(
+        val message: String?
+) {
+    class Deserializer : ResponseDeserializable<NekoException> {
+        override fun deserialize(content: String): NekoException? = Gson().fromJson(content, NekoException::class.java)
+    }
+}
+
 @Serializable
 data class User(
         val id: String,

@@ -11,20 +11,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.fuel.android.core.Json
-import com.hendraanggrian.pikasso.picasso
-import com.hendraanggrian.pikasso.*
-import kotlinx.android.synthetic.main.nekos_entry.view.*
-import kotlinx.android.synthetic.main.view_neko_dialog.view.*
-import java.io.File
-import java.io.FileOutputStream
 import android.provider.MediaStore
 import android.support.v7.widget.RecyclerView
 import com.stfalcon.frescoimageviewer.ImageViewer
-import okhttp3.*
+import com.github.kittinunf.fuel.Fuel
+import com.hendraanggrian.pikasso.picasso
+import com.hendraanggrian.pikasso.*
+import io.sentry.Sentry
 import org.jetbrains.anko.*
+import org.jetbrains.anko.design.longSnackbar
+import org.jetbrains.anko.design.snackbar
+import kotlinx.android.synthetic.main.nekos_entry.view.*
+import kotlinx.android.synthetic.main.view_neko_dialog.view.*
 import kotlinx.serialization.json.JSON
+import java.io.File
+import java.io.FileOutputStream
+import okhttp3.*
 
 class NekoAdapter(private val context: Context, private var nekos: Nekos) : RecyclerView.Adapter<NekoViewHolder>() {
     private val main = context as NekoMain
@@ -53,10 +55,10 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                 .into(holder.imgNeko.toProgressTarget())
 
         holder.imgNeko.setOnClickListener {
-            val builder = AlertDialog.Builder(main)
-            val nekoDialog = builder.create()
             val view = LayoutInflater.from(main).inflate(R.layout.view_neko_dialog, holder.parent, false)
-            nekoDialog.setView(view)
+            val nekoDialog = AlertDialog.Builder(main)
+                    .setView(view)
+                    .create()
 
             view.tvUploader.text = main.getString(R.string.uploaded_by, neko.uploader.username)
             view.tvApproved.text = main.getString(R.string.approved_by, neko.approver?.username ?: "-")
@@ -79,9 +81,9 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
             }
 
             if (!main.connected || !isConnected(main)) {
-                main.toast("No network connection")
+                snackbar(view, "No network connection")
             } else {
-                val token = main.sharedPreferences!!.getString("token", "")
+                val token = main.sharedPreferences.getString("token", "")
                 view.btnLikeNeko.setOnClickListener {
                     if (main.isLoggedin) {
                         doAsync {
@@ -90,7 +92,6 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                                     if (likedNeko.isNullOrBlank()) "{\"create\": true, \"type\": \"like\"}"
                                     else "{\"create\": false, \"type\": \"like\"}"
 
-                            val client = OkHttpClient()
                             val reqbody = RequestBody.create(MediaType.parse("application/json"), reqbodystr)
 
                             val headers = okhttp3.Headers.Builder()
@@ -105,35 +106,27 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                                     .patch(reqbody)
                                     .build()
 
-                            val response = client.newCall(request).execute()
+                            val response = main.httpClient.newCall(request).execute()
                             if (!response.isSuccessful && response.code() > 204) {
-                                uiThread {
-                                    val msg = if (likedNeko.isNullOrBlank()) "Failed to like" else "Failed to unlike"
-                                    main.toast(msg)
-                                }
+                                val msg = if (likedNeko.isNullOrBlank()) "Failed to like" else "Failed to unlike"
+                                snackbar(view, msg)
                             } else {
-                                uiThread {
-                                    if (likedNeko.isNullOrBlank()) {
-                                        main.user!!.likes.add(neko.id)
-                                        main.sharedPreferences!!.edit().putString("user", JSON.stringify(main.user!!)).apply()
-                                        uiThread {
-                                            main.toast("Liked")
-                                            view.btnLikeNeko.text = "Unlike"
-                                        }
-                                    } else {
-                                        main.user!!.likes.remove(neko.id)
-                                        main.sharedPreferences!!.edit().putString("user", JSON.stringify(main.user!!)).apply()
-                                        uiThread {
-                                            main.toast("Unliked")
-                                            view.btnLikeNeko.text = "Like"
-                                        }
-                                    }
+                                if (likedNeko.isNullOrBlank()) {
+                                    main.user!!.likes.add(neko.id)
+                                    main.sharedPreferences.edit().putString("user", JSON.stringify(main.user!!)).apply()
+                                    snackbar(view, "Liked")
+                                    uiThread { view.btnLikeNeko.text = "Unlike" }
+                                } else {
+                                    main.user!!.likes.remove(neko.id)
+                                    main.sharedPreferences.edit().putString("user", JSON.stringify(main.user!!)).apply()
+                                    snackbar(view, "Unliked")
+                                    uiThread { view.btnLikeNeko.text = "Like" }
                                 }
                             }
                             response.close()
                         }
                     } else {
-                        main.longToast("You need to be logged in to use this action")
+                        longSnackbar(view, "You need to be logged in to use this action")
                     }
                 }
 
@@ -145,7 +138,6 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                                     if (favedNeko.isNullOrBlank()) "{\"create\": true, \"type\": \"favorite\"}"
                                     else "{\"create\": false, \"type\": \"favorite\"}"
 
-                            val client = OkHttpClient()
                             val reqbody = RequestBody.create(MediaType.parse("application/json"), reqbodystr)
 
                             val headers = okhttp3.Headers.Builder()
@@ -159,46 +151,40 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                                     .patch(reqbody)
                                     .build()
 
-                            val response = client.newCall(request).execute()
+                            val response = main.httpClient.newCall(request).execute()
                             if (!response.isSuccessful && response.code() > 204) {
-                                uiThread {
-                                    val msg = if (favedNeko.isNullOrBlank()) "Failed to favorite" else "Failed to unfavorite"
-                                    main.toast(msg)
-                                }
+                                val msg = if (favedNeko.isNullOrBlank()) "Failed to favorite" else "Failed to unfavorite"
+                                snackbar(view, msg)
                             } else {
                                 if (favedNeko.isNullOrBlank()) {
                                     main.user!!.favorites.add(neko.id)
-                                    main.sharedPreferences!!.edit().putString("user", JSON.stringify(main.user!!)).apply()
-                                    uiThread {
-                                        main.toast("Favorited")
-                                        view.btnFavNeko.text = "Unfavorite"
-                                    }
+                                    main.sharedPreferences.edit().putString("user", JSON.stringify(main.user!!)).apply()
+                                    snackbar(view, "Favorited")
+                                    uiThread { view.btnFavNeko.text = "Unfavorite" }
                                 } else {
                                     main.user!!.favorites.remove(neko.id)
-                                    main.sharedPreferences!!.edit().putString("user", JSON.stringify(main.user!!)).apply()
-                                    uiThread {
-                                        main.toast("Unfavorited")
-                                        view.btnFavNeko.text = "Favorite"
-                                    }
+                                    main.sharedPreferences.edit().putString("user", JSON.stringify(main.user!!)).apply()
+                                    snackbar(view, "Unfavorited")
+                                    uiThread { view.btnFavNeko.text = "Favorite" }
                                 }
                             }
                             response.close()
                         }
                     } else {
-                        main.longToast("You need to be logged in to use this action")
+                        longSnackbar(view, "You need to be logged in to use this action")
                     }
                 }
             }
 
             view.btnSaveNeko.setOnClickListener {
                 if (!main.connected || !isConnected(main)) {
-                    main.toast("No network connection")
+                    snackbar(view, "No network connection")
                 } else {
                     if (!hasPermissions(main, main.permissions)) {
                         ActivityCompat.requestPermissions(main, main.permissions, 999)
                     } else {
                         doAsync {
-                            downloadAndSave(neko, nekoDialog)
+                            downloadAndSave(neko, view)
                         }
                     }
                 }
@@ -210,15 +196,18 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
 
             view.btnShareNeko.setOnClickListener {
                 if (!main.connected || !isConnected(main)) {
-                    main.toast("No network connection")
+                    snackbar(view, "No network connection")
                 } else {
                     picasso.load(fullImage).into {
                         onFailed { e, _ ->
-                            main.toast(e.message ?: "Something went wrong")
+                            snackbar(view, e.message ?: "Something went wrong")
                         }
                         onLoaded { bitmap, _ ->
                             val intent = Intent(Intent.ACTION_SEND)
-                            intent.putExtra(Intent.EXTRA_TEXT, "Want to see more cute nekos like this? Visit https://nekos.moe or download the the android app from https://github.com/KurozeroPB/Nekos")
+                            intent.putExtra(Intent.EXTRA_TEXT, "Artist: ${neko.artist}\n" +
+                                    "Tags: ${neko.tags.subList(0, 5).joinToString(", ")}\n" +
+                                    "#catgirls #nekos\n" +
+                                    "https://nekos.moe/post/${neko.id}")
                             val path = MediaStore.Images.Media.insertImage(main.contentResolver, bitmap, "", null)
                             val uri = Uri.parse(path)
 
@@ -234,7 +223,7 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
         }
     }
 
-    private fun downloadAndSave(neko: Neko, dialog: AlertDialog) {
+    private fun downloadAndSave(neko: Neko, view: View) {
         val mediaStorageDir = File(Environment.getExternalStorageDirectory().toString() + "/Nekos/")
         if (!mediaStorageDir.exists()) mediaStorageDir.mkdirs()
         val file = File(mediaStorageDir, "${neko.id}.jpeg")
@@ -247,17 +236,15 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
             if (data != null) {
                 val fileOutput = FileOutputStream(file)
                 fileOutput.write(data, 0, data.size)
-                dialog.dismiss()
 
                 main.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
-                main.toast("Saved as ${neko.id}.jpeg")
+                snackbar(view, "Saved as ${neko.id}.jpeg")
                 fileOutput.close()
             } else if (err != null) {
-                val msg =
-                        Json(String(err.errorData)).obj().get("message") as String?
-                                ?: err.message
-                                ?: "Something went wrong"
-                main.toast(msg)
+                val nekoException = NekoException.Deserializer().deserialize(err.errorData)
+                val msg = nekoException?.message ?: err.message ?: "Something went wrong"
+                longSnackbar(view, msg)
+                Sentry.capture(err)
             }
         }
     }

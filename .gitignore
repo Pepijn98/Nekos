@@ -18,6 +18,7 @@ out/
 build/
 
 # Local configuration file (sdk path, etc)
+sentry.properties
 local.properties
 .env
 

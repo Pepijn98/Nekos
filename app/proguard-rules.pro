@@ -12,9 +12,11 @@
 #   public *;
 #}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+-keepattributes LineNumberTable,SourceFile
+-dontwarn org.slf4j.**
+-dontwarn javax.**
+-dontwarn sun.misc.**
+-ignorewarnings
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.

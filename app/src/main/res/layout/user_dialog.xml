@@ -96,16 +96,4 @@
         </RelativeLayout>
     </android.support.v7.widget.CardView>
 
-    <Button
-        android:id="@+id/btnSync"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="8dp"
-        android:text="@string/sync"
-        card_view:layout_constraintBottom_toBottomOf="parent"
-        card_view:layout_constraintEnd_toEndOf="parent"
-        card_view:layout_constraintTop_toBottomOf="@+id/card_view" />
-
 </android.support.constraint.ConstraintLayout>

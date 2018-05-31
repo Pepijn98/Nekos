@@ -1,7 +1,6 @@
 package xyz.kurozero.nekos
 
 import android.annotation.SuppressLint
-import android.app.AlertDialog
 import android.content.ContentUris
 import android.content.Context
 import android.content.pm.PackageManager
@@ -16,7 +15,6 @@ import android.icu.text.SimpleDateFormat
 import android.net.ConnectivityManager
 import android.support.v4.app.ActivityCompat
 import android.text.format.DateUtils
-import android.view.View
 
 object FilePickUtils {
     fun getPathDeprecated(ctx: Context, uri: Uri?): String? {
