@@ -1,4 +1,4 @@
-package xyz.kurozero.nekos
+package xyz.kurozero.nekosmoe
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -241,10 +241,17 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                 snackbar(view, "Saved as ${neko.id}.jpeg")
                 fileOutput.close()
             } else if (err != null) {
-                val nekoException = NekoException.Deserializer().deserialize(err.errorData)
-                val msg = nekoException?.message ?: err.message ?: "Something went wrong"
-                longSnackbar(view, msg)
-                Sentry.capture(err)
+                when (err.response.statusCode) {
+                    429 -> {
+                        longSnackbar(view, "Too many requests, please wait a few seconds")
+                    }
+                    else -> {
+                        val nekoException = NekoException.Deserializer().deserialize(err.errorData)
+                        val msg = nekoException?.message ?: err.message ?: "Something went wrong"
+                        longSnackbar(view, msg)
+                        Sentry.capture(err)
+                    }
+                }
             }
         }
     }

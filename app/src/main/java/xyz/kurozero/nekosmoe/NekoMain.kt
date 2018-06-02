@@ -1,4 +1,4 @@
-package xyz.kurozero.nekos
+package xyz.kurozero.nekosmoe
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -59,7 +59,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
     private var isNew = true
     private var init = true
     private var sort = "newest"
-    var nsfw: Boolean? = false
+    // var nsfw: Boolean? = false
 
     // Important data being added later
     lateinit var nekos: Nekos
@@ -87,7 +87,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         setSupportActionBar(toolbar)
         supportActionBar?.title = null
         httpClient = OkHttpClient()
-        Sentry.init("", AndroidSentryClientFactory(applicationContext))
+        Sentry.init("https://4cd9a20178ce47b1a31b9a9b251510d6@sentry.io/1217022", AndroidSentryClientFactory(applicationContext))
 
         // Do some fonts magic
         typeFace = Typeface.createFromAsset(assets, "fonts/nunito.ttf")
@@ -225,7 +225,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                 }
             }
             R.id.view_account -> viewProfile() // Check our profile data
-            R.id.switch_nsfw -> {
+            /*R.id.switch_nsfw -> {
                 // The options the user can choose from
                 val buttons = listOf("Show me everything", "Only NSFW", "Block NSFW")
 
@@ -251,7 +251,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                         else -> return@selector // Will never be possible but just to be sure you never know what users can do
                     }
                 })
-            }
+            }*/
             R.id.sort -> {
                 // The sorting options the user can choose from
                 val buttons = listOf("New", "Old", "Likes")
@@ -321,10 +321,17 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                             Sentry.capture(e)
                         }
                     } else if (error != null) {
-                        val nekoException = NekoException.Deserializer().deserialize(error.errorData)
-                        val msg = nekoException?.message ?: error.message ?: "Something went wrong"
-                        longSnackbar(nekoImages, msg)
-                        Sentry.capture(error)
+                        when (error.response.statusCode) {
+                            429 -> {
+                                longSnackbar(nekoImages, "Too many requests, please wait a few seconds")
+                            }
+                            else -> {
+                                val nekoException = NekoException.Deserializer().deserialize(error.errorData)
+                                val msg = nekoException?.message ?: error.message ?: "Something went wrong"
+                                longSnackbar(nekoImages, msg)
+                                Sentry.capture(error)
+                            }
+                        }
                     }
                 }
             }
@@ -393,9 +400,12 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         // This is to prevent making useless requests
         if (page <= 1 && !isNew && oldPage != 2) return
 
+        /*
         val reqbody =
                 if (nsfw != null) "{\"nsfw\": $nsfw, \"limit\": 10, \"skip\": $toSkip, \"sort\": \"$sort\"}"
                 else "{\"limit\": 10, \"skip\": $toSkip, \"sort\": \"$sort\"}"
+        */
+        val reqbody = "{\"nsfw\": false, \"limit\": 10, \"skip\": $toSkip, \"sort\": \"$sort\"}"
 
         doAsync {
             Fuel.post("/images/search")
@@ -415,10 +425,17 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                 longSnackbar(nekoImages, "You reached the end")
                             }
                         } else if (error != null) {
-                            val nekoException = NekoException.Deserializer().deserialize(error.errorData)
-                            val msg = nekoException?.message ?: error.message ?: "Something went wrong"
-                            longSnackbar(nekoImages, msg)
-                            Sentry.capture(error)
+                            when (error.response.statusCode) {
+                                429 -> {
+                                    longSnackbar(nekoImages, "Too many requests, please wait a few seconds")
+                                }
+                                else -> {
+                                    val nekoException = NekoException.Deserializer().deserialize(error.errorData)
+                                    val msg = nekoException?.message ?: error.message ?: "Something went wrong"
+                                    longSnackbar(nekoImages, msg)
+                                    Sentry.capture(error)
+                                }
+                            }
                         }
                     }
             // Set new to false after new request
@@ -569,10 +586,17 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                             } else {
                                                 val (_, error) = result
                                                 if (error != null) {
-                                                    val nekoException = NekoException.Deserializer().deserialize(error.errorData)
-                                                    val msg = nekoException?.message ?: error.message ?: "Something went wrong"
-                                                    longSnackbar(nekoImages, msg)
-                                                    Sentry.capture(error)
+                                                    when (error.response.statusCode) {
+                                                        429 -> {
+                                                            longSnackbar(nekoImages, "Too many requests, please wait a few seconds")
+                                                        }
+                                                        else -> {
+                                                            val nekoException = NekoException.Deserializer().deserialize(error.errorData)
+                                                            val msg = nekoException?.message ?: error.message ?: "Something went wrong"
+                                                            longSnackbar(nekoImages, msg)
+                                                            Sentry.capture(error)
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -612,10 +636,17 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                         snackbar(nekoImages, "Success logging in")
                                     } else if (error != null) {
                                         updateUI(false)
-                                        val nekoException = NekoException.Deserializer().deserialize(error.errorData)
-                                        val msg = nekoException?.message ?: error.message ?: "Something went wrong"
-                                        longSnackbar(nekoImages, msg)
-                                        Sentry.capture(error)
+                                        when (error.response.statusCode) {
+                                            429 -> {
+                                                longSnackbar(nekoImages, "Too many requests, please wait a few seconds")
+                                            }
+                                            else -> {
+                                                val nekoException = NekoException.Deserializer().deserialize(error.errorData)
+                                                val msg = nekoException?.message ?: error.message ?: "Something went wrong"
+                                                longSnackbar(nekoImages, msg)
+                                                Sentry.capture(error)
+                                            }
+                                        }
                                     }
                                 }
                     }
@@ -658,7 +689,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
             .setView(view)
             .setNegativeButton("Close", null)
             .setPositiveButton("Switch", { _, _ ->
-                val wifi = getSystemService(Context.WIFI_SERVICE) as WifiManager
+                val wifi = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
                 wifi.isWifiEnabled = true
                 snackbar(nekoImages, "Enabled wifi, have fun browsing!")
             }).create()

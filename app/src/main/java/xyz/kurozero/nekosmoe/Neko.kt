@@ -1,4 +1,4 @@
-package xyz.kurozero.nekos
+package xyz.kurozero.nekosmoe
 
 import com.github.kittinunf.fuel.core.ResponseDeserializable
 import com.google.gson.Gson
