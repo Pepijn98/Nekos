@@ -13,12 +13,10 @@
             android:id="@+id/view_account"
             android:icon="@drawable/ic_menu_account"
             android:title="@string/view_profile" />
-        <!--
         <item
             android:id="@+id/switch_nsfw"
             android:icon="@drawable/ic_menu_age_restriction"
             android:title="@string/switch_nsfw" />
-        -->
         <item
             android:id="@+id/sort"
             android:icon="@drawable/ic_menu_sort"

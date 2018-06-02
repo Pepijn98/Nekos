@@ -59,7 +59,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
     private var isNew = true
     private var init = true
     private var sort = "newest"
-    // var nsfw: Boolean? = false
+    var nsfw: Boolean? = false
 
     // Important data being added later
     lateinit var nekos: Nekos
@@ -87,7 +87,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         setSupportActionBar(toolbar)
         supportActionBar?.title = null
         httpClient = OkHttpClient()
-        Sentry.init("https://4cd9a20178ce47b1a31b9a9b251510d6@sentry.io/1217022", AndroidSentryClientFactory(applicationContext))
+        Sentry.init("https://76c5721c8e2a4a81bfe8e2be1adffc1f@sentry.io/1218244", AndroidSentryClientFactory(applicationContext))
 
         // Do some fonts magic
         typeFace = Typeface.createFromAsset(assets, "fonts/nunito.ttf")
@@ -225,7 +225,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                 }
             }
             R.id.view_account -> viewProfile() // Check our profile data
-            /*R.id.switch_nsfw -> {
+            R.id.switch_nsfw -> {
                 // The options the user can choose from
                 val buttons = listOf("Show me everything", "Only NSFW", "Block NSFW")
 
@@ -251,7 +251,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                         else -> return@selector // Will never be possible but just to be sure you never know what users can do
                     }
                 })
-            }*/
+            }
             R.id.sort -> {
                 // The sorting options the user can choose from
                 val buttons = listOf("New", "Old", "Likes")
@@ -400,12 +400,9 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         // This is to prevent making useless requests
         if (page <= 1 && !isNew && oldPage != 2) return
 
-        /*
         val reqbody =
                 if (nsfw != null) "{\"nsfw\": $nsfw, \"limit\": 10, \"skip\": $toSkip, \"sort\": \"$sort\"}"
                 else "{\"limit\": 10, \"skip\": $toSkip, \"sort\": \"$sort\"}"
-        */
-        val reqbody = "{\"nsfw\": false, \"limit\": 10, \"skip\": $toSkip, \"sort\": \"$sort\"}"
 
         doAsync {
             Fuel.post("/images/search")
