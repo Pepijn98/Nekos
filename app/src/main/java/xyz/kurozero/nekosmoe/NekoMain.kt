@@ -601,6 +601,11 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                     registerDialog.show()
                 })
                 .setPositiveButton("Login", { _, _ ->
+                    if (loginView.usernameInput.text.isNullOrEmpty() || loginView.passwordInput.text.isNullOrEmpty()) {
+                        longSnackbar(nekoImages, "Please complete all fields")
+                        return@setPositiveButton
+                    }
+
                     doAsync {
                         Fuel.post("/auth")
                                 .header(mapOf("Content-Type" to "application/json"))
