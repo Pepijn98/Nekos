@@ -47,7 +47,7 @@ import java.io.File
 // https://nekos.moe/api/v1
 // http://localhost:8080/api/v1
 const val baseUrl = "https://nekos.moe/api/v1"
-const val userAgent = "NekosApp/v0.8.0 (https://github.com/KurozeroPB/nekos-app)"
+const val userAgent = "NekosApp/v0.10.1 (https://github.com/KurozeroPB/nekos-app)"
 val File.extension: String
     get() = name.substringAfterLast('.', "")
 
