@@ -12,10 +12,10 @@ sentry {
 android {
     compileSdkVersion 27
     defaultConfig {
-        applicationId "xyz.kurozero.nekosmoe"
+        applicationId "xyz.kurozero.nekos"
         minSdkVersion 23
         targetSdkVersion 27
-        versionCode 11
+        versionCode 12
         versionName "0.10.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
