@@ -14,6 +14,8 @@ Future plan is to at least finish the todos below that have a "*" and put a rele
 - Edit account settings *
 - Network preferences
 - Logout confirmation to prevent accidental logouts
+- Option to set current image as background/lockscreen
+- Remove image after sharing success/cancel
 - ...
 
 #### Finished
