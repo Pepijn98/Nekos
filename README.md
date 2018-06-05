@@ -1,6 +1,11 @@
 # Nekos
 Work in progress mobile app for https://nekos.moe \
-Pre-release apk's can be found [here](https://github.com/KurozeroPB/Nekos/releases) \
+Full versions of this app which include nsfw options can be found [here](https://github.com/KurozeroPB/Nekos/releases) \
+Play store version (No nsfw):
+1. Go here: [play.google.com/apps/testing/xyz.kurozero.nekosmoe](https://play.google.com/apps/testing/xyz.kurozero.nekosmoe) to become a beta tester
+2. Install the app from here: [play.google.com/store/apps/details?id=xyz.kurozero.nekosmoe](https://play.google.com/store/apps/details?id=xyz.kurozero.nekosmoe) \
+
+
 Future plan is to at least finish the todos below that have a "*" and put a release version on the play store
 
 ## Todos
