@@ -1,4 +1,4 @@
-package xyz.kurozero.nekosmoe
+package xyz.kurozero.nekos
 
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver

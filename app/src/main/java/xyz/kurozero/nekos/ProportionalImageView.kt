@@ -1,4 +1,4 @@
-package xyz.kurozero.nekosmoe
+package xyz.kurozero.nekos
 
 import android.content.Context
 import android.util.AttributeSet

@@ -1,4 +1,4 @@
-package xyz.kurozero.nekosmoe
+package xyz.kurozero.nekos
 
 import android.support.test.InstrumentationRegistry
 import android.support.test.runner.AndroidJUnit4
