@@ -1,4 +1,4 @@
-package xyz.kurozero.nekos
+package xyz.kurozero.nekosmoe
 
 import android.annotation.SuppressLint
 import android.content.ContentUris
@@ -11,11 +11,10 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.graphics.Typeface
+import android.icu.text.SimpleDateFormat
 import android.net.ConnectivityManager
 import android.support.v4.app.ActivityCompat
 import android.text.format.DateUtils
-import java.text.SimpleDateFormat
-import java.util.*
 
 object FilePickUtils {
     fun getPathDeprecated(ctx: Context, uri: Uri?): String? {
@@ -135,7 +134,7 @@ object FontsOverride {
 }
 
 fun timestamp(timeCreated: String): String {
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH)
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
     val timeCreatedDate = dateFormat.parse(timeCreated)
     return DateUtils.getRelativeTimeSpanString(timeCreatedDate.time, System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS) as String
 }

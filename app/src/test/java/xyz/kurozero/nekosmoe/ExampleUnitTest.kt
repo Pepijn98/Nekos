@@ -1,4 +1,4 @@
-package xyz.kurozero.nekos
+package xyz.kurozero.nekosmoe
 
 import org.junit.Test
 
