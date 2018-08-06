@@ -11,13 +11,14 @@ import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.graphics.Typeface
-import android.icu.text.SimpleDateFormat
 import android.net.ConnectivityManager
 import android.support.v4.app.ActivityCompat
 import android.text.format.DateUtils
+import java.text.SimpleDateFormat
+import java.util.*
 
 object FilePickUtils {
-    fun getPathDeprecated(ctx: Context, uri: Uri?): String? {
+    private fun getPathDeprecated(ctx: Context, uri: Uri?): String? {
         if (uri == null) {
             return null
         }
@@ -41,10 +42,8 @@ object FilePickUtils {
         return FilePickUtils.getPath(ctx, uri)
     }
 
-    @SuppressLint("ObsoleteSdkInt")
-    fun getPath(context: Context, uri: Uri): String? {
-        val isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
-        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+    private fun getPath(context: Context, uri: Uri): String? {
+        if (DocumentsContract.isDocumentUri(context, uri)) {
             if (isExternalStorageDocument(uri)) {
                 val docId = DocumentsContract.getDocumentId(uri)
                 val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
@@ -82,7 +81,7 @@ object FilePickUtils {
         return null
     }
 
-    fun getDataColumn(context: Context, uri: Uri, selection: String?, selectionArgs: Array<String>?): String? {
+    private fun getDataColumn(context: Context, uri: Uri, selection: String?, selectionArgs: Array<String>?): String? {
         var cursor: Cursor? = null
         val column = "_data"
         val projection = arrayOf(column)
@@ -94,21 +93,20 @@ object FilePickUtils {
                 return cursor.getString(columnIndex)
             }
         } finally {
-            if (cursor != null)
-                cursor.close()
+            cursor?.close()
         }
         return null
     }
 
-    fun isExternalStorageDocument(uri: Uri): Boolean {
+    private fun isExternalStorageDocument(uri: Uri): Boolean {
         return "com.android.externalstorage.documents" == uri.authority
     }
 
-    fun isDownloadsDocument(uri: Uri): Boolean {
+    private fun isDownloadsDocument(uri: Uri): Boolean {
         return "com.android.providers.downloads.documents" == uri.authority
     }
 
-    fun isMediaDocument(uri: Uri): Boolean {
+    private fun isMediaDocument(uri: Uri): Boolean {
         return "com.android.providers.media.documents" == uri.authority
     }
 }
@@ -134,13 +132,13 @@ object FontsOverride {
 }
 
 fun timestamp(timeCreated: String): String {
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH)
     val timeCreatedDate = dateFormat.parse(timeCreated)
     return DateUtils.getRelativeTimeSpanString(timeCreatedDate.time, System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS) as String
 }
 
 fun hasPermissions(context: Context?, permissions: Array<String>): Boolean {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && context != null) {
+    if (context != null) {
         for (permission in permissions) {
             if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
                 return false

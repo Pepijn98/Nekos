@@ -13,11 +13,13 @@ import android.view.ViewGroup
 import android.widget.*
 import android.provider.MediaStore
 import android.support.v7.widget.RecyclerView
+import android.util.Log
 import com.stfalcon.frescoimageviewer.ImageViewer
 import com.github.kittinunf.fuel.Fuel
 import com.hendraanggrian.pikasso.picasso
 import com.hendraanggrian.pikasso.*
 import io.sentry.Sentry
+import kotlinx.android.synthetic.main.content_neko_main.*
 import org.jetbrains.anko.*
 import org.jetbrains.anko.design.longSnackbar
 import org.jetbrains.anko.design.snackbar
@@ -55,6 +57,12 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                 .into(holder.imgNeko.toProgressTarget())
 
         holder.imgNeko.setOnClickListener {
+            if (!main.connected || !isConnected(main)) {
+                val snack = snackbar(main.nekoImages, "No network connection")
+                snack.setAction("Close") { snack.dismiss() }
+                return@setOnClickListener
+            }
+
             val view = LayoutInflater.from(main).inflate(R.layout.view_neko_dialog, holder.parent, false)
             val nekoDialog = AlertDialog.Builder(main)
                     .setView(view)
@@ -80,9 +88,6 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                 view.btnFavNeko.text = if (faved.isNullOrBlank()) "Favorite" else "Unfavorite"
             }
 
-            if (!main.connected || !isConnected(main)) {
-                snackbar(view, "No network connection")
-            } else {
                 val token = main.sharedPreferences.getString("token", "")
                 view.btnLikeNeko.setOnClickListener {
                     if (main.isLoggedin) {
@@ -174,7 +179,6 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                         longSnackbar(view, "You need to be logged in to use this action")
                     }
                 }
-            }
 
             view.btnSaveNeko.setOnClickListener {
                 if (!main.connected || !isConnected(main)) {
@@ -209,6 +213,15 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                                     "#catgirls #nekos\n" +
                                     "https://nekos.moe/post/${neko.id}")
                             val path = MediaStore.Images.Media.insertImage(main.contentResolver, bitmap, "", null)
+                            if (path == null) {
+                                val permission = hasPermissions(context, main.permissions)
+                                if (!permission) {
+                                    ActivityCompat.requestPermissions(main, main.permissions, 999)
+                                } else {
+                                    snackbar(view, "Unable to save images/share")
+                                }
+                                return@onLoaded
+                            }
                             val uri = Uri.parse(path)
 
                             intent.putExtra(Intent.EXTRA_STREAM, uri)

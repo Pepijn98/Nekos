@@ -47,7 +47,7 @@ import java.io.File
 // https://nekos.moe/api/v1
 // http://localhost:8080/api/v1
 const val baseUrl = "https://nekos.moe/api/v1"
-const val userAgent = "NekosApp/v0.8.0 (https://github.com/KurozeroPB/nekos-app)"
+const val userAgent = "NekosApp/v0.10.2 (https://github.com/KurozeroPB/nekos-app)"
 val File.extension: String
     get() = name.substringAfterLast('.', "")
 
@@ -59,7 +59,6 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
     private var isNew = true
     private var init = true
     private var sort = "newest"
-    // var nsfw: Boolean? = false
 
     // Important data being added later
     lateinit var nekos: Nekos
@@ -225,33 +224,6 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                 }
             }
             R.id.view_account -> viewProfile() // Check our profile data
-            /*R.id.switch_nsfw -> {
-                // The options the user can choose from
-                val buttons = listOf("Show me everything", "Only NSFW", "Block NSFW")
-
-                // Set these back to the default to make requestNeko start over again with the new nsfw settings
-                isNew = true
-                page = 1
-
-                // Dialog with options of whatever the user wishes to see
-                selector(null, buttons, { _, i ->
-                    when (i) {
-                        0 -> {
-                            nsfw = null // Null will show everything
-                            requestNeko(false)
-                        }
-                        1 -> {
-                            nsfw = true // True will only show NSFW
-                            requestNeko(false)
-                        }
-                        2 -> {
-                            nsfw = false // False will only show SFW
-                            requestNeko(false)
-                        }
-                        else -> return@selector // Will never be possible but just to be sure you never know what users can do
-                    }
-                })
-            }*/
             R.id.sort -> {
                 // The sorting options the user can choose from
                 val buttons = listOf("New", "Old", "Likes")
@@ -261,7 +233,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                 page = 1
 
                 // Dialog with options of whatever the user wishes to see
-                selector(null, buttons, { _, i ->
+                selector(null, buttons) { _, i ->
                     when (i) {
                         0 -> {
                             sort = "newest"
@@ -277,7 +249,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                         }
                         else -> return@selector
                     }
-                })
+                }
             }
             R.id.upload -> {
                 // Create an intent with any image format
@@ -355,7 +327,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         // Create the user dialog
         val userDialog = AlertDialog.Builder(this@NekoMain)
                 .setView(view)
-                .setNeutralButton("Close", { dialog, _ -> dialog.dismiss() })
+                .setNeutralButton("Close") { dialog, _ -> dialog.dismiss() }
                 .create()
 
         val suffix = if (user!!.uploads == 1) "image" else "images"
@@ -400,11 +372,6 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         // This is to prevent making useless requests
         if (page <= 1 && !isNew && oldPage != 2) return
 
-        /*
-        val reqbody =
-                if (nsfw != null) "{\"nsfw\": $nsfw, \"limit\": 10, \"skip\": $toSkip, \"sort\": \"$sort\"}"
-                else "{\"limit\": 10, \"skip\": $toSkip, \"sort\": \"$sort\"}"
-        */
         val reqbody = "{\"nsfw\": false, \"limit\": 10, \"skip\": $toSkip, \"sort\": \"$sort\"}"
 
         doAsync {
@@ -471,8 +438,8 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         // Create upload dialog
         val uploadDialog = AlertDialog.Builder(this)
                 .setView(uploadView)
-                .setNegativeButton("Cancel", { dialog, _ -> dialog.dismiss() }) // Close dialog
-                .setPositiveButton("Upload", { _, _ ->
+                .setNegativeButton("Cancel") { dialog, _ -> dialog.dismiss() } // Close dialog
+                .setPositiveButton("Upload") { _, _ ->
                     // Get the users input
                     val strtags = uploadView.etTags.text.toString()
                     val artist = uploadView.etArtist.text.toString()
@@ -517,7 +484,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                         }
                         response.close()
                     }
-                }).create()
+                }.create()
 
         uploadDialog.show()
     }
@@ -535,8 +502,8 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         // Create login dialog
         val loginDialog = AlertDialog.Builder(this)
                 .setView(loginView)
-                .setNegativeButton("Cancel", { dialog, _ -> dialog.cancel() })
-                .setNeutralButton("Register", { dialog, _ ->
+                .setNegativeButton("Cancel") { dialog, _ -> dialog.cancel() }
+                .setNeutralButton("Register") { dialog, _ ->
                     // Dismiss old dialog
                     dialog.dismiss()
 
@@ -546,8 +513,8 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                     // Create register dialog
                     val registerDialog = AlertDialog.Builder(this)
                             .setView(registerView)
-                            .setNegativeButton("Cancel", { d, _ -> d.dismiss() })
-                            .setPositiveButton("Confirm", { _, _ ->
+                            .setNegativeButton("Cancel") { d, _ -> d.dismiss() }
+                            .setPositiveButton("Confirm") { _, _ ->
                                 // Input checks
                                 if (registerView.userInput.text.isNullOrEmpty() || registerView.passInput.text.isNullOrEmpty() || registerView.emailInput.text.isNullOrEmpty()) {
                                     longSnackbar(nekoImages, "Please complete all fields")
@@ -574,12 +541,12 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                 Fuel.post("/register")
                                         .header(mapOf("Content-Type" to "application/json"))
                                         .body("""
-                                            {
-                                                "email": "${registerView.emailInput.text}",
-                                                "username": "${registerView.userInput.text}",
-                                                "password": "${registerView.passInput.text}"
-                                            }
-                                        """.trimMargin())
+                                                                        {
+                                                                            "email": "${registerView.emailInput.text}",
+                                                                            "username": "${registerView.userInput.text}",
+                                                                            "password": "${registerView.passInput.text}"
+                                                                        }
+                                                                    """.trimMargin())
                                         .responseJson { _, response, result ->
                                             if (response.statusCode == 201) {
                                                 longSnackbar(nekoImages, "A confirmation mail has been send to your email")
@@ -600,10 +567,15 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                                 }
                                             }
                                         }
-                            }).create()
+                            }.create()
                     registerDialog.show()
-                })
-                .setPositiveButton("Login", { _, _ ->
+                }
+                .setPositiveButton("Login") { _, _ ->
+                    if (loginView.usernameInput.text.isNullOrEmpty() || loginView.passwordInput.text.isNullOrEmpty()) {
+                        longSnackbar(nekoImages, "Please complete all fields")
+                        return@setPositiveButton
+                    }
+
                     doAsync {
                         Fuel.post("/auth")
                                 .header(mapOf("Content-Type" to "application/json"))
@@ -650,7 +622,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                     }
                                 }
                     }
-                }).create()
+                }.create()
         loginDialog.show()
     }
 
@@ -688,11 +660,11 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
             val alertDialog = AlertDialog.Builder(this)
             .setView(view)
             .setNegativeButton("Close", null)
-            .setPositiveButton("Switch", { _, _ ->
+            .setPositiveButton("Switch") { _, _ ->
                 val wifi = applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
                 wifi.isWifiEnabled = true
                 snackbar(nekoImages, "Enabled wifi, have fun browsing!")
-            }).create()
+            }.create()
 
             alertDialog.show()
             return true
