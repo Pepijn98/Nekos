@@ -12,8 +12,11 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.graphics.Typeface
 import android.net.ConnectivityManager
+import android.support.design.widget.CoordinatorLayout
+import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.text.format.DateUtils
+import android.view.View
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -152,4 +155,16 @@ fun isConnected(context: Context): Boolean {
     val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
     val activeNetwork = cm.activeNetworkInfo
     return activeNetwork != null && activeNetwork.isConnected
+}
+
+fun showSnackbar(view: View, ctx: Context, text: String, length: Int) {
+    val snackbar = Snackbar.make(view, text, length)
+    val snackbarView = snackbar.view
+    val params = snackbarView.layoutParams as CoordinatorLayout.LayoutParams
+
+    snackbar.setAction("X") { snackbar.dismiss() }
+    params.setMargins(params.leftMargin + 10, params.topMargin, params.rightMargin + 10, params.bottomMargin + 10)
+    snackbarView.layoutParams = params
+    snackbarView.background = ctx.getDrawable(R.drawable.layout_bg)
+    snackbar.show()
 }

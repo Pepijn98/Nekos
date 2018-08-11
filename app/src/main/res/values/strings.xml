@@ -46,4 +46,5 @@
     <string name="age_check">I am 13+ years old</string>
     <string name="must_not_contain_an_symbol">  Must not contain an @ symbol</string>
     <string name="min_8_characters">  Min 8 characters</string>
+    <string name="action">Action</string>
 </resources>
