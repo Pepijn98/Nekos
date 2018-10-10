@@ -22,6 +22,8 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.hendraanggrian.pikasso.picasso
 import com.hendraanggrian.pikasso.*
 import io.sentry.Sentry
+import io.sentry.event.BreadcrumbBuilder
+import io.sentry.event.UserBuilder
 import org.jetbrains.anko.*
 import kotlinx.android.synthetic.main.nekos_entry.view.*
 import kotlinx.android.synthetic.main.view_neko_dialog.view.*
@@ -65,8 +67,11 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                 return@setOnClickListener
             }
 
-            bundle.putString(FirebaseAnalytics.Param.ITEM_ID, deviceID)
+            // Analytics
+            bundle.clear()
+            bundle.putString(FirebaseAnalytics.Param.ITEM_ID, "nekos_view_image")
             bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, "View Neko ${neko.id}")
+            firebaseAnalytics.logEvent("view_image", bundle)
 
             val view = LayoutInflater.from(context).inflate(R.layout.view_neko_dialog, holder.parent, false)
             val nekoDialog = AlertDialog.Builder(context)
@@ -75,15 +80,15 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
 
             view.tvUploader.text = context.getString(R.string.uploaded_by, neko.uploader.username)
             view.tvApproved.text = context.getString(R.string.approved_by, neko.approver?.username ?: "-")
-            view.tvFavorites.text = context.getString(R.string.neko_favorites, neko.favorites)
-            view.tvLikes.text = context.getString(R.string.neko_likes, neko.likes)
+            view.tvNekoFavorites.text = context.getString(R.string.neko_favorites, neko.favorites)
+            view.tvNekoLikes.text = context.getString(R.string.neko_likes, neko.likes)
             view.tvArtist.text = context.getString(R.string.neko_artist, neko.artist)
             view.tvTags.text = context.getString(R.string.neko_tags, neko.tags.joinToString(", "))
             view.tvTags.movementMethod = ScrollingMovementMethod()
 
             picasso.load(fullImage).into(view.fullNekoImg.toProgressTarget())
 
-            view.fullNekoImg.setOnClickListener {
+            view.fullNekoImg.setOnClickListener { _ ->
                 ImageViewer.Builder(context, arrayOf(fullImage)).show()
             }
 
@@ -91,22 +96,23 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                 if (user == null)
                     return@setOnClickListener
 
-                val liked = user?.likes?.find { it == neko.id }
-                val faved = user?.favorites?.find { it == neko.id }
+                val liked = user?.likes?.find { id -> id == neko.id }
+                val faved = user?.favorites?.find { id -> id == neko.id }
                 view.btnLikeNeko.text = if (liked.isNullOrBlank()) "Like" else "Unlike"
                 view.btnFavNeko.text = if (faved.isNullOrBlank()) "Favorite" else "Unfavorite"
             }
 
                 val token = sharedPreferences.getString("token", "")
-                view.btnLikeNeko.setOnClickListener {
+                view.btnLikeNeko.setOnClickListener { _ ->
                     if (isLoggedin) {
                         doAsync {
-                            val likedNeko = user?.likes?.find { it == neko.id }
+                            val likedNeko = user?.likes?.find { id -> id == neko.id }
                             val reqbodystr =
                                     if (likedNeko.isNullOrBlank()) "{\"create\": true, \"type\": \"like\"}"
                                     else "{\"create\": false, \"type\": \"like\"}"
 
                             val reqbody = RequestBody.create(MediaType.parse("application/json"), reqbodystr)
+                            val requrl = "https://nekos.moe/api/v1/image/${neko.id}/relationship"
 
                             val headers = okhttp3.Headers.Builder()
                                     .add("Authorization", token)
@@ -115,7 +121,7 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                                     .build()
 
                             val request = Request.Builder()
-                                    .url("https://nekos.moe/api/v1/image/${neko.id}/relationship")
+                                    .url(requrl)
                                     .headers(headers)
                                     .patch(reqbody)
                                     .build()
@@ -130,18 +136,25 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                                         user?.likes?.add(neko.id)
                                         sharedPreferences.edit().putString("user", JSON.stringify(user!!)).apply()
                                         showSnackbar(view, context, "Liked", Snackbar.LENGTH_SHORT)
-                                        uiThread { view.btnLikeNeko.text = "Unlike" }
+                                        uiThread { _ -> view.btnLikeNeko.text = "Unlike" }
                                     } else {
                                         user?.likes?.remove(neko.id)
                                         sharedPreferences.edit().putString("user", JSON.stringify(user!!)).apply()
                                         showSnackbar(view, context, "Unliked", Snackbar.LENGTH_SHORT)
-                                        uiThread { view.btnLikeNeko.text = "Like" }
+                                        uiThread { _ -> view.btnLikeNeko.text = "Like" }
                                     }
                                 }
                                 response.close()
                             } catch (e: IOException) {
                                 showSnackbar(view, context, e.message ?: "Something went wrong", Snackbar.LENGTH_LONG)
+                                if (isLoggedin)
+                                    Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
+                                Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed to update like relationship").build())
+                                Sentry.getContext().addExtra("request-body", reqbodystr)
+                                Sentry.getContext().addExtra("request-url", requrl)
+                                Sentry.getContext().addTag("fuel-http-request", "true")
                                 Sentry.capture(e)
+                                Sentry.clearContext()
                             }
                         }
                     } else {
@@ -149,15 +162,16 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                     }
                 }
 
-                view.btnFavNeko.setOnClickListener {
+                view.btnFavNeko.setOnClickListener { _ ->
                     if (isLoggedin) {
                         doAsync {
-                            val favedNeko = user?.favorites?.find { it == neko.id }
+                            val favedNeko = user?.favorites?.find { id -> id == neko.id }
                             val reqbodystr =
                                     if (favedNeko.isNullOrBlank()) "{\"create\": true, \"type\": \"favorite\"}"
                                     else "{\"create\": false, \"type\": \"favorite\"}"
 
                             val reqbody = RequestBody.create(MediaType.parse("application/json"), reqbodystr)
+                            val requrl = "https://nekos.moe/api/v1/image/${neko.id}/relationship"
 
                             val headers = okhttp3.Headers.Builder()
                                     .add("Authorization", token)
@@ -165,7 +179,7 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                                     .build()
 
                             val request = Request.Builder()
-                                    .url("https://nekos.moe/api/v1/image/${neko.id}/relationship")
+                                    .url(requrl)
                                     .headers(headers)
                                     .patch(reqbody)
                                     .build()
@@ -180,18 +194,25 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                                         user?.favorites?.add(neko.id)
                                         sharedPreferences.edit().putString("user", JSON.stringify(user!!)).apply()
                                         showSnackbar(view, context, "Favorited", Snackbar.LENGTH_SHORT)
-                                        uiThread { view.btnFavNeko.text = "Unfavorite" }
+                                        uiThread { _ -> view.btnFavNeko.text = "Unfavorite" }
                                     } else {
                                         user?.favorites?.remove(neko.id)
                                         sharedPreferences.edit().putString("user", JSON.stringify(user!!)).apply()
                                         showSnackbar(view, context, "Unfavorited", Snackbar.LENGTH_SHORT)
-                                        uiThread { view.btnFavNeko.text = "Favorite" }
+                                        uiThread { _ -> view.btnFavNeko.text = "Favorite" }
                                     }
                                 }
                                 response.close()
                             } catch (e: IOException) {
                                 showSnackbar(view, context, e.message ?: "Something went wrong", Snackbar.LENGTH_LONG)
+                                if (isLoggedin)
+                                    Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
+                                Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed to update favorite relationship").build())
+                                Sentry.getContext().addExtra("request-body", reqbodystr)
+                                Sentry.getContext().addExtra("request-url", requrl)
+                                Sentry.getContext().addTag("fuel-http-request", "true")
                                 Sentry.capture(e)
+                                Sentry.clearContext()
                             }
                         }
                     } else {
@@ -199,15 +220,19 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                     }
                 }
 
-            view.btnSaveNeko.setOnClickListener {
+            view.btnSaveNeko.setOnClickListener { _ ->
                 if (!connected || !isConnected(context)) {
                     showSnackbar(view, context, "No network connection", Snackbar.LENGTH_LONG)
                 } else {
                     if (!hasPermissions(context, permissions)) {
                         ActivityCompat.requestPermissions(context as NekoMain, permissions, 999)
                     } else {
-                        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, deviceID)
+                        // Analytics
+                        bundle.clear()
+                        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, "nekos_save_image")
                         bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, "Save Neko ${neko.id}")
+                        firebaseAnalytics.logEvent("save_image", bundle)
+
                         doAsync {
                             downloadAndSave(neko, view)
                         }
@@ -215,11 +240,11 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                 }
             }
 
-            view.btnCloseNeko.setOnClickListener {
+            view.btnCloseNeko.setOnClickListener { _ ->
                 nekoDialog.dismiss()
             }
 
-            view.btnShareNeko.setOnClickListener {
+            view.btnShareNeko.setOnClickListener { _ ->
                 if (!connected || !isConnected(context)) {
                     showSnackbar(view, context, "No network connection", Snackbar.LENGTH_LONG)
                 } else {
