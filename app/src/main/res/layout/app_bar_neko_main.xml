@@ -28,26 +28,6 @@
 
         </android.support.v7.widget.Toolbar>
 
-        <GridLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent">
-
-            <Button
-                android:id="@+id/button"
-                android:layout_width="150dp"
-                android:layout_height="wrap_content"
-                android:text="Button" />
-
-            <Button
-                android:id="@+id/button2"
-                android:layout_width="150dp"
-                android:layout_height="wrap_content"
-                android:layout_column="2"
-                android:layout_row="0"
-                android:text="Button" />
-
-        </GridLayout>
-
     </android.support.design.widget.AppBarLayout>
 
     <include layout="@layout/content_neko_main" />

@@ -17,6 +17,8 @@ import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.text.format.DateUtils
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -160,7 +162,16 @@ fun isConnected(context: Context): Boolean {
 fun showSnackbar(view: View, ctx: Context, text: String, length: Int) {
     val snackbar = Snackbar.make(view, text, length)
     val snackbarView = snackbar.view
-    val params = snackbarView.layoutParams as CoordinatorLayout.LayoutParams
+    // val params = snackbarView.layoutParams as CoordinatorLayout.LayoutParams
+    // val params = snackbarView.layoutParams as FrameLayout.LayoutParams
+    val params = when (snackbarView.layoutParams) {
+        is FrameLayout.LayoutParams -> {
+            snackbarView.layoutParams as FrameLayout.LayoutParams
+        }
+        else -> {
+            snackbarView.layoutParams as CoordinatorLayout.LayoutParams
+        }
+    }
 
     snackbar.setAction("X") { snackbar.dismiss() }
     params.setMargins(params.leftMargin + 10, params.topMargin, params.rightMargin + 10, params.bottomMargin + 10)

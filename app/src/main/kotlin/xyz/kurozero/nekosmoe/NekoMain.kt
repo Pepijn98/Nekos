@@ -20,6 +20,8 @@ import android.support.v4.view.GravityCompat
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.app.AppCompatActivity
+import android.text.Html
+import android.text.method.LinkMovementMethod
 import com.github.kittinunf.fuel.android.extension.responseJson
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.*
@@ -63,8 +65,9 @@ import java.io.IOException
 
 // https://nekos.moe/api/v1
 // http://localhost:8080/api/v1
+const val version = "0.12.0"
 const val baseUrl = "https://nekos.moe/api/v1"
-const val userAgent = "NekosApp/v0.12.0 (https://github.com/KurozeroPB/nekos-app)"
+const val userAgent = "NekosApp/v$version (https://github.com/KurozeroPB/nekos-app)"
 
 val File.extension: String
     get() = name.substringAfterLast('.', "")
@@ -115,7 +118,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         setSupportActionBar(toolbar)
         supportActionBar?.title = null
         httpClient = OkHttpClient()
-        Sentry.init(AndroidSentryClientFactory(applicationContext))
+        Sentry.init("https://4cd9a20178ce47b1a31b9a9b251510d6@sentry.io/1217022", AndroidSentryClientFactory(applicationContext))
 
         // Do some fonts magic
         typeFace = Typeface.createFromAsset(assets, "fonts/nunito.ttf")
@@ -139,6 +142,15 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         val toggle = ActionBarDrawerToggle(this, drawer_layout, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
         drawer_layout.addDrawerListener(toggle)
         toggle.syncState()
+
+        @Suppress("DEPRECATION")
+        tvAbout.text = Html.fromHtml("""
+            <p>© 2018 — <a href="https://kurozeropb.info">Kurozero</a><br/>
+            Made possible with <a href="https://nekos.moe">nekos.moe</a><br/>
+            Created using Kotlin | v$version</p>
+        """.trimIndent())
+        tvAbout.movementMethod = LinkMovementMethod.getInstance()
+
         nav_view.setNavigationItemSelectedListener(this)
         val loginOut = nav_view.menu.findItem(R.id.login_out)
 
@@ -164,12 +176,9 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         val navRefrsh = navigationView.menu.findItem(R.id.navigation_refresh)
         val navPrev = navigationView.menu.findItem(R.id.navigation_previous)
 
-        var count = 0
         navNext.setOnMenuItemClickListener {
             val rand = Math.floor((Math.random() * 8) + 1).toInt()
-            if (rand == 2 && interstitialAd.isLoaded) {
-                interstitialAd.show()
-            }
+            showAd(rand, interstitialAd.isLoaded, user?.id)
 
             // Analytics
             bundle.clear()
@@ -177,26 +186,12 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
             bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, "Button Next")
             firebaseAnalytics.logEvent("click_next", bundle)
 
-            count++
-            if (isLoggedin)
-                Sentry.getContext().user = UserBuilder().setUsername(user?.username
-                        ?: "Unkown user").setId(user?.id
-                        ?: "0").build()
-            Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Test breadcrumbs message").build())
-            Sentry.getContext().addTag("test-tag", "123")
-            Sentry.getContext().addExtra("test-reqbody", "{\"testing\": true, \"hello\": \"world\"}")
-            Sentry.getContext().addExtra("count", count)
-            Sentry.capture(Error("This is a test"))
-            Sentry.clearContext()
-
             requestNeko(true)
             true
         }
         navRefrsh.setOnMenuItemClickListener {
             val rand = Math.floor((Math.random() * 8) + 1).toInt()
-            if (rand == 2 && interstitialAd.isLoaded) {
-                interstitialAd.show()
-            }
+            showAd(rand, interstitialAd.isLoaded, user?.id)
 
             // Analytics
             bundle.clear()
@@ -212,9 +207,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         }
         navPrev.setOnMenuItemClickListener {
             val rand = Math.floor((Math.random() * 8) + 1).toInt()
-            if (rand == 2 && interstitialAd.isLoaded) {
-                interstitialAd.show()
-            }
+            showAd(rand, interstitialAd.isLoaded, user?.id)
 
             // Analytics
             bundle.clear()
@@ -245,7 +238,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         interstitialAd = InterstitialAd(this)
         // Test ads: ca-app-pub-3940256099942544/1033173712
         // My ads: ca-app-pub-3737697469836770/6397346995
-        interstitialAd.adUnitId = "ca-app-pub-3940256099942544/1033173712"
+        interstitialAd.adUnitId = "ca-app-pub-3737697469836770/6397346995"
         interstitialAd.loadAd(AdRequest.Builder().build())
         interstitialAd.adListener = object : AdListener() {
             override fun onAdClosed() {
@@ -255,7 +248,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
 
         // Analytics
         firebaseAnalytics = FirebaseAnalytics.getInstance(this)
-        firebaseAnalytics.setUserId(deviceID)
+        firebaseAnalytics.setUserId(user?.id ?: deviceID)
         bundle.putString(FirebaseAnalytics.Param.ITEM_ID, "nekos_app_open")
         bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, "App Open")
         firebaseAnalytics.logEvent(FirebaseAnalytics.Event.APP_OPEN, bundle)
@@ -317,9 +310,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
             }
             R.id.view_account -> {
                 val rand = Math.floor((Math.random() * 8) + 1).toInt()
-                if (rand == 2 && interstitialAd.isLoaded) {
-                    interstitialAd.show()
-                }
+                showAd(rand, interstitialAd.isLoaded, user?.id)
                 viewProfile()
             } // Check our profile data
             R.id.sort -> {
@@ -335,9 +326,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                     when (i) {
                         0 -> {
                             val rand = Math.floor((Math.random() * 8) + 1).toInt()
-                            if (rand == 2 && interstitialAd.isLoaded) {
-                                interstitialAd.show()
-                            }
+                            showAd(rand, interstitialAd.isLoaded, user?.id)
                             sort = "newest"
 
                             // Analytics
@@ -350,9 +339,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                         }
                         1 -> {
                             val rand = Math.floor((Math.random() * 8) + 1).toInt()
-                            if (rand == 2 && interstitialAd.isLoaded) {
-                                interstitialAd.show()
-                            }
+                            showAd(rand, interstitialAd.isLoaded, user?.id)
                             sort = "oldest"
 
                             // Analytics
@@ -365,9 +352,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                         }
                         2 -> {
                             val rand = Math.floor((Math.random() * 8) + 1).toInt()
-                            if (rand == 2 && interstitialAd.isLoaded) {
-                                interstitialAd.show()
-                            }
+                            showAd(rand, interstitialAd.isLoaded, user?.id)
                             sort = "likes"
 
                             // Analytics
@@ -417,10 +402,15 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                             showSnackbar(nekoImages, this, "Could not delete shared file", Snackbar.LENGTH_LONG)
                     }
                 } catch (e: Exception) {
-                    showSnackbar(nekoImages, this, e.message
-                            ?: "Something went wrong", Snackbar.LENGTH_LONG)
+                    showSnackbar(nekoImages, this, e.message ?: "Something went wrong", Snackbar.LENGTH_LONG)
                 }
             }
+        }
+    }
+
+    private fun showAd(num: Int, isLoaded: Boolean, userID: String?) {
+        if (num == 2 && isLoaded && userID != "Bk8easipZ") {
+            interstitialAd.show()
         }
     }
 
@@ -441,14 +431,11 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                             }
                                             else -> {
                                                 val nekoException = NekoException.Deserializer().deserialize(error.errorData)
-                                                val msg = nekoException?.message ?: error.message
-                                                ?: "Something went wrong"
+                                                val msg = nekoException?.message ?: error.message ?: "Something went wrong"
                                                 showSnackbar(nekoImages, this@NekoMain, msg, Snackbar.LENGTH_LONG)
 
                                                 if (isLoggedin)
-                                                    Sentry.getContext().user = UserBuilder().setUsername(user?.username
-                                                            ?: "Unkown user").setId(user?.id
-                                                            ?: "0").build()
+                                                    Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
                                                 Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed getting the logged in user's data").build())
                                                 Sentry.getContext().addTag("fuel-http-request", "true")
                                                 Sentry.capture(error)
@@ -465,12 +452,9 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                             sharedPreferences.edit().putString("user", resp.obj().get("user").toString()).apply()
                                             updateUI(true) // Update UI to show that we're logged in
                                         } catch (e: JSONException) {
-                                            showSnackbar(nekoImages, this@NekoMain, e.message
-                                                    ?: "A JSON exception occured", Snackbar.LENGTH_LONG)
+                                            showSnackbar(nekoImages, this@NekoMain, e.message ?: "A JSON exception occured", Snackbar.LENGTH_LONG)
                                             if (isLoggedin)
-                                                Sentry.getContext().user = UserBuilder().setUsername(user?.username
-                                                        ?: "Unkown user").setId(user?.id
-                                                        ?: "0").build()
+                                                Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
                                             Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed deserializing the user's data").build())
                                             Sentry.getContext().addTag("fuel-http-request", "true")
                                             Sentry.capture(e)
@@ -569,13 +553,10 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                         }
                                         else -> {
                                             val nekoException = NekoException.Deserializer().deserialize(error.errorData)
-                                            val msg = nekoException?.message ?: error.message
-                                            ?: "Something went wrong"
+                                            val msg = nekoException?.message ?: error.message ?: "Something went wrong"
                                             showSnackbar(nekoImages, this@NekoMain, msg, Snackbar.LENGTH_LONG)
                                             if (isLoggedin)
-                                                Sentry.getContext().user = UserBuilder().setUsername(user?.username
-                                                        ?: "Unkown user").setId(user?.id
-                                                        ?: "0").build()
+                                                Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
                                             Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed searching for images").build())
                                             Sentry.getContext().addExtra("request-body", reqbody)
                                             Sentry.getContext().addExtra("isNew", isNew)
@@ -656,7 +637,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                             danbooruID = input.toString().toInt()
                         } catch (e: NumberFormatException) {
                             // Input is not a number
-                            showSnackbar(nekoImages, this@NekoMain, "Danbooru ID needs to be a number", Snackbar.LENGTH_LONG)
+                            showSnackbar(uploadView, this@NekoMain, "Danbooru ID needs to be a number", Snackbar.LENGTH_LONG)
                             return@setPositiveButton
                         }
 
@@ -668,15 +649,12 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                             if (error != null) {
                                                 when (error.response.statusCode) {
                                                     429 -> {
-                                                        showSnackbar(nekoImages, this@NekoMain, "Too many requests, please wait a few seconds", Snackbar.LENGTH_LONG)
+                                                        showSnackbar(uploadView, this@NekoMain, "Too many requests, please wait a few seconds", Snackbar.LENGTH_LONG)
                                                     }
                                                     else -> {
-                                                        showSnackbar(nekoImages, this@NekoMain, error.message
-                                                                ?: "Something went wrong", Snackbar.LENGTH_LONG)
+                                                        showSnackbar(uploadView, this@NekoMain, "Failed getting danbooru post\n" + error.message, Snackbar.LENGTH_LONG)
                                                         if (isLoggedin)
-                                                            Sentry.getContext().user = UserBuilder().setUsername(user?.username
-                                                                    ?: "Unkown user").setId(user?.id
-                                                                    ?: "0").build()
+                                                            Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
                                                         Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed getting danbooru post").build())
                                                         Sentry.getContext().addTag("fuel-http-request", "true")
                                                         Sentry.capture(error)
@@ -707,12 +685,9 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                                             .square()
                                                             .into(uploadView.uploadImage.toProgressTarget())
                                                 } catch (e: JSONException) {
-                                                    showSnackbar(nekoImages, this@NekoMain, e.message
-                                                            ?: "A JSON exception occured", Snackbar.LENGTH_LONG)
+                                                    showSnackbar(uploadView, this@NekoMain, e.message ?: "A JSON exception occured", Snackbar.LENGTH_LONG)
                                                     if (isLoggedin)
-                                                        Sentry.getContext().user = UserBuilder().setUsername(user?.username
-                                                                ?: "Unkown user").setId(user?.id
-                                                                ?: "0").build()
+                                                        Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
                                                     Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed to parse danbooru request").build())
                                                     Sentry.getContext().addTag("fuel-http-request", "true")
                                                     Sentry.capture(e)
@@ -760,9 +735,10 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                 val fileOutput = FileOutputStream(file)
                                 fileOutput.write(data, 0, data.size)
 
-                                // TODO : Update uri from file to support newer android versions
-                                // val imgUri = FileProvider.getUriForFile(this, applicationContext.packageName + ".my.package.name.provider", file)
-                                sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
+                                val imgUri = FileProvider.getUriForFile(this, applicationContext.packageName + ".NekoFileProvider", file)
+                                val intent = Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, imgUri)
+                                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                sendBroadcast(intent)
                                 fileOutput.close()
                                 uploadKawaiiNeko(tags, artist, nsfw, file)
                             } else if (err != null) {
@@ -772,12 +748,10 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                     }
                                     else -> {
                                         val nekoException = NekoException.Deserializer().deserialize(err.errorData)
-                                        val msg = nekoException?.message ?: err.message
-                                        ?: "Something went wrong"
+                                        val msg = nekoException?.message ?: err.message ?: "Something went wrong"
                                         showSnackbar(nekoImages, this, msg, Snackbar.LENGTH_LONG)
                                         if (isLoggedin)
-                                            Sentry.getContext().user = UserBuilder().setUsername(user?.username
-                                                    ?: "Unkown user").setId(user?.id ?: "0").build()
+                                            Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
                                         Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed to download the share image").build())
                                         Sentry.getContext().addExtra("url", nekoUrlToUpload)
                                         Sentry.getContext().addTag("fuel-http-request", "true")
@@ -825,8 +799,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
             try {
                 val response = client.newCall(request).execute()
                 if (!response.isSuccessful) {
-                    val nekoException = NekoException.Deserializer().deserialize(response.body()?.string()
-                            ?: "{\"message\": \"Request failed with unknown error\"}")
+                    val nekoException = NekoException.Deserializer().deserialize(response.body()?.string() ?: "{\"message\": \"Request failed with unknown error\"}")
                     val msg = nekoException?.message ?: "Request failed with unknown error"
                     showSnackbar(nekoImages, this@NekoMain, msg, Snackbar.LENGTH_LONG)
                 } else {
@@ -834,11 +807,9 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                 }
                 response.close()
             } catch (e: IOException) {
-                showSnackbar(nekoImages, this@NekoMain, e.message
-                        ?: "Something went wrong", Snackbar.LENGTH_LONG)
+                showSnackbar(nekoImages, this@NekoMain, e.message ?: "Something went wrong", Snackbar.LENGTH_LONG)
                 if (isLoggedin)
-                    Sentry.getContext().user = UserBuilder().setUsername(user?.username
-                            ?: "Unkown user").setId(user?.id ?: "0").build()
+                    Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
                 Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed to upload new image").build())
                 Sentry.getContext().addTag("fuel-http-request", "false")
                 Sentry.capture(e)
@@ -923,14 +894,10 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                                             }
                                                             else -> {
                                                                 val nekoException = NekoException.Deserializer().deserialize(error.errorData)
-                                                                val msg = nekoException?.message
-                                                                        ?: error.message
-                                                                        ?: "Something went wrong"
+                                                                val msg = nekoException?.message ?: error.message ?: "Something went wrong"
                                                                 showSnackbar(nekoImages, this, msg, Snackbar.LENGTH_LONG)
                                                                 if (isLoggedin)
-                                                                    Sentry.getContext().user = UserBuilder().setUsername(user?.username
-                                                                            ?: "Unkown user").setId(user?.id
-                                                                            ?: "0").build()
+                                                                    Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
                                                                 Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed to register new user").build())
                                                                 Sentry.getContext().addExtra("request-body", reqbody)
                                                                 Sentry.getContext().addTag("fuel-http-request", "true")
@@ -979,9 +946,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                                     }
                                                     else -> {
                                                         val nekoException = NekoException.Deserializer().deserialize(error.errorData)
-                                                        val msg = nekoException?.message
-                                                                ?: error.message
-                                                                ?: "Something went wrong"
+                                                        val msg = nekoException?.message ?: error.message ?: "Something went wrong"
                                                         showSnackbar(nekoImages, this@NekoMain, msg, Snackbar.LENGTH_LONG)
                                                         if (isLoggedin)
                                                             Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
@@ -1013,14 +978,14 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                                     // Save token
                                                     sharedPreferences.edit().putString("token", temptoken).apply()
                                                     token = temptoken
+                                                    // Get the logged in user
+                                                    getCurrentUser()
+                                                    showSnackbar(nekoImages, this@NekoMain, "Success logging in", Snackbar.LENGTH_SHORT)
                                                 } else {
                                                     showSnackbar(nekoImages, this@NekoMain, "Could not login", Snackbar.LENGTH_LONG)
-                                                    return@responseJson
                                                 }
-
-                                                // Get the logged in user
-                                                getCurrentUser()
-                                                showSnackbar(nekoImages, this@NekoMain, "Success logging in", Snackbar.LENGTH_SHORT)
+                                            } else {
+                                                showSnackbar(nekoImages, this@NekoMain, "Could not login", Snackbar.LENGTH_LONG)
                                             }
                                         }
                                     }
@@ -1047,7 +1012,12 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
             firebaseAnalytics.logEvent("logout", bundle)
 
             isLoggedin = false
-            sharedPreferences.edit().remove("token").apply()
+            token = ""
+            user = null
+            sharedPreferences.edit()
+                    .remove("token")
+                    .remove("user")
+                    .apply()
             headerView.headerTitle.text = "-"
             loginOut.title = getString(R.string.login_out, "Login")
             loginOut.icon = getDrawable(R.drawable.ic_menu_login)
