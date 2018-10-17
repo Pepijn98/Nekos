@@ -65,8 +65,8 @@ import java.io.IOException
 
 // https://nekos.moe/api/v1
 // http://localhost:8080/api/v1
-const val version = "0.12.0"
 const val baseUrl = "https://nekos.moe/api/v1"
+const val version = "0.12.1"
 const val userAgent = "NekosApp/v$version (https://github.com/KurozeroPB/nekos-app)"
 
 val File.extension: String
@@ -425,22 +425,17 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                             when (result) {
                                 is Result.Failure -> {
                                     if (error != null) {
-                                        when (error.response.statusCode) {
-                                            429 -> {
-                                                showSnackbar(nekoImages, this@NekoMain, "Too many requests, please wait a few seconds", Snackbar.LENGTH_LONG)
-                                            }
-                                            else -> {
-                                                val nekoException = NekoException.Deserializer().deserialize(error.errorData)
-                                                val msg = nekoException?.message ?: error.message ?: "Something went wrong"
-                                                showSnackbar(nekoImages, this@NekoMain, msg, Snackbar.LENGTH_LONG)
+                                        val nekoException = NekoException.Deserializer().deserialize(error.response)
+                                        val msg = nekoException.message ?: error.message ?: "Something went wrong"
+                                        showSnackbar(nekoImages, this@NekoMain, msg, Snackbar.LENGTH_LONG)
 
-                                                if (isLoggedin)
-                                                    Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
-                                                Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed getting the logged in user's data").build())
-                                                Sentry.getContext().addTag("fuel-http-request", "true")
-                                                Sentry.capture(error)
-                                                Sentry.clearContext()
-                                            }
+                                        if (nekoException.message.isNullOrEmpty()) {
+                                            if (isLoggedin)
+                                                Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
+                                            Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed getting the logged in user's data").build())
+                                            Sentry.getContext().addTag("fuel-http-request", "true")
+                                            Sentry.capture(error)
+                                            Sentry.clearContext()
                                         }
                                     }
                                 }
@@ -547,24 +542,20 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                         when (result) {
                             is Result.Failure -> {
                                 if (error != null) {
-                                    when (error.response.statusCode) {
-                                        429 -> {
-                                            showSnackbar(nekoImages, this@NekoMain, "Too many requests, please wait a few seconds", Snackbar.LENGTH_LONG)
-                                        }
-                                        else -> {
-                                            val nekoException = NekoException.Deserializer().deserialize(error.errorData)
-                                            val msg = nekoException?.message ?: error.message ?: "Something went wrong"
-                                            showSnackbar(nekoImages, this@NekoMain, msg, Snackbar.LENGTH_LONG)
-                                            if (isLoggedin)
-                                                Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
-                                            Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed searching for images").build())
-                                            Sentry.getContext().addExtra("request-body", reqbody)
-                                            Sentry.getContext().addExtra("isNew", isNew)
-                                            Sentry.getContext().addExtra("page", page)
-                                            Sentry.getContext().addTag("fuel-http-request", "true")
-                                            Sentry.capture(error)
-                                            Sentry.clearContext()
-                                        }
+                                    val nekoException = NekoException.Deserializer().deserialize(error.response)
+                                    val msg = nekoException.message ?: error.message ?: "Something went wrong"
+                                    showSnackbar(nekoImages, this@NekoMain, msg, Snackbar.LENGTH_LONG)
+
+                                    if (nekoException.message.isNullOrEmpty()) {
+                                        if (isLoggedin)
+                                            Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
+                                        Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed searching for images").build())
+                                        Sentry.getContext().addExtra("request-body", reqbody)
+                                        Sentry.getContext().addExtra("isNew", isNew)
+                                        Sentry.getContext().addExtra("page", page)
+                                        Sentry.getContext().addTag("fuel-http-request", "true")
+                                        Sentry.capture(error)
+                                        Sentry.clearContext()
                                     }
                                 }
                             }
@@ -888,22 +879,17 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                                 is Result.Failure -> {
                                                     val (_, error) = result
                                                     if (error != null) {
-                                                        when (error.response.statusCode) {
-                                                            429 -> {
-                                                                showSnackbar(nekoImages, this, "Too many requests, please wait a few seconds", Snackbar.LENGTH_LONG)
-                                                            }
-                                                            else -> {
-                                                                val nekoException = NekoException.Deserializer().deserialize(error.errorData)
-                                                                val msg = nekoException?.message ?: error.message ?: "Something went wrong"
-                                                                showSnackbar(nekoImages, this, msg, Snackbar.LENGTH_LONG)
-                                                                if (isLoggedin)
-                                                                    Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
-                                                                Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed to register new user").build())
-                                                                Sentry.getContext().addExtra("request-body", reqbody)
-                                                                Sentry.getContext().addTag("fuel-http-request", "true")
-                                                                Sentry.capture(error)
-                                                                Sentry.clearContext()
-                                                            }
+                                                        val nekoException = NekoException.Deserializer().deserialize(error.response)
+                                                        val msg = nekoException.message ?: error.message ?: "Something went wrong"
+                                                        showSnackbar(nekoImages, this, msg, Snackbar.LENGTH_LONG)
+                                                        if (nekoException.message.isNullOrEmpty()) {
+                                                            if (isLoggedin)
+                                                                Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
+                                                            Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed to register new user").build())
+                                                            Sentry.getContext().addExtra("request-body", reqbody)
+                                                            Sentry.getContext().addTag("fuel-http-request", "true")
+                                                            Sentry.capture(error)
+                                                            Sentry.clearContext()
                                                         }
                                                     }
                                                 }
@@ -940,22 +926,18 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
                                         is Result.Failure -> {
                                             if (error != null) {
                                                 updateUI(false)
-                                                when (error.response.statusCode) {
-                                                    429 -> {
-                                                        showSnackbar(nekoImages, this@NekoMain, "Too many requests, please wait a few seconds", Snackbar.LENGTH_LONG)
-                                                    }
-                                                    else -> {
-                                                        val nekoException = NekoException.Deserializer().deserialize(error.errorData)
-                                                        val msg = nekoException?.message ?: error.message ?: "Something went wrong"
-                                                        showSnackbar(nekoImages, this@NekoMain, msg, Snackbar.LENGTH_LONG)
-                                                        if (isLoggedin)
-                                                            Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
-                                                        Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed to auth user").build())
-                                                        Sentry.getContext().addExtra("request-body", reqbody)
-                                                        Sentry.getContext().addTag("fuel-http-request", "true")
-                                                        Sentry.capture(error)
-                                                        Sentry.clearContext()
-                                                    }
+                                                val nekoException = NekoException.Deserializer().deserialize(error.response)
+                                                val msg = nekoException.message ?: error.message ?: "Something went wrong"
+                                                showSnackbar(nekoImages, this@NekoMain, msg, Snackbar.LENGTH_LONG)
+
+                                                if (nekoException.message.isNullOrEmpty()) {
+                                                    if (isLoggedin)
+                                                        Sentry.getContext().user = UserBuilder().setUsername(user?.username ?: "Unkown user").setId(user?.id ?: "0").build()
+                                                    Sentry.getContext().recordBreadcrumb(BreadcrumbBuilder().setMessage("Failed to auth user").build())
+                                                    Sentry.getContext().addExtra("request-body", reqbody)
+                                                    Sentry.getContext().addTag("fuel-http-request", "true")
+                                                    Sentry.capture(error)
+                                                    Sentry.clearContext()
                                                 }
                                             }
                                         }
