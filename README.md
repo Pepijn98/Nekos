@@ -22,4 +22,4 @@ Work in progress mobile app for https://nekos.moe \
 - Creating an account
 - Better exception handling
 
-[playstore]: https://b.catgirlsare.sexy/6UPL.png
+[playstore]: https://b.catgirlsare.sexy/3lTD.png
