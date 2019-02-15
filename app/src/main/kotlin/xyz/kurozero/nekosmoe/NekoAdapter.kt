@@ -88,7 +88,7 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
 
             picasso.load(fullImage).into(view.fullNekoImg.toProgressTarget())
 
-            view.fullNekoImg.setOnClickListener { _ ->
+            view.fullNekoImg.setOnClickListener {
                 ImageViewer.Builder(context, arrayOf(fullImage)).show()
             }
 
@@ -103,7 +103,7 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
             }
 
                 val token = sharedPreferences.getString("token", "")
-                view.btnLikeNeko.setOnClickListener { _ ->
+                view.btnLikeNeko.setOnClickListener {
                     if (isLoggedin) {
                         doAsync {
                             val likedNeko = user?.likes?.find { id -> id == neko.id }
@@ -136,12 +136,12 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                                         user?.likes?.add(neko.id)
                                         sharedPreferences.edit().putString("user", JSON.stringify(user!!)).apply()
                                         showSnackbar(view, context, "Liked", Snackbar.LENGTH_SHORT)
-                                        uiThread { _ -> view.btnLikeNeko.text = "Unlike" }
+                                        uiThread { view.btnLikeNeko.text = "Unlike" }
                                     } else {
                                         user?.likes?.remove(neko.id)
                                         sharedPreferences.edit().putString("user", JSON.stringify(user!!)).apply()
                                         showSnackbar(view, context, "Unliked", Snackbar.LENGTH_SHORT)
-                                        uiThread { _ -> view.btnLikeNeko.text = "Like" }
+                                        uiThread { view.btnLikeNeko.text = "Like" }
                                     }
                                 }
                                 response.close()
@@ -162,7 +162,7 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                     }
                 }
 
-                view.btnFavNeko.setOnClickListener { _ ->
+                view.btnFavNeko.setOnClickListener {
                     if (isLoggedin) {
                         doAsync {
                             val favedNeko = user?.favorites?.find { id -> id == neko.id }
@@ -194,12 +194,12 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                                         user?.favorites?.add(neko.id)
                                         sharedPreferences.edit().putString("user", JSON.stringify(user!!)).apply()
                                         showSnackbar(view, context, "Favorited", Snackbar.LENGTH_SHORT)
-                                        uiThread { _ -> view.btnFavNeko.text = "Unfavorite" }
+                                        uiThread { view.btnFavNeko.text = "Unfavorite" }
                                     } else {
                                         user?.favorites?.remove(neko.id)
                                         sharedPreferences.edit().putString("user", JSON.stringify(user!!)).apply()
                                         showSnackbar(view, context, "Unfavorited", Snackbar.LENGTH_SHORT)
-                                        uiThread { _ -> view.btnFavNeko.text = "Favorite" }
+                                        uiThread { view.btnFavNeko.text = "Favorite" }
                                     }
                                 }
                                 response.close()
@@ -220,7 +220,7 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                     }
                 }
 
-            view.btnSaveNeko.setOnClickListener { _ ->
+            view.btnSaveNeko.setOnClickListener {
                 if (!connected || !isConnected(context)) {
                     showSnackbar(view, context, "No network connection", Snackbar.LENGTH_LONG)
                 } else {
@@ -240,11 +240,11 @@ class NekoAdapter(private val context: Context, private var nekos: Nekos) : Recy
                 }
             }
 
-            view.btnCloseNeko.setOnClickListener { _ ->
+            view.btnCloseNeko.setOnClickListener {
                 nekoDialog.dismiss()
             }
 
-            view.btnShareNeko.setOnClickListener { _ ->
+            view.btnShareNeko.setOnClickListener {
                 if (!connected || !isConnected(context)) {
                     showSnackbar(view, context, "No network connection", Snackbar.LENGTH_LONG)
                 } else {

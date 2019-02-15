@@ -2,28 +2,25 @@
 
 buildscript {
     ext {
-        kotlin_version = '1.3.20-dev-696'
-        kotlin_gradle_version = '1.2.61'
-        serialization_version = '0.6.1'
+        kotlin_version = '1.3.30-dev-835'
+        serialization_version = '0.6.2'
         anko_version = '0.10.5'
-        sentry_version = '1.7.5'
+        sentry_version = '1.7.16'
     }
 
     repositories {
-        google()
         jcenter()
-        maven { url 'https://kotlin.bintray.com/kotlinx' }
         maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
         maven { url 'https://maven.google.com' }
+        google()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.1'
+        classpath 'com.android.tools.build:gradle:3.5.0-alpha04'
         //noinspection DifferentKotlinGradleVersion
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_gradle_version" // Anything after 1.2.61 gives me a "Failed to notify project evaluation listener."
-        classpath "org.jetbrains.kotlinx:kotlinx-gradle-serialization-plugin:$serialization_version"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "io.sentry:sentry-android-gradle-plugin:$sentry_version"
-        classpath 'com.google.gms:google-services:4.1.0'
+        classpath 'com.google.gms:google-services:4.2.0'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -32,9 +29,7 @@ buildscript {
 
 allprojects {
     repositories {
-        google()
         jcenter()
-        maven { url 'https://kotlin.bintray.com/kotlinx' }
         maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
         maven { url 'https://maven.google.com' }
     }

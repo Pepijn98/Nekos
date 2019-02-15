@@ -608,7 +608,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
         val factory = LayoutInflater.from(this)
         uploadView = factory.inflate(R.layout.upload_dialog, null)
 
-        uploadView.uploadImage.onClick {
+        uploadView.uploadImage.setOnClickListener {
             // Create an intent with any image format
             val intent = Intent()
             intent.type = "image/*"
@@ -616,7 +616,7 @@ class NekoMain : AppCompatActivity(), ConnectivityReceiver.ConnectivityReceiverL
             startActivityForResult(Intent.createChooser(intent, "Select Picture"), 998)
         }
 
-        uploadView.btnImport.onClick {
+        uploadView.btnImport.setOnClickListener {
             // Import from danbooru ID
             val importView = factory.inflate(R.layout.import_dialog, null)
             val importDialog = AlertDialog.Builder(this@NekoMain)
