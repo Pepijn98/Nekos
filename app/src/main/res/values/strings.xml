@@ -48,5 +48,7 @@
     <string name="min_8_characters">  Min 8 characters</string>
     <string name="action">Action</string>
     <string name="import_from_danbooru">Import from danbooru</string>
-    <string name="post">/post/...</string>
+    <string name="post">/post/…</string>
+    <string name="toolbar_title">Nekos.moe</string>
+    <string name="toolbar_title_profile">Profile</string>
 </resources>
