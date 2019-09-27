@@ -10,7 +10,7 @@ android {
         applicationId = "xyz.kurozero.nekosmoe"
         minSdkVersion(24)
         targetSdkVersion(28)
-        versionCode = 1
+        versionCode = 20
         versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
