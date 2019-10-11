@@ -82,6 +82,11 @@ class MainActivity : AppCompatActivity(), ConnectivityReceiver.ConnectivityRecei
         setSupportActionBar(toolbar)
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
+        val (version, versionCode) = Api.getVersions(this)
+        Api.version = version
+        Api.versionCode = versionCode
+        Api.userAgent = "NekosApp/v$version (https://github.com/KurozeroPB/Nekos)"
+
         httpClient = OkHttpClient()
 
         // Do some fonts magic
@@ -113,7 +118,7 @@ class MainActivity : AppCompatActivity(), ConnectivityReceiver.ConnectivityRecei
         toggle.syncState()
 
         tvAbout.text = Html.fromHtml("""
-            <p>© 2019 — <a href="https://kurozeropb.info">Kurozero</a> | v${Api.version}<br/>
+            <p>© 2019 — <a href="https://kurozeropb.info">Kurozero</a> | v${Api.version} (${Api.versionCode})<br/>
             Made possible with <a href="https://nekos.moe">nekos.moe</a><br/></p>
         """.trimIndent(), Html.FROM_HTML_MODE_LEGACY)
         tvAbout.movementMethod = LinkMovementMethod.getInstance()
@@ -135,6 +140,7 @@ class MainActivity : AppCompatActivity(), ConnectivityReceiver.ConnectivityRecei
 
         // Set base url for api requests
         FuelManager.instance.basePath = Api.baseUrl
+
         FuelManager.instance.baseHeaders = mapOf("User-Agent" to Api.userAgent)
 
         val rvItems = findViewById<RecyclerView>(R.id.list)

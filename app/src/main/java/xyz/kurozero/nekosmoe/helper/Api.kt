@@ -1,5 +1,7 @@
 package xyz.kurozero.nekosmoe.helper
 
+import android.content.Context
+import android.os.Build
 import com.github.kittinunf.fuel.httpPost
 import com.google.gson.Gson
 import kotlinx.coroutines.Deferred
@@ -12,9 +14,21 @@ data class Response<out V : Any?, out E : Exception?>(val value: V, val exceptio
 
 object Api {
     const val baseUrl = "https://nekos.moe/api/v1"
-    const val version = "1.0.0"
-    const val userAgent = "NekosApp/v$version (https://github.com/KurozeroPB/Nekos)"
     val gson = Gson()
+
+    lateinit var version: String
+    lateinit var versionCode: String
+    lateinit var userAgent: String
+
+    fun getVersions(ctx: Context): Pair<String, String> {
+        val packageInfo = ctx.packageManager.getPackageInfo(ctx.packageName, 0)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            Pair(packageInfo.versionName, String.format("%03d", packageInfo.longVersionCode))
+        } else {
+            @Suppress("DEPRECATION")
+            Pair(packageInfo.versionName, String.format("%03d", packageInfo.versionCode))
+        }
+    }
 
     fun requestNekosAsync(toSkip: Int, sort: String): Deferred<Response<Nekos?, Exception?>> {
         val reqbody = "{\"nsfw\": false, \"limit\": 50, \"skip\": $toSkip, \"sort\": \"$sort\"}"
