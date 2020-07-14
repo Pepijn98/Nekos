@@ -1,10 +1,14 @@
 package xyz.kurozero.nekosmoe.adapter
 
 import android.app.AlertDialog
+import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
+import android.provider.MediaStore
 import android.text.method.ScrollingMovementMethod
 import android.view.LayoutInflater
 import android.view.View
@@ -34,10 +38,7 @@ import xyz.kurozero.nekosmoe.*
 import xyz.kurozero.nekosmoe.helper.Api
 import xyz.kurozero.nekosmoe.helper.hasPermissions
 import xyz.kurozero.nekosmoe.helper.isConnected
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
+import java.io.*
 
 lateinit var file: File
 
@@ -200,24 +201,21 @@ class NekosViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                     }
                     onLoaded { bitmap, _ ->
                         val intent = Intent(Intent.ACTION_SEND)
-                        intent.type = "image/png"
+                        intent.type = "image/jpeg"
 
-                        val bytes = ByteArrayOutputStream()
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
-
-                        val sdCard = Environment.getExternalStorageDirectory()
-                        val dir = File(sdCard.absolutePath + "/Nekos")
+                        val sdCard = itemView.context.getExternalFilesDir(Context.STORAGE_SERVICE) ?: return@onLoaded
+                        val dir = File(sdCard.absolutePath + "/share")
                         if (dir.exists().not())
                             dir.mkdirs()
 
-                        file = File(dir, "share-${neko.id}.png")
+                        file = File(dir, "share-${neko.id}.jpg")
 
                         try {
                             file.createNewFile()
-                            val fo = FileOutputStream(file)
-                            fo.write(bytes.toByteArray())
-                            fo.flush()
-                            fo.close()
+                            val fos = FileOutputStream(file)
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+                            fos.flush()
+                            fos.close()
                         } catch (e: IOException) {
                             val message = e.message ?: "Unable to save/share image"
                             Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
@@ -253,25 +251,40 @@ class NekosViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 }
 
 private fun downloadAndSave(neko: Neko, view: View) {
-    val mediaStorageDir = File(Environment.getExternalStorageDirectory().toString() + "/Nekos/")
-    if (!mediaStorageDir.exists()) mediaStorageDir.mkdirs()
-    val file = File(mediaStorageDir, "${neko.id}.jpeg")
+    picasso.load(neko.getImageUrl()).into {
+        onFailed { e, _ ->
+            Snackbar.make(view, e.message ?: "Something went wrong", Snackbar.LENGTH_LONG).show()
+        }
+        onLoaded { bitmap, _ ->
+            val fos: OutputStream
 
-    Fuel.download("https://nekos.moe/image/${neko.id}").fileDestination { response, _ ->
-        response.toString()
-        file
-    }.response { _, _, result ->
-        val (data, err) = result
-        when {
-            data != null -> {
-                val fileOutput = FileOutputStream(file)
-                fileOutput.write(data, 0, data.size)
-
-                view.context.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(file)))
-                Snackbar.make(view, "Saved as ${neko.id}.jpeg", Snackbar.LENGTH_SHORT).show()
-                fileOutput.close()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val resolver = view.context.contentResolver;
+                val values = ContentValues()
+                values.put(MediaStore.MediaColumns.DISPLAY_NAME, neko.id)
+                values.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Nekos")
+                val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return@onLoaded
+                fos = resolver.openOutputStream(uri) ?: return@onLoaded
+            } else {
+                @Suppress("DEPRECATION")
+                val mediaStorageDir = File("${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)}${File.separator}Nekos${File.separator}")
+                if (!mediaStorageDir.exists()) mediaStorageDir.mkdirs()
+                val file = File(mediaStorageDir, "${neko.id}.jpg")
+                file.createNewFile()
+                fos = FileOutputStream(file)
             }
-            err != null -> Snackbar.make(view, err.message ?: "ERROR", Snackbar.LENGTH_LONG).show()
+
+            try {
+                val saved = bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos)
+                fos.flush()
+                fos.close()
+                if (saved) Snackbar.make(view, "Saved as ${neko.id}.jpeg", Snackbar.LENGTH_SHORT).show()
+                else Snackbar.make(view, "Could not save image", Snackbar.LENGTH_SHORT).show()
+            } catch (e: IOException) {
+                val message = e.message ?: "Unable to save/share image"
+                Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
+            }
         }
     }
 }
