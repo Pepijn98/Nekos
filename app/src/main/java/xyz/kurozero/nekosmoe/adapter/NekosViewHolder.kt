@@ -5,7 +5,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
@@ -22,11 +21,11 @@ import kotlinx.android.synthetic.main.grid_list_item.view.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
 import xyz.kurozero.nekosmoe.model.Neko
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
-import com.github.kittinunf.fuel.Fuel
 import com.google.android.material.snackbar.Snackbar
 import com.hendraanggrian.pikasso.into
 import com.hendraanggrian.pikasso.picasso
-import com.stfalcon.frescoimageviewer.ImageViewer
+import com.squareup.picasso.Picasso
+import com.stfalcon.imageviewer.StfalconImageViewer
 import kotlinx.android.synthetic.main.dialog_view_neko.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -50,7 +49,7 @@ class NekosViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         Glide.with(itemView.context)
             .load(neko.getThumbnailUrl())
-            .transforms(CenterCrop(), RoundedCorners(radius))
+            .transform(CenterCrop(), RoundedCorners(radius))
             .into(itemView.nekoImg)
 
         itemView.nekoImg.onClick {
@@ -73,7 +72,9 @@ class NekosViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                 .into(view.fullNekoImg)
 
             view.fullNekoImg.onClick {
-                ImageViewer.Builder(itemView.context, arrayOf(neko.getImageUrl())).show()
+                StfalconImageViewer.Builder(itemView.context, listOf(neko)) { view, neko ->
+                    Picasso.get().load(neko.getImageUrl()).into(view)
+                }.show()
             }
 
             if (isLoggedin) {

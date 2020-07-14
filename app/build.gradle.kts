@@ -70,7 +70,7 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel-android:2.2.3")
     implementation("com.github.kittinunf.fuel:fuel-coroutines:2.2.3")
     implementation("com.github.kittinunf.fuel:fuel-gson:2.2.3")
-    implementation("com.github.stfalcon:frescoimageviewer:0.5.0")
+    implementation("com.github.stfalcon:stfalcon-imageviewer:1.0.1")
     implementation("com.github.bumptech.glide:glide:4.10.0")
     annotationProcessor("com.github.bumptech.glide:compiler:4.10.0")
 
