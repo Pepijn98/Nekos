@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package xyz.kurozero.nekosmoe.model
 
 data class Nekos(

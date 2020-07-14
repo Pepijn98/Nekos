@@ -15,8 +15,8 @@ class ProfileActivity : AppCompatActivity() {
         tvLikes.text = user!!.likesReceived.toString()
         tvFavorites.text = user!!.favoritesReceived.toString()
         tvJoined.text = timestamp(user!!.createdAt)
-        tvPosted.text = "${user!!.uploads} ${if (user!!.uploads == 1) "image" else "images"}"
-        tvGiven.text = "Has given ${user!!.likes.size} likes and ${user!!.favorites.size} favorites"
+        tvPosted.text = getString(R.string.posted2, user!!.uploads, if (user!!.uploads == 1) "image" else "images")
+        tvGiven.text = getString(R.string.given, user!!.likes.size, user!!.favorites.size)
     }
 
 }

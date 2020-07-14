@@ -5,8 +5,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 
-
-abstract class EndlessRecyclerViewScrollListener : RecyclerView.OnScrollListener {
+abstract class EndlessRecyclerViewScrollListener(layoutManager: GridLayoutManager) :
+    RecyclerView.OnScrollListener() {
     // The minimum amount of items to have below your current scroll position
     // before loading more.
     private var visibleThreshold = 5
@@ -19,23 +19,14 @@ abstract class EndlessRecyclerViewScrollListener : RecyclerView.OnScrollListener
     // Sets the starting page index
     private val startingPageIndex = 0
 
-    private var mLayoutManager: RecyclerView.LayoutManager
+    private var mLayoutManager: RecyclerView.LayoutManager = layoutManager
 
-    constructor(layoutManager: LinearLayoutManager) {
-        this.mLayoutManager = layoutManager
-    }
-
-    constructor(layoutManager: GridLayoutManager) {
-        this.mLayoutManager = layoutManager
+    init {
         visibleThreshold *= layoutManager.spanCount
     }
 
-    constructor(layoutManager: StaggeredGridLayoutManager) {
-        this.mLayoutManager = layoutManager
-        visibleThreshold *= layoutManager.spanCount
-    }
-
-    fun getLastVisibleItem(lastVisibleItemPositions: IntArray): Int {
+    @Suppress("unused")
+    private fun getLastVisibleItem(lastVisibleItemPositions: IntArray): Int {
         var maxSize = 0
         for (i in lastVisibleItemPositions.indices) {
             if (i == 0) {
@@ -113,6 +104,7 @@ abstract class EndlessRecyclerViewScrollListener : RecyclerView.OnScrollListener
         this.loading = true
     }
 
+    @Suppress("unused")
     fun setLoading(state: Boolean) = run { loading = state }
 
     // Defines the process for actually loading more data based on page

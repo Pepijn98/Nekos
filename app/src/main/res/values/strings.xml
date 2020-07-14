@@ -51,4 +51,9 @@
     <string name="post">/post/…</string>
     <string name="toolbar_title">Nekos.moe</string>
     <string name="toolbar_title_profile">Profile</string>
+    <string name="unlike">Unlike</string>
+    <string name="like">Like</string>
+    <string name="unfav">Unfavorite</string>
+    <string name="fav">Favorite</string>
+    <string name="posted2">%1$d %2$s</string>
 </resources>

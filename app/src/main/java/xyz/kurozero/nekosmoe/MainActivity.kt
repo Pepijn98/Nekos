@@ -118,7 +118,7 @@ class MainActivity : AppCompatActivity(), ConnectivityReceiver.ConnectivityRecei
         toggle.syncState()
 
         tvAbout.text = Html.fromHtml("""
-            <p>© 2019 — <a href="https://kurozeropb.info">Kurozero</a> | v${Api.version} (${Api.versionCode})<br/>
+            <p>© 2020 — <a href="https://vdbroek.dev">Kurozero</a> | v${Api.version} (${Api.versionCode})<br/>
             Made possible with <a href="https://nekos.moe">nekos.moe</a><br/></p>
         """.trimIndent(), Html.FROM_HTML_MODE_LEGACY)
         tvAbout.movementMethod = LinkMovementMethod.getInstance()
@@ -177,6 +177,7 @@ class MainActivity : AppCompatActivity(), ConnectivityReceiver.ConnectivityRecei
         Fresco.initialize(this, config)
 
         GlobalScope.launch {
+            @Suppress("BlockingMethodInNonBlockingContext")
             Thread.sleep(5_000)
             init = false
         }

@@ -121,12 +121,12 @@ class NekosViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                                     user?.likes?.add(neko.id)
                                     sharedPreferences.edit().putString("user", Api.gson.toJson(user!!)).apply()
                                     Snackbar.make(view, "Liked", Snackbar.LENGTH_SHORT).show()
-                                    GlobalScope.launch(Dispatchers.Main) { view.btnLikeNeko.text = "Unlike" }
+                                    GlobalScope.launch(Dispatchers.Main) { view.btnLikeNeko.text = view.context.getString(R.string.unlike) }
                                 } else {
                                     user?.likes?.remove(neko.id)
                                     sharedPreferences.edit().putString("user", Api.gson.toJson(user!!)).apply()
                                     Snackbar.make(view, "Unliked", Snackbar.LENGTH_SHORT).show()
-                                    GlobalScope.launch(Dispatchers.Main) { view.btnLikeNeko.text = "Like" }
+                                    GlobalScope.launch(Dispatchers.Main) { view.btnLikeNeko.text = view.context.getString(R.string.like) }
                                 }
                             }
                             response.close()
@@ -171,12 +171,12 @@ class NekosViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                                     user?.favorites?.add(neko.id)
                                     sharedPreferences.edit().putString("user", Api.gson.toJson(user!!)).apply()
                                     Snackbar.make(view, "Favorited", Snackbar.LENGTH_SHORT).show()
-                                    GlobalScope.launch(Dispatchers.Main) { view.btnFavNeko.text = "Unfavorite" }
+                                    GlobalScope.launch(Dispatchers.Main) { view.btnFavNeko.text = view.context.getString(R.string.unfav) }
                                 } else {
                                     user?.favorites?.remove(neko.id)
                                     sharedPreferences.edit().putString("user", Api.gson.toJson(user!!)).apply()
                                     Snackbar.make(view, "Unfavorited", Snackbar.LENGTH_SHORT).show()
-                                    GlobalScope.launch(Dispatchers.Main) { view.btnFavNeko.text = "Favorite" }
+                                    GlobalScope.launch(Dispatchers.Main) { view.btnFavNeko.text = view.context.getString(R.string.fav) }
                                 }
                             }
                             response.close()
@@ -193,8 +193,8 @@ class NekosViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                 nekoDialog.dismiss()
             }
 
-            view.btnShareNeko.onClick {
-                if (!connected || !isConnected(itemView.context)) return@onClick
+            view.btnShareNeko.onClick shareNeko@ {
+                if (!connected || !isConnected(itemView.context)) return@shareNeko
 
                 picasso.load(neko.getImageUrl()).into {
                     onFailed { e, _ ->
@@ -236,8 +236,8 @@ class NekosViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                 }
             }
 
-            view.btnSaveNeko.onClick {
-                if (!connected || ! isConnected(view.context)) return@onClick
+            view.btnSaveNeko.onClick saveNeko@ {
+                if (!connected || ! isConnected(view.context)) return@saveNeko
 
                 if (!hasPermissions(view.context, permissions)) {
                     ActivityCompat.requestPermissions(view.context as MainActivity, permissions, 999)
@@ -260,7 +260,7 @@ private fun downloadAndSave(neko: Neko, view: View) {
             val fos: OutputStream
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val resolver = view.context.contentResolver;
+                val resolver = view.context.contentResolver
                 val values = ContentValues()
                 values.put(MediaStore.MediaColumns.DISPLAY_NAME, neko.id)
                 values.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
