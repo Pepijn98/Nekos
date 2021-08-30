@@ -222,7 +222,7 @@ class NekosViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
                             Snackbar.make(view, message, Snackbar.LENGTH_LONG).show()
                         }
 
-                        val uri = FileProvider.getUriForFile(view.context, view.context.applicationContext.packageName + ".NekoFileProvider", file)
+                        val uri = FileProvider.getUriForFile(view.context, "${BuildConfig.APPLICATION_ID}${if (BuildConfig.DEBUG) ".debug" else ""}.NekoFileProvider", file)
                         intent.putExtra(Intent.EXTRA_STREAM, uri)
                         intent.putExtra(Intent.EXTRA_TEXT, "Artist: ${neko.artist}\n" +
                                 "Tags: ${neko.tags.subList(0, 5).joinToString(", ")}\n" +

@@ -47,6 +47,7 @@ import kotlinx.coroutines.*
 import okhttp3.OkHttpClient
 import org.jetbrains.anko.selector
 import org.json.JSONException
+import java.util.*
 
 // Permissions needed to save and upload images
 val permissions = arrayOf(
@@ -85,7 +86,7 @@ class MainActivity : AppCompatActivity(), ConnectivityReceiver.ConnectivityRecei
         val (version, versionCode) = Api.getVersions(this)
         Api.version = version
         Api.versionCode = versionCode
-        Api.userAgent = "NekosApp/v$version (https://github.com/KurozeroPB/Nekos)"
+        Api.userAgent = "NekosApp/v$version (https://github.com/Pepijn98/Nekos)"
 
         httpClient = OkHttpClient()
 
@@ -118,7 +119,7 @@ class MainActivity : AppCompatActivity(), ConnectivityReceiver.ConnectivityRecei
         toggle.syncState()
 
         tvAbout.text = Html.fromHtml("""
-            <p>© 2020 — <a href="https://vdbroek.dev">Kurozero</a> | v${Api.version} (${Api.versionCode})<br/>
+            <p>© ${Calendar.getInstance().get(Calendar.YEAR)} — <a href="https://vdbroek.dev">Pepijn</a> | v${Api.version} (${Api.versionCode})<br/>
             Made possible with <a href="https://nekos.moe">nekos.moe</a><br/></p>
         """.trimIndent(), Html.FROM_HTML_MODE_LEGACY)
         tvAbout.movementMethod = LinkMovementMethod.getInstance()

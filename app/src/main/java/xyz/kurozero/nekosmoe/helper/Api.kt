@@ -31,7 +31,9 @@ object Api {
     }
 
     fun requestNekosAsync(toSkip: Int, sort: String): Deferred<Response<Nekos?, Exception?>> {
-        val reqbody = "{\"nsfw\": false, \"limit\": 50, \"skip\": $toSkip, \"sort\": \"$sort\"}"
+        val tags = "-\\\"bare shoulders\\\", -\\\"bikini\\\", -\\\"crop top\\\", -\\\"swimsuit\\\", -\\\"midriff\\\", -\\\"no bra\\\", -\\\"panties\\\", -\\\"covered nipples\\\", -\\\"from behind\\\", -\\\"knees up\\\", -\\\"leotard\\\", -\\\"black bikini top\\\", -\\\"black bikini bottom\\\", -\\\"off-shoulder shirt\\\", -\\\"naked shirt\\\""
+        val reqbody = "{\"nsfw\": false, \"tags\": \"$tags\", \"limit\": 50, \"skip\": $toSkip, \"sort\": \"$sort\"}"
+        println(reqbody)
         return GlobalScope.async {
             val (_, _, result) = "/images/search".httpPost()
                 .header(mapOf("Content-Type" to "application/json"))
