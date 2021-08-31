@@ -1,4 +1,4 @@
-package xyz.kurozero.nekosmoe.helper
+package dev.vdbroek.nekos.helper
 
 import android.content.Context
 import android.os.Build
@@ -7,7 +7,7 @@ import com.google.gson.Gson
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import xyz.kurozero.nekosmoe.model.Nekos
+import dev.vdbroek.nekos.model.Nekos
 import com.github.kittinunf.result.Result
 
 data class Response<out V : Any?, out E : Exception?>(val value: V, val exception: E)

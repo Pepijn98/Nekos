@@ -1,4 +1,4 @@
-package xyz.kurozero.nekosmoe.helper
+package dev.vdbroek.nekos.helper
 
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearLayoutManager

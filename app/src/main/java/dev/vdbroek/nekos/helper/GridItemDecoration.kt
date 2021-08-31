@@ -1,4 +1,4 @@
-package xyz.kurozero.nekosmoe.helper
+package dev.vdbroek.nekos.helper
 
 import android.graphics.Rect
 import android.view.View

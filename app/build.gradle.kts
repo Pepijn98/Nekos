@@ -30,7 +30,7 @@ android {
     compileSdk = Versions.targetSdk
 
     defaultConfig {
-        applicationId = "xyz.kurozero.nekosmoe"
+        applicationId = "dev.vdbroek.nekos"
         minSdk = Versions.minSdk
         targetSdk = Versions.targetSdk
         versionCode = Versions.generateVersionCode()

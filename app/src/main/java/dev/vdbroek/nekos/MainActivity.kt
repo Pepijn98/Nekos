@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATION")
 
-package xyz.kurozero.nekosmoe
+package dev.vdbroek.nekos
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -22,10 +22,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.recyclerview.widget.RecyclerView
-import xyz.kurozero.nekosmoe.adapter.NekosGridRecyclerAdapter
-import xyz.kurozero.nekosmoe.adapter.file
-import xyz.kurozero.nekosmoe.helper.*
-import xyz.kurozero.nekosmoe.model.*
+import dev.vdbroek.nekos.adapter.NekosGridRecyclerAdapter
+import dev.vdbroek.nekos.adapter.file
+import dev.vdbroek.nekos.helper.*
+import dev.vdbroek.nekos.model.*
 import kotlinx.android.synthetic.main.activity_main.*
 import androidx.recyclerview.widget.GridLayoutManager
 import com.facebook.drawee.backends.pipeline.Fresco

@@ -1,4 +1,4 @@
-package xyz.kurozero.nekosmoe.adapter
+package dev.vdbroek.nekos.adapter
 
 import android.app.AlertDialog
 import android.content.ContentValues
@@ -19,7 +19,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
 import kotlinx.android.synthetic.main.grid_list_item.view.*
 import org.jetbrains.anko.sdk27.coroutines.onClick
-import xyz.kurozero.nekosmoe.model.Neko
+import dev.vdbroek.nekos.model.Neko
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.google.android.material.snackbar.Snackbar
 import com.hendraanggrian.pikasso.into
@@ -33,10 +33,10 @@ import kotlinx.coroutines.launch
 import okhttp3.MediaType
 import okhttp3.Request
 import okhttp3.RequestBody
-import xyz.kurozero.nekosmoe.*
-import xyz.kurozero.nekosmoe.helper.Api
-import xyz.kurozero.nekosmoe.helper.hasPermissions
-import xyz.kurozero.nekosmoe.helper.isConnected
+import dev.vdbroek.nekos.*
+import dev.vdbroek.nekos.helper.Api
+import dev.vdbroek.nekos.helper.hasPermissions
+import dev.vdbroek.nekos.helper.isConnected
 import java.io.*
 
 lateinit var file: File

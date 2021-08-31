@@ -1,9 +1,9 @@
-package xyz.kurozero.nekosmoe
+package dev.vdbroek.nekos
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.content_profile.*
-import xyz.kurozero.nekosmoe.helper.timestamp
+import dev.vdbroek.nekos.helper.timestamp
 
 class ProfileActivity : AppCompatActivity() {
 

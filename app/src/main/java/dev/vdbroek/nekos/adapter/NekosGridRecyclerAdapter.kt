@@ -1,10 +1,10 @@
-package xyz.kurozero.nekosmoe.adapter
+package dev.vdbroek.nekos.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import xyz.kurozero.nekosmoe.R
-import xyz.kurozero.nekosmoe.model.Neko
+import dev.vdbroek.nekos.R
+import dev.vdbroek.nekos.model.Neko
 
 class NekosGridRecyclerAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private var listOfNekos = listOf<Neko>()

@@ -1,4 +1,4 @@
-package xyz.kurozero.nekosmoe.helper
+package dev.vdbroek.nekos.helper
 
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver

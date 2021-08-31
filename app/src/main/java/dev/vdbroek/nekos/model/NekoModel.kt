@@ -1,6 +1,6 @@
 @file:Suppress("unused")
 
-package xyz.kurozero.nekosmoe.model
+package dev.vdbroek.nekos.model
 
 data class Nekos(
     val images: MutableList<Neko>

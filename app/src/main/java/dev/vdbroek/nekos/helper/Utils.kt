@@ -1,4 +1,4 @@
-package xyz.kurozero.nekosmoe.helper
+package dev.vdbroek.nekos.helper
 
 import android.content.Context
 import android.content.pm.PackageManager
