@@ -7,23 +7,14 @@ plugins {
 object Versions {
     private const val versionMajor = 1
     private  const val versionMinor = 1
-    private const val versionPatch = 2
-    private val versionClassifier = null
+    private const val versionPatch = 3
 
     const val minSdk = 24
     const val targetSdk = 31
 
     fun generateVersionCode(): Int = minSdk * 10000000 + versionMajor * 10000 + versionMinor * 100 + versionPatch
 
-    fun generateVersionName(): String {
-        var versionName = "${versionMajor}.${versionMinor}.${versionPatch}"
-
-        @Suppress("SENSELESS_COMPARISON")
-        if (versionClassifier != null) {
-            versionName += "-$versionClassifier"
-        }
-        return versionName
-    }
+    fun generateVersionName(): String = "$versionMajor.$versionMinor.$versionPatch"
 }
 
 android {
@@ -41,8 +32,8 @@ android {
     @Suppress("COMPATIBILITY_WARNING")
     buildTypes {
         release {
-            isShrinkResources = true
-            isMinifyEnabled = true
+            isShrinkResources = false
+            isMinifyEnabled = false // Can't load images into recycler view when minify is enabled, idk why, too lazy to find out and I don't really care about size when it's a small app.
             isDebuggable = false
             isJniDebuggable = false
             isRenderscriptDebuggable = false
@@ -62,15 +53,29 @@ android {
             isRenderscriptDebuggable = true
             isPseudoLocalesEnabled = false
         }
+
+        create("beta") {
+            versionNameSuffix = "-BETA"
+            applicationIdSuffix = ".beta"
+
+            isShrinkResources = false
+            isMinifyEnabled = false
+            isDebuggable = false
+            isJniDebuggable = false
+            isRenderscriptDebuggable = false
+            isPseudoLocalesEnabled = false
+
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
     sourceSets.all {
