@@ -1,16 +1,16 @@
 plugins {
     id("com.android.application")
     kotlin("android")
-    kotlin("android.extensions")
+    kotlin("kapt")
 }
 
 object Versions {
-    private const val versionMajor = 1
-    private  const val versionMinor = 1
-    private const val versionPatch = 3
+    private const val versionMajor = 2
+    private const val versionMinor = 0
+    private const val versionPatch = 0
 
-    const val minSdk = 24
-    const val targetSdk = 31
+    const val minSdk = 28
+    const val targetSdk = 32
 
     fun generateVersionCode(): Int = minSdk * 10000000 + versionMajor * 10000 + versionMinor * 100 + versionPatch
 
@@ -18,6 +18,7 @@ object Versions {
 }
 
 android {
+    namespace = "dev.vdbroek.nekos"
     compileSdk = Versions.targetSdk
 
     defaultConfig {
@@ -26,31 +27,23 @@ android {
         targetSdk = Versions.targetSdk
         versionCode = Versions.generateVersionCode()
         versionName = Versions.generateVersionName()
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary = true
+        }
     }
 
-    @Suppress("COMPATIBILITY_WARNING")
     buildTypes {
-        release {
-            isShrinkResources = false
-            isMinifyEnabled = false // Can't load images into recycler view when minify is enabled, idk why, too lazy to find out and I don't really care about size when it's a small app.
+        getByName("release") {
+            isMinifyEnabled = true
+            isShrinkResources = true
+
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+
             isDebuggable = false
             isJniDebuggable = false
             isRenderscriptDebuggable = false
-            isPseudoLocalesEnabled = false
-
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-
-        debug {
-            versionNameSuffix = "-DEBUG"
-            applicationIdSuffix = ".debug"
-
-            isShrinkResources = false
-            isMinifyEnabled = false
-            isDebuggable = true // Set to false whenever publishing debug app to play console otherwise the AAB/APK will show as not signed.
-            isJniDebuggable = true
-            isRenderscriptDebuggable = true
             isPseudoLocalesEnabled = false
         }
 
@@ -67,52 +60,66 @@ android {
 
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
+
+        getByName("debug") {
+            versionNameSuffix = "-DEBUG"
+            applicationIdSuffix = ".debug"
+
+            isShrinkResources = false
+            isMinifyEnabled = false
+            isDebuggable = true // Set to false whenever publishing debug app to play console otherwise the AAB/APK will show as not signed.
+            isJniDebuggable = true
+            isRenderscriptDebuggable = true
+            isPseudoLocalesEnabled = false
+        }
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 
-    sourceSets.all {
-        java.srcDir("src/$name/kotlin")
+    buildFeatures {
+        compose = true
+        viewBinding = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.1.1"
+    }
+
+    packagingOptions {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
 }
 
 dependencies {
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    implementation(kotlin("stdlib"))
+    implementation("androidx.core:core-ktx:1.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
+    implementation("androidx.activity:activity-compose:1.4.0")
+    implementation("androidx.compose.ui:ui:1.1.1")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.1.1")
+    implementation("androidx.compose.material3:material3:1.0.0-alpha11")
+    implementation("androidx.compose.material:material:1.1.1")
+    implementation("androidx.navigation:navigation-compose:2.4.2")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("io.coil-kt:coil-compose:2.0.0")
 
-    implementation("androidx.core:core-ktx:1.6.0")
-    implementation("androidx.appcompat:appcompat:1.3.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.0")
+    // Not used yet but seems like a good way to save logged in users
+    implementation("androidx.room:room-runtime:2.4.2")
+    kapt("androidx.room:room-compiler:2.4.2")
+    implementation("androidx.room:room-ktx:2.4.2")
 
-    implementation("com.github.kittinunf.fuel:fuel:2.3.1")
-    implementation("com.github.kittinunf.fuel:fuel-android:2.3.1")
-    implementation("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
-    implementation("com.github.kittinunf.fuel:fuel-gson:2.3.1")
-    implementation("com.github.stfalcon:stfalcon-imageviewer:1.0.1")
-    implementation("com.github.bumptech.glide:glide:4.11.0")
-    annotationProcessor("com.github.bumptech.glide:compiler:4.11.0")
-
-    implementation("com.google.android.material:material:1.4.0")
-    implementation("com.google.code.gson:gson:2.8.6")
-    implementation("com.facebook.fresco:fresco:1.9.0")
-    implementation("com.squareup.picasso:picasso:2.71828")
-    implementation("com.hendraanggrian:pikasso:0.2")
-
-    implementation("de.hdodenhof:circleimageview:3.0.1")
-
-    implementation("org.jetbrains.anko:anko:0.10.8")
-    implementation("org.jetbrains.anko:anko-design:0.10.8")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.4.2")
-
-    testImplementation("junit:junit:4.13.1")
+    testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.1.1")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.1.1")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.1.1")
 }
