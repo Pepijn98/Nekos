@@ -1,7 +1,9 @@
 package dev.vdbroek.nekos.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -13,7 +15,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import coil.compose.rememberAsyncImagePainter
+import dev.vdbroek.nekos.components.NetworkImage
 import dev.vdbroek.nekos.screenTitle
+import dev.vdbroek.nekos.ui.theme.imageShape
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,16 +32,17 @@ fun ImageDetails(navController: NavHostController, id: String?) {
     ) {
         Card(
             modifier = Modifier
-//                .width(250.dp)
+                .width(250.dp)
                 .padding(10.dp)
-                .clip(defaultShape)
+                .clip(imageShape)
                 .background(color = Color.Transparent),
-            shape = defaultShape
+            shape = imageShape
         ) {
-            Image(
-                painter = rememberAsyncImagePainter("https://nekos.moe/image/$id"),
+            NetworkImage(
+                url = "https://nekos.moe/image/$id",
+                modifier = Modifier.fillMaxSize(),
                 alignment = Alignment.Center,
-                contentScale = ContentScale.FillBounds,
+                contentScale = ContentScale.Crop,
                 contentDescription = "Image"
             )
         }

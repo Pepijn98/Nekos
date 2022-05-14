@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import dev.vdbroek.nekos.ui.Navigation
+import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.screenTitle
 
 @Composable
@@ -31,7 +31,7 @@ fun Profile(navController: NavHostController) {
             modifier = Modifier.size(120.dp),
             onClick = {
                 navController.backQueue.clear()
-                navController.navigate(Navigation.Home.route)
+                navController.navigate(Screens.Home.route)
             }
         ) {
             Icon(

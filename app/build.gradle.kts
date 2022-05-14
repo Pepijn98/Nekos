@@ -108,8 +108,10 @@ dependencies {
     implementation("androidx.compose.material3:material3:1.0.0-alpha11")
     implementation("androidx.compose.material:material:1.1.1")
     implementation("androidx.navigation:navigation-compose:2.4.2")
+    implementation("androidx.core:core-splashscreen:1.0.0-beta02")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("io.coil-kt:coil-compose:2.0.0")
+    implementation("com.squareup.picasso:picasso:2.8")
 
     // Not used yet but seems like a good way to save logged in users
     implementation("androidx.room:room-runtime:2.4.2")

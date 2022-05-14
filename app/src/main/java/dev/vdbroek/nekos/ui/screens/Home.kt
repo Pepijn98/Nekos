@@ -1,131 +1,33 @@
 package dev.vdbroek.nekos.ui.screens
 
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
-import coil.compose.rememberAsyncImagePainter
+import dev.vdbroek.nekos.components.ImageData
+import dev.vdbroek.nekos.components.InfiniteList
 import dev.vdbroek.nekos.screenTitle
-import dev.vdbroek.nekos.ui.Navigation
-import kotlinx.coroutines.flow.distinctUntilChanged
-
-val defaultShape = RoundedCornerShape(10.dp)
-
-data class ImageData(
-    val id: Int,
-    val image: String
-)
-
-val listItems = mutableStateListOf(
-    ImageData(1, "Gu8dj-_mB"),
-    ImageData(2,"oGjsVRjrs"),
-    ImageData(3, "GjS-oEacX"),
-    ImageData(4, "IaQqVdLOP"),
-    ImageData(5, "QBOtRa36Z"),
-    ImageData(6, "78qL2Rosw"),
-    ImageData(7, "o5xO9hl2s"),
-    ImageData(8, "xOzCcCbAx"),
-    ImageData(9, "-e27VbESp")
-)
 
 @Composable
 fun Home(navController: NavHostController) {
     screenTitle = "Home"
 
+    val listItems = remember {
+        mutableStateListOf(
+            ImageData(1, "Gu8dj-_mB"),
+            ImageData(2, "oGjsVRjrs"),
+            ImageData(3, "GjS-oEacX"),
+            ImageData(4, "IaQqVdLOP"),
+            ImageData(5, "QBOtRa36Z"),
+            ImageData(6, "78qL2Rosw"),
+            ImageData(7, "o5xO9hl2s"),
+            ImageData(8, "xOzCcCbAx"),
+            ImageData(9, "-e27VbESp")
+        )
+    }
+
     InfiniteList(listItems = listItems, navController = navController) {
+        // TODO : Request next set of images
         listItems += listItems
-    }
-}
-
-@Composable
-fun InfiniteList(
-    listItems: List<ImageData>,
-    navController: NavController,
-    onLoadMore: () -> Unit
-) {
-    val listState = rememberLazyGridState()
-
-    LazyVerticalGrid(
-        modifier = Modifier
-            .fillMaxWidth(),
-        state = listState,
-        columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(
-            start = 12.dp,
-            top = 16.dp,
-            end = 12.dp,
-            bottom = 16.dp
-        )
-    ) {
-        items(listItems.size) { i ->
-            ListItem(data = listItems[i]) {
-                navController.navigate(Navigation.Image.route + "/${it.image}")
-            }
-        }
-    }
-
-    InfiniteListHandler(listState = listState) {
-        onLoadMore()
-    }
-}
-
-@Composable
-fun InfiniteListHandler(
-    listState: LazyGridState,
-    buffer: Int = 2,
-    onLoadMore: () -> Unit
-) {
-    val loadMore = remember {
-        derivedStateOf {
-            val layoutInfo = listState.layoutInfo
-            val totalItemsNumber = layoutInfo.totalItemsCount
-            val lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
-
-            lastVisibleItemIndex > (totalItemsNumber - buffer)
-        }
-    }
-
-    LaunchedEffect(loadMore) {
-        snapshotFlow { loadMore.value }
-            .distinctUntilChanged()
-            .collect {
-                onLoadMore()
-            }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ListItem(data: ImageData, onNatureClicked: (ImageData) -> Unit) {
-    Card(
-        modifier = Modifier
-            .padding(10.dp)
-            .size(160.dp)
-            .clip(defaultShape)
-            .background(color = Color.Transparent)
-            .clickable(onClick = { onNatureClicked(data) }),
-        shape = defaultShape
-    ) {
-        Image(
-            painter = rememberAsyncImagePainter("https://nekos.moe/image/${data.image}"),
-            modifier = Modifier.fillMaxSize(),
-            alignment = Alignment.Center,
-            contentScale = ContentScale.Crop,
-            contentDescription = "Image"
-        )
     }
 }

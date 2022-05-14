@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -27,11 +28,13 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import dev.vdbroek.nekos.IS_DARK
+import dev.vdbroek.nekos.MANUAL
 import dev.vdbroek.nekos.R
-import dev.vdbroek.nekos.ui.Navigation
+import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.ColorUI
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.px
@@ -44,6 +47,7 @@ fun Drawer(
     scaffoldState: ScaffoldState
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
 
     Column(
         modifier = Modifier.fillMaxHeight(),
@@ -93,7 +97,7 @@ fun Drawer(
                 ) {
                     Column(modifier = Modifier.align(Alignment.BottomStart)) {
                         Image(
-                            painter = painterResource(id = R.drawable.placeholder),
+                            painter = painterResource(id = R.drawable.profile_placeholder),
                             modifier = Modifier
                                 .clip(CircleShape)
                                 .size(100.dp),
@@ -112,11 +116,11 @@ fun Drawer(
         DrawerRow(
             icon = Icons.Filled.Home,
             title = "Home",
-            selected = navController.currentBackStackEntry?.destination?.route == Navigation.Home.route,
+            selected = navBackStackEntry?.destination?.route == Screens.Home.route,
             onClick = {
-                if (navController.currentBackStackEntry?.destination?.route != Navigation.Home.route) {
+                if (navController.currentBackStackEntry?.destination?.route != Screens.Home.route) {
                     navController.backQueue.clear()
-                    navController.navigate(Navigation.Home.route)
+                    navController.navigate(Screens.Home.route)
                     coroutineScope.launch { scaffoldState.drawerState.close() }
                 }
             }
@@ -124,10 +128,10 @@ fun Drawer(
         DrawerRow(
             icon = Icons.Filled.Person,
             title = "Profile",
-            selected = navController.currentBackStackEntry?.destination?.route == Navigation.Profile.route,
+            selected = navBackStackEntry?.destination?.route == Screens.Profile.route,
             onClick = {
-                if (navController.currentBackStackEntry?.destination?.route != Navigation.Profile.route) {
-                    navController.navigate(Navigation.Profile.route)
+                if (navController.currentBackStackEntry?.destination?.route != Screens.Profile.route) {
+                    navController.navigate(Screens.Profile.route)
                     coroutineScope.launch { scaffoldState.drawerState.close() }
                 }
             }
@@ -140,11 +144,9 @@ fun Drawer(
                 ThemeState.manual = true
                 ThemeState.isDark = !ThemeState.isDark
                 coroutineScope.launch {
-                    val MANUAL = booleanPreferencesKey("manual")
-                    val IS_DARK = booleanPreferencesKey("is_dark")
                     dataStore.edit { preferences ->
-                        preferences[MANUAL] = ThemeState.manual
                         preferences[IS_DARK] = ThemeState.isDark
+                        preferences[MANUAL] = ThemeState.manual
                     }
                 }
             }) {
