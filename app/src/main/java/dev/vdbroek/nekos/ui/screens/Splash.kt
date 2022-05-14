@@ -30,7 +30,7 @@ fun Splash(navController: NavHostController) {
 
     LaunchedEffect(key1 = true) {
         // TODO : Remove delay and make an actual api request to get the intial set of images
-        delay(4000)
+        delay(2000)
         navController.popBackStack()
         navController.navigate(Navigation.Home.route)
     }
@@ -43,7 +43,7 @@ fun SplashLayout() {
         initialValue = 0F,
         targetValue = 360F,
         animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = LinearEasing)
+            animation = tween(2000, easing = LinearEasing)
         )
     )
 

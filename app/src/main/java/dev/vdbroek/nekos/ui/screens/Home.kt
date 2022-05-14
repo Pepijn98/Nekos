@@ -31,15 +31,15 @@ data class ImageData(
 )
 
 val listItems = mutableStateListOf(
-    ImageData(1, "https://nekos.moe/image/Gu8dj-_mB"),
-    ImageData(2,"https://nekos.moe/image/oGjsVRjrs"),
-    ImageData(3, "https://nekos.moe/image/GjS-oEacX"),
-    ImageData(4, "https://nekos.moe/image/IaQqVdLOP"),
-    ImageData(5, "https://nekos.moe/image/QBOtRa36Z"),
-    ImageData(6, "https://nekos.moe/image/78qL2Rosw"),
-    ImageData(7, "https://nekos.moe/image/o5xO9hl2s"),
-    ImageData(8, "https://nekos.moe/image/xOzCcCbAx"),
-    ImageData(9, "https://nekos.moe/image/-e27VbESp")
+    ImageData(1, "Gu8dj-_mB"),
+    ImageData(2,"oGjsVRjrs"),
+    ImageData(3, "GjS-oEacX"),
+    ImageData(4, "IaQqVdLOP"),
+    ImageData(5, "QBOtRa36Z"),
+    ImageData(6, "78qL2Rosw"),
+    ImageData(7, "o5xO9hl2s"),
+    ImageData(8, "xOzCcCbAx"),
+    ImageData(9, "-e27VbESp")
 )
 
 @Composable
@@ -73,7 +73,7 @@ fun InfiniteList(
     ) {
         items(listItems.size) { i ->
             ListItem(data = listItems[i]) {
-                navController.navigate(Navigation.Image.route)
+                navController.navigate(Navigation.Image.route + "/${it.image}")
             }
         }
     }
@@ -121,7 +121,7 @@ private fun ListItem(data: ImageData, onNatureClicked: (ImageData) -> Unit) {
         shape = defaultShape
     ) {
         Image(
-            painter = rememberAsyncImagePainter(data.image),
+            painter = rememberAsyncImagePainter("https://nekos.moe/image/${data.image}"),
             modifier = Modifier.fillMaxSize(),
             alignment = Alignment.Center,
             contentScale = ContentScale.Crop,

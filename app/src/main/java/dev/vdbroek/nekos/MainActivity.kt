@@ -114,9 +114,10 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        composable(route = Navigation.Image.route) {
+                        composable(route = Navigation.Image.route + "/{id}") {
+                            val id = it.arguments?.getString("id")
                             EnterAnimation {
-                                ImageDetails(navController = navController)
+                                ImageDetails(navController = navController, id = id)
                             }
                         }
 
