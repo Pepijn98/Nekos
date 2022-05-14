@@ -1,8 +1,6 @@
 package dev.vdbroek.nekos.ui.screens
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -17,11 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import dev.vdbroek.nekos.R
+import coil.compose.rememberAsyncImagePainter
 import dev.vdbroek.nekos.screenTitle
 import dev.vdbroek.nekos.ui.Navigation
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -30,19 +27,19 @@ val defaultShape = RoundedCornerShape(10.dp)
 
 data class ImageData(
     val id: Int,
-    val image: Int
+    val image: String
 )
 
-var listItems = mutableStateListOf(
-    ImageData(1, R.drawable.nature_1),
-    ImageData(2, R.drawable.nature_2),
-    ImageData(3, R.drawable.nature_3),
-    ImageData(4, R.drawable.nature_4),
-    ImageData(5, R.drawable.nature_5),
-    ImageData(6, R.drawable.nature_6),
-    ImageData(7, R.drawable.nature_7),
-    ImageData(8, R.drawable.nature_8),
-    ImageData(9, R.drawable.nature_9)
+val listItems = mutableStateListOf(
+    ImageData(1, "https://nekos.moe/image/Gu8dj-_mB"),
+    ImageData(2,"https://nekos.moe/image/oGjsVRjrs"),
+    ImageData(3, "https://nekos.moe/image/GjS-oEacX"),
+    ImageData(4, "https://nekos.moe/image/IaQqVdLOP"),
+    ImageData(5, "https://nekos.moe/image/QBOtRa36Z"),
+    ImageData(6, "https://nekos.moe/image/78qL2Rosw"),
+    ImageData(7, "https://nekos.moe/image/o5xO9hl2s"),
+    ImageData(8, "https://nekos.moe/image/xOzCcCbAx"),
+    ImageData(9, "https://nekos.moe/image/-e27VbESp")
 )
 
 @Composable
@@ -63,7 +60,8 @@ fun InfiniteList(
     val listState = rememberLazyGridState()
 
     LazyVerticalGrid(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
         state = listState,
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(
@@ -123,7 +121,7 @@ private fun ListItem(data: ImageData, onNatureClicked: (ImageData) -> Unit) {
         shape = defaultShape
     ) {
         Image(
-            painter = painterResource(id = data.image),
+            painter = rememberAsyncImagePainter(data.image),
             modifier = Modifier.fillMaxSize(),
             alignment = Alignment.Center,
             contentScale = ContentScale.Crop,

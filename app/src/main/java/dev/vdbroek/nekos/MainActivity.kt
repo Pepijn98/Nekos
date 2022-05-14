@@ -3,12 +3,13 @@ package dev.vdbroek.nekos
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.*
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.navigation.compose.NavHost
@@ -36,6 +37,21 @@ val IS_DARK = booleanPreferencesKey("is_dark")
 val MANUAL = booleanPreferencesKey("manual")
 
 var screenTitle: String? by mutableStateOf(null)
+
+@Composable
+fun EnterAnimation(content: @Composable () -> Unit) {
+    AnimatedVisibility(
+        visibleState = remember {
+            MutableTransitionState(
+                initialState = false
+            )
+        }.apply { targetState = true },
+        enter = fadeIn(animationSpec = tween(500), initialAlpha = 0.3f),
+        exit = fadeOut(animationSpec = tween(500))
+    ) {
+        content()
+    }
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -69,42 +85,45 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     drawerShape = RoundedCornerShape(topEnd = 10.dp, bottomEnd = 10.dp),
+                    drawerGesturesEnabled = navBackStackEntry?.destination?.route != Navigation.Splash.route,
                     drawerContent = {
                         if (navBackStackEntry?.destination?.route != Navigation.Splash.route) {
                             Drawer(
-                                navController = navController,
-                                dataStore = dataStore,
-                                scaffoldState = scaffoldState
+                                navController = navController, dataStore = dataStore, scaffoldState = scaffoldState
                             )
                         }
                     },
                     snackbarHost = {
-                        Alert(
-                            hostState = it,
-                            onDismiss = {
-                                it.currentSnackbarData?.dismiss()
-                            }
-                        )
+                        Alert(hostState = it, onDismiss = {
+                            it.currentSnackbarData?.dismiss()
+                        })
                     },
                 ) {
                     NavHost(
-                        navController = navController,
-                        startDestination = Navigation.Splash.route
+                        navController = navController, startDestination = Navigation.Splash.route
                     ) {
                         composable(route = Navigation.Splash.route) {
-                            Splash(navController = navController)
+                            EnterAnimation {
+                                Splash(navController = navController)
+                            }
                         }
 
                         composable(route = Navigation.Home.route) {
-                            Home(navController = navController)
+                            EnterAnimation {
+                                Home(navController = navController)
+                            }
                         }
 
                         composable(route = Navigation.Image.route) {
-                            ImageDetails(navController = navController)
+                            EnterAnimation {
+                                ImageDetails(navController = navController)
+                            }
                         }
 
                         composable(route = Navigation.Profile.route) {
-                            Profile(navController = navController)
+                            EnterAnimation {
+                                Profile(navController = navController)
+                            }
                         }
                     }
                 }
