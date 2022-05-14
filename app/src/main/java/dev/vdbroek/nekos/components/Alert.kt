@@ -28,7 +28,7 @@ enum class SnackbarType {
 
 var SnackbarHostState.type by mutableStateOf(SnackbarType.DEFAULT)
 
-suspend fun SnackbarHostState.showSnackbar(
+suspend fun SnackbarHostState.showCustomSnackbar(
     message: String,
     actionLabel: String? = null,
     snackbarType: SnackbarType = SnackbarType.DEFAULT,

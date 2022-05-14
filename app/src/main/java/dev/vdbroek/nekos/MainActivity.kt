@@ -13,7 +13,6 @@ import androidx.compose.material.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -25,13 +24,7 @@ import dev.vdbroek.nekos.ui.screens.Home
 import dev.vdbroek.nekos.ui.screens.ImageDetails
 import dev.vdbroek.nekos.ui.screens.Profile
 import dev.vdbroek.nekos.ui.theme.NekosTheme
-import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.dataStore
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 
 var screenTitle: String? by mutableStateOf(null)
 
@@ -84,7 +77,7 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable(route = Screens.Home.route) {
                             EnterAnimation {
-                                Home(navController = navController)
+                                Home(state = scaffoldState, navController = navController)
                             }
                         }
 

@@ -14,8 +14,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.screenTitle
+import dev.vdbroek.nekos.ui.Screens
 
 @Composable
 fun Profile(navController: NavHostController) {

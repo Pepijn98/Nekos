@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -16,6 +17,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import dev.vdbroek.nekos.models.Neko
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.ColorUI
 import dev.vdbroek.nekos.ui.theme.imageShape
@@ -23,15 +25,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 fun InfiniteList(
-    listItems: List<ImageData>,
+    items: SnapshotStateList<Neko>,
     navController: NavController,
     onLoadMore: () -> Unit
 ) {
     val listState = rememberLazyGridState()
 
     LazyVerticalGrid(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         state = listState,
         columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(
@@ -41,9 +42,9 @@ fun InfiniteList(
             bottom = 16.dp
         )
     ) {
-        items(listItems.size) { i ->
-            ListItem(data = listItems[i]) {
-                navController.navigate(Screens.ImageDetails.route + "/${it.image}")
+        items(items.size) { i ->
+            ListItem(data = items[i]) {
+                navController.navigate(Screens.ImageDetails.route + "/${it.id}")
             }
         }
     }
@@ -56,7 +57,7 @@ fun InfiniteList(
 @Composable
 fun InfiniteListHandler(
     listState: LazyGridState,
-    buffer: Int = 2,
+    buffer: Int = 10,
     onLoadMore: () -> Unit
 ) {
     val loadMore = remember {
@@ -73,27 +74,27 @@ fun InfiniteListHandler(
         snapshotFlow { loadMore.value }
             .distinctUntilChanged()
             .collect {
-                onLoadMore()
+                // Only load more when true
+                if (it) onLoadMore()
             }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ListItem(data: ImageData, onNatureClicked: (ImageData) -> Unit) {
+private fun ListItem(data: Neko, onItemClicked: (Neko) -> Unit) {
     Card(
         modifier = Modifier
             .padding(10.dp)
             .size(160.dp)
             .shadow(3.dp, imageShape, true, ColorUI.dark)
             .clip(imageShape)
-//            .background(color = Color.Transparent)
-//            .border(BorderStroke(2.dp, MaterialTheme.colorScheme.primary), imageShape)
-            .clickable(onClick = { onNatureClicked(data) }),
+            // .border(BorderStroke(2.dp, MaterialTheme.colorScheme.primary), imageShape)
+            .clickable(onClick = { onItemClicked(data) }),
         shape = imageShape
     ) {
         NetworkImage(
-            url = "https://nekos.moe/thumbnail/${data.image}",
+            url = data.getThumbnailUrl(),
             modifier = Modifier.fillMaxSize(),
             alignment = Alignment.Center,
             contentScale = ContentScale.Crop,

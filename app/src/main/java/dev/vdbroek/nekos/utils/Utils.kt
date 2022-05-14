@@ -27,5 +27,21 @@ val PaddingValues.start: Dp @Composable get() = calculateStartPadding(LocalLayou
 
 @Composable
 fun PaddingValues.copy(
-    start: Dp = this.start, top: Dp = this.top, end: Dp = this.end, bottom: Dp = this.bottom
+    start: Dp = this.start,
+    top: Dp = this.top,
+    end: Dp = this.end,
+    bottom: Dp = this.bottom
 ): PaddingValues = PaddingValues(start, top, end, bottom)
+
+object App {
+    const val baseUrl = "https://nekos.moe/api/v1"
+
+    lateinit var version: String
+    lateinit var versionCode: String
+    lateinit var userAgent: String
+
+    fun getVersions(ctx: Context): Pair<String, String> {
+        val packageInfo = ctx.packageManager.getPackageInfo(ctx.packageName, 0)
+        return Pair(packageInfo.versionName, String.format("%03d", packageInfo.longVersionCode))
+    }
+}

@@ -112,6 +112,11 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("io.coil-kt:coil-compose:2.0.0")
     implementation("com.squareup.picasso:picasso:2.8")
+    implementation("com.google.code.gson:gson:2.9.0")
+    implementation("com.github.kittinunf.fuel:fuel:2.3.1")
+    implementation("com.github.kittinunf.fuel:fuel-android:2.3.1")
+    implementation("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
+    implementation("com.github.kittinunf.fuel:fuel-gson:2.3.1")
 
     // Not used yet but seems like a good way to save logged in users
     implementation("androidx.room:room-runtime:2.4.2")

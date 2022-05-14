@@ -4,6 +4,7 @@
     <color name="blue_500">#FF2196F3</color>
     <color name="blue_700">#FF1976D2</color>
     <color name="black">#FF21252b</color>
+    <color name="icon">#FFe2d7d7</color>
     <color name="white">#FFEEEEEE</color>
     <color name="background">#FFEEEEEE</color>
 </resources>
