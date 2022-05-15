@@ -109,19 +109,22 @@ dependencies {
     implementation("androidx.compose.material:material:1.1.1")
     implementation("androidx.navigation:navigation-compose:2.4.2")
     implementation("androidx.core:core-splashscreen:1.0.0-beta02")
+    // Basic data storage
     implementation("androidx.datastore:datastore-preferences:1.0.0")
-    implementation("io.coil-kt:coil-compose:2.0.0")
-    implementation("com.squareup.picasso:picasso:2.8")
+    // (De)serialization
     implementation("com.google.code.gson:gson:2.9.0")
+    // HTTP Requests
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-android:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-gson:2.3.1")
-
-    // Not used yet but seems like a good way to save logged in users
+    // Loading network images
+    implementation("com.github.bumptech.glide:glide:4.13.2")
+    annotationProcessor("com.github.bumptech.glide:compiler:4.13.2")
+    // Advanced data storage (TODO : Save loggedin user data)
     implementation("androidx.room:room-runtime:2.4.2")
-    kapt("androidx.room:room-compiler:2.4.2")
     implementation("androidx.room:room-ktx:2.4.2")
+    kapt("androidx.room:room-compiler:2.4.2")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")

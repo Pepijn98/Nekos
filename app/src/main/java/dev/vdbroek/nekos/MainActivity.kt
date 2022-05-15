@@ -16,9 +16,11 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.gson.Gson
 import dev.vdbroek.nekos.components.Alert
 import dev.vdbroek.nekos.components.Drawer
 import dev.vdbroek.nekos.components.TopBar
+import dev.vdbroek.nekos.models.Neko
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.screens.Home
 import dev.vdbroek.nekos.ui.screens.ImageDetails
@@ -81,10 +83,11 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        composable(route = Screens.ImageDetails.route + "/{id}") {
-                            val id = it.arguments?.getString("id")
+                        composable(route = Screens.ImageDetails.route) {
+                            val jsonData = it.arguments?.getString("data")
+                            val data = Gson().fromJson(jsonData, Neko::class.java)
                             EnterAnimation {
-                                ImageDetails(navController = navController, id = id)
+                                ImageDetails(data = data)
                             }
                         }
 

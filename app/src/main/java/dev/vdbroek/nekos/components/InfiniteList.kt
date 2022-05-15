@@ -17,6 +17,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.google.gson.Gson
 import dev.vdbroek.nekos.models.Neko
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.ColorUI
@@ -44,7 +45,8 @@ fun InfiniteList(
     ) {
         items(items.size) { i ->
             ListItem(data = items[i]) {
-                navController.navigate(Screens.ImageDetails.route + "/${it.id}")
+                val jsonData = Gson().toJson(items[i])
+                navController.navigate(Screens.ImageDetails.route.replace("{data}", jsonData))
             }
         }
     }

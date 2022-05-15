@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
 import com.google.gson.Gson
+import dev.vdbroek.nekos.models.EndException
 import dev.vdbroek.nekos.models.NekosResponse
 import dev.vdbroek.nekos.utils.Response
 import kotlinx.coroutines.CoroutineScope
@@ -17,9 +18,8 @@ object Nekos {
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
 
     object State {
+        var end by mutableStateOf(false)
         var skip by mutableStateOf(0)
-        var isNew by mutableStateOf(true)
-        var init by mutableStateOf(true)
         var sort by mutableStateOf("newest")
         var tags = mutableStateListOf(
             "-bare shoulders",
@@ -41,9 +41,11 @@ object Nekos {
     }
 
     suspend fun getImages(): Response<NekosResponse?, Exception?> {
+        if (State.end) return Response(null, EndException("You have reached the end"))
+
         // Remove all images with tags that could potentially show sexually suggestive images
         val tags = State.tags.joinToString(", ") {
-            if (it.startsWith("-"))  {
+            if (it.startsWith("-")) {
                 val tag = it.replaceFirst("-", "")
                 "-\\\"$tag\\\""
             } else {
@@ -64,11 +66,15 @@ object Nekos {
         when (result) {
             is Result.Success -> {
                 State.skip += 30
-                State.init = false
-                State.isNew = false
 
                 if (data != null) {
-                    return Response(Gson().fromJson(data, NekosResponse::class.java), null)
+                    val nekosResponse = Gson().fromJson(data, NekosResponse::class.java)
+                    if (nekosResponse.images.size == 0) {
+                        State.end = true
+                        return Response(null, EndException("You have reached the end"))
+                    }
+
+                    return Response(nekosResponse, null)
                 }
                 return Response(null, Exception("No data returned"))
             }

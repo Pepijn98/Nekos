@@ -44,4 +44,15 @@ object App {
         val packageInfo = ctx.packageManager.getPackageInfo(ctx.packageName, 0)
         return Pair(packageInfo.versionName, String.format("%03d", packageInfo.longVersionCode))
     }
+
+    fun hasLowRam(): Boolean {
+        // Get app memory info
+        val available = Runtime.getRuntime().maxMemory()
+        val used = Runtime.getRuntime().totalMemory()
+
+        // Check for & and handle low memory state
+        val percentAvailable = 100f * (1f - used.toFloat() / available)
+
+        return percentAvailable <= 5.0f
+    }
 }
