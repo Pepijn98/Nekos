@@ -19,13 +19,13 @@ fun TopBar(
     scaffoldState: ScaffoldState,
     title: String? = stringResource(id = R.string.app_name)
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    val coroutine = rememberCoroutineScope()
 
     TopAppBar(
         backgroundColor = MaterialTheme.colorScheme.primary,
         contentColor = MaterialTheme.colorScheme.primary,
         navigationIcon = {
-            IconButton(onClick = { coroutineScope.launch { scaffoldState.drawerState.open() } }) {
+            IconButton(onClick = { coroutine.launch { scaffoldState.drawerState.open() } }) {
                 Icon(
                     imageVector = Icons.Filled.Menu,
                     contentDescription = "Drawer Menu",
@@ -39,14 +39,5 @@ fun TopBar(
                 color = MaterialTheme.colorScheme.onPrimary
             )
         }
-//        actions = {
-//            IconButton(onClick = {
-//                coroutineScope.launch {
-//                    state.snackbarHostState.showSnackbar("TODO : Search for nature", "X", SnackbarType.WARNING, SnackbarDuration.Indefinite)
-//                }
-//            }) {
-//                Icon(imageVector = Icons.Filled.Search, contentDescription = null)
-//            }
-//        }
     )
 }

@@ -8,7 +8,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 
 object ThemeState {
     var isDark by mutableStateOf(true)
@@ -21,22 +20,26 @@ private val DarkColorScheme = darkColorScheme(
     tertiary = ColorUI.blue700,
     background = ColorUI.dark,
     surface = ColorUI.dark,
-
+    error = ColorUI.danger,
     onPrimary = ColorUI.dark,
     onSecondary = ColorUI.dark,
     onTertiary = ColorUI.light,
-    onBackground = ColorUI.light
+    onBackground = ColorUI.light,
+    onError = ColorUI.light
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = ColorUI.blue200,
     secondary = ColorUI.blue500,
     tertiary = ColorUI.blue700,
-
+    background = ColorUI.light,
+    surface = ColorUI.light,
+    error = ColorUI.danger,
     onPrimary = ColorUI.dark,
     onSecondary = ColorUI.dark,
     onTertiary = ColorUI.light,
-    onBackground = ColorUI.dark
+    onBackground = ColorUI.dark,
+    onError = ColorUI.light
 )
 
 @Composable

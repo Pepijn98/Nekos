@@ -31,7 +31,3 @@ data class Neko(
 data class NekosResponse(
     val images: MutableList<Neko>
 )
-
-data class NekosException(
-    val message: String?
-)

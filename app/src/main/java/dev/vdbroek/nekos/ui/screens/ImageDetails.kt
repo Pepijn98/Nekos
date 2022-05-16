@@ -14,16 +14,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.components.NetworkImage
 import dev.vdbroek.nekos.models.Neko
-import dev.vdbroek.nekos.screenTitle
 import dev.vdbroek.nekos.ui.theme.imageShape
+import dev.vdbroek.nekos.utils.App
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageDetails(data: Neko) {
-    screenTitle = "Image"
+    App.screenTitle = "Image Details"
 
     Box(
         modifier = Modifier

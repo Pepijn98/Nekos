@@ -121,10 +121,6 @@ dependencies {
     // Loading network images
     implementation("com.github.bumptech.glide:glide:4.13.2")
     annotationProcessor("com.github.bumptech.glide:compiler:4.13.2")
-    // Advanced data storage (TODO : Save loggedin user data)
-    implementation("androidx.room:room-runtime:2.4.2")
-    implementation("androidx.room:room-ktx:2.4.2")
-    kapt("androidx.room:room-compiler:2.4.2")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")

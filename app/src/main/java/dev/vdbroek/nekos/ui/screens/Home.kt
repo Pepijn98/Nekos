@@ -4,6 +4,7 @@ import androidx.compose.material.ScaffoldState
 import androidx.compose.material.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.api.Nekos
 import dev.vdbroek.nekos.components.InfiniteList
@@ -11,21 +12,19 @@ import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
 import dev.vdbroek.nekos.models.EndException
 import dev.vdbroek.nekos.models.Neko
-import dev.vdbroek.nekos.screenTitle
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import dev.vdbroek.nekos.utils.App
 import kotlinx.coroutines.launch
 
 val images = mutableStateListOf<Neko>()
 
 @Composable
 fun Home(state: ScaffoldState, navController: NavHostController) {
-    screenTitle = "Home"
+    App.screenTitle = "Home"
 
-    val scope = CoroutineScope(Dispatchers.Default)
+    val coroutine = rememberCoroutineScope()
 
     InfiniteList(items = images, navController = navController) {
-        scope.launch {
+        coroutine.launch {
             val (response, exception) = Nekos.getImages()
             when {
                 response != null -> images.addAll(response.images)

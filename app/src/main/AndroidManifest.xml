@@ -20,7 +20,9 @@
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.Nekos.Splash">
+            android:theme="@style/Theme.Nekos.Splash"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -30,7 +32,9 @@
 
         <activity
             android:name=".MainActivity"
-            android:theme="@style/Theme.Nekos" />
+            android:theme="@style/Theme.Nekos"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
     </application>
 
 </manifest>

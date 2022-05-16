@@ -7,15 +7,14 @@ import androidx.compose.runtime.setValue
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
 import com.google.gson.Gson
-import dev.vdbroek.nekos.models.EndException
-import dev.vdbroek.nekos.models.NekosResponse
+import dev.vdbroek.nekos.models.*
 import dev.vdbroek.nekos.utils.Response
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 
 object Nekos {
-    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    private val coroutine = CoroutineScope(Dispatchers.IO)
 
     object State {
         var end by mutableStateOf(false)
@@ -53,13 +52,11 @@ object Nekos {
             }
         }
 
-        val result = coroutineScope.async {
-            val (_, _, result) = "/images/search".httpPost()
+        val (_, _, result) = coroutine.async {
+            return@async "/images/search".httpPost()
                 .header(mapOf("Content-Type" to "application/json"))
                 .body("{\"nsfw\": false, \"tags\": \"$tags\", \"limit\": 30, \"skip\": ${State.skip}, \"sort\": \"${State.sort}\"}")
                 .responseString()
-
-            return@async result
         }.await()
 
         val (data, exception) = result
@@ -80,7 +77,13 @@ object Nekos {
             }
             is Result.Failure -> {
                 if (exception != null) {
-                    return Response(null, exception)
+                    val httpException: HttpException? = try {
+                        Gson().fromJson(exception.response.responseMessage, HttpException::class.java)
+                    } catch (e: Exception) {
+                        null
+                    }
+
+                    return Response(null, if (httpException != null) ApiException(httpException) else exception)
                 }
                 return Response(null, Exception("No data returned"))
             }

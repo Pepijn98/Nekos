@@ -9,13 +9,21 @@ import androidx.compose.ui.unit.sp
 import dev.vdbroek.nekos.R
 
 val fonts = FontFamily(
-    Font(R.font.nunito)
+    Font(R.font.nunito_black),
+    Font(R.font.nunito_bold),
+    Font(R.font.nunito_extra_bold),
+    Font(R.font.nunito_extra_light),
+    Font(R.font.nunito_italic),
+    Font(R.font.nunito_light),
+    Font(R.font.nunito_medium),
+    Font(R.font.nunito_regular),
+    Font(R.font.nunito_semi_bold),
 )
 
+// TODO: Define all Typography options
 // Set of Material typography styles to start with
 val Typography = Typography(
     bodyLarge = TextStyle(
-        // fontFamily = FontFamily.Default,
         fontFamily = fonts,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
@@ -23,15 +31,13 @@ val Typography = Typography(
         letterSpacing = 0.5.sp
     ),
     titleLarge = TextStyle(
-        // fontFamily = FontFamily.Default,
         fontFamily = fonts,
-        fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
+        fontWeight = FontWeight.Bold,
+        fontSize = 28.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp
     ),
     labelSmall = TextStyle(
-        // fontFamily = FontFamily.Default,
         fontFamily = fonts,
         fontWeight = FontWeight.Medium,
         fontSize = 11.sp,

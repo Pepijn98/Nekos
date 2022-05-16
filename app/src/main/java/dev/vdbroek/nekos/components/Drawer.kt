@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -34,9 +35,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.vdbroek.nekos.IS_DARK
 import dev.vdbroek.nekos.MANUAL
 import dev.vdbroek.nekos.R
+import dev.vdbroek.nekos.drawerGesture
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.ColorUI
 import dev.vdbroek.nekos.ui.theme.ThemeState
+import dev.vdbroek.nekos.utils.App
+import dev.vdbroek.nekos.utils.LocalUserState
 import dev.vdbroek.nekos.utils.px
 import kotlinx.coroutines.launch
 
@@ -46,7 +50,8 @@ fun Drawer(
     dataStore: DataStore<Preferences>,
     scaffoldState: ScaffoldState
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    val user = LocalUserState.current
+    val coroutine = rememberCoroutineScope()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
     Column(
@@ -114,25 +119,61 @@ fun Drawer(
             }
         }
         DrawerRow(
-            icon = Icons.Filled.Home,
+            icon = { textColor ->
+                Icon(
+                    modifier = Modifier.padding(end = 5.dp),
+                    imageVector = Icons.Filled.Home,
+                    contentDescription = "",
+                    tint = textColor
+                )
+            },
             title = "Home",
             selected = navBackStackEntry?.destination?.route == Screens.Home.route,
             onClick = {
-                if (navController.currentBackStackEntry?.destination?.route != Screens.Home.route) {
+                if (navBackStackEntry?.destination?.route != Screens.Home.route) {
+                    coroutine.launch { scaffoldState.drawerState.close() }
                     navController.backQueue.clear()
                     navController.navigate(Screens.Home.route)
-                    coroutineScope.launch { scaffoldState.drawerState.close() }
                 }
             }
         )
+        if (user.isLoggedIn) {
+            DrawerRow(
+                icon = { textColor ->
+                    Icon(
+                        modifier = Modifier.padding(end = 5.dp),
+                        imageVector = Icons.Filled.Person,
+                        contentDescription = "",
+                        tint = textColor
+                    )
+                },
+                title = "Profile",
+                selected = navBackStackEntry?.destination?.route == Screens.Profile.route,
+                onClick = {
+                    if (navBackStackEntry?.destination?.route != Screens.Profile.route) {
+                        coroutine.launch { scaffoldState.drawerState.close() }
+                        navController.navigate(Screens.Profile.route)
+                    }
+                }
+            )
+        }
         DrawerRow(
-            icon = Icons.Filled.Person,
-            title = "Profile",
-            selected = navBackStackEntry?.destination?.route == Screens.Profile.route,
+            icon = { textColor ->
+                Icon(
+                    modifier = Modifier.padding(end = 5.dp),
+                    painter = painterResource(id = R.drawable.login),
+                    contentDescription = "",
+                    tint = textColor
+                )
+            },
+            title = "Login",
+            selected = navBackStackEntry?.destination?.route == Screens.Login.route,
             onClick = {
-                if (navController.currentBackStackEntry?.destination?.route != Screens.Profile.route) {
-                    navController.navigate(Screens.Profile.route)
-                    coroutineScope.launch { scaffoldState.drawerState.close() }
+                if (navBackStackEntry?.destination?.route != Screens.Login.route) {
+                    coroutine.launch {
+                        scaffoldState.drawerState.close()
+                    }
+                    navController.navigate(Screens.Login.route)
                 }
             }
         )
@@ -143,7 +184,7 @@ fun Drawer(
             IconButton(onClick = {
                 ThemeState.manual = true
                 ThemeState.isDark = !ThemeState.isDark
-                coroutineScope.launch {
+                coroutine.launch {
                     dataStore.edit { preferences ->
                         preferences[IS_DARK] = ThemeState.isDark
                         preferences[MANUAL] = ThemeState.manual
@@ -161,7 +202,7 @@ fun Drawer(
 }
 
 @Composable
-private fun DrawerRow(icon: ImageVector, title: String, selected: Boolean, onClick: () -> Unit) {
+private fun DrawerRow(icon: @Composable (textColor: Color) -> Unit, title: String, selected: Boolean, onClick: () -> Unit) {
     val drawerItemShape = RoundedCornerShape(percent = 50)
     val background = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent
     val textColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
@@ -183,10 +224,7 @@ private fun DrawerRow(icon: ImageVector, title: String, selected: Boolean, onCli
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Start
         ) {
-            Icon(
-                modifier = Modifier.padding(end = 5.dp),
-                imageVector = icon, contentDescription = title, tint = textColor
-            )
+            icon(textColor)
             Text(
                 color = textColor,
                 text = title

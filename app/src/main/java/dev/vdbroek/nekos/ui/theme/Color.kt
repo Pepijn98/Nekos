@@ -7,6 +7,8 @@ object ColorUI {
     val blue500 = Color(0xFF2196F3)
     val blue700 = Color(0xFF1976D2)
 
+    val darkCard = Color(0xFF292E35)
+
     val dark = Color(0xFF21252b)
     val light = Color(0xFFEEEEEE)
     val info = Color(0xFF209CEE)
