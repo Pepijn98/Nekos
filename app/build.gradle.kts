@@ -109,6 +109,10 @@ dependencies {
     implementation("androidx.compose.material:material:1.1.1")
     implementation("androidx.navigation:navigation-compose:2.4.2")
     implementation("androidx.core:core-splashscreen:1.0.0-beta02")
+    // Until lazy staggered grid is officially supported this is the best implementation I could find
+    // It is on the roadmap https://developer.android.com/jetpack/androidx/compose-roadmap
+    // So surely some day it will be added to jetpack compose :)
+    implementation("com.github.nesyou01:LazyStaggeredGrid:1.1")
     // Basic data storage
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     // (De)serialization
@@ -120,7 +124,7 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel-gson:2.3.1")
     // Loading network images
     implementation("com.github.bumptech.glide:glide:4.13.2")
-    annotationProcessor("com.github.bumptech.glide:compiler:4.13.2")
+    kapt("com.github.bumptech.glide:compiler:4.13.2")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.3")

@@ -13,10 +13,10 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import dev.vdbroek.nekos.R
+import dev.vdbroek.nekos.utils.GlideApp
 
 @Composable
 fun NetworkImage(
@@ -34,7 +34,7 @@ fun NetworkImage(
     val failedPlaceholder = painterResource(id = R.drawable.no_iamge_placeholder)
     var state by remember { mutableStateOf(placeholder) }
 
-    Glide.with(context)
+    GlideApp.with(context)
         .asBitmap()
         .load(url)
         .centerInside()

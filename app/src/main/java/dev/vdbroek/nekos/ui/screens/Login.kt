@@ -16,12 +16,21 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.R
+import dev.vdbroek.nekos.api.User
+import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.components.RoundedTextField
 import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
+import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.utils.App
+import dev.vdbroek.nekos.utils.IS_LOGGED_IN
+import dev.vdbroek.nekos.utils.TOKEN
+import dev.vdbroek.nekos.utils.USERNAME
 import kotlinx.coroutines.launch
 
 object LoginState {
@@ -30,7 +39,11 @@ object LoginState {
 }
 
 @Composable
-fun Login(state: ScaffoldState, navController: NavHostController) {
+fun Login(
+    state: ScaffoldState,
+    dataStore: DataStore<Preferences>,
+    navController: NavHostController
+) {
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(key1 = true) {
@@ -119,10 +132,40 @@ fun Login(state: ScaffoldState, navController: NavHostController) {
                     shape = CircleShape,
                     onClick = {
                         scope.launch {
-                            state.snackbarHostState.showCustomSnackbar(
-                                message = "TODO : Navigate to home screen and pop backstack",
-                                snackbarType = SnackbarType.INFO
-                            )
+                            val (login, loginException) = User.authenticate(LoginState.username, LoginState.password)
+                            when {
+                                login != null -> {
+                                    UserState.token = login.token
+                                    UserState.isLoggedIn = true
+                                    val (userData, userException) = User.getMe()
+                                    when {
+                                        userData != null -> {
+                                            UserState.name = userData.user.username
+
+                                            dataStore.edit { preferences ->
+                                                preferences[TOKEN] = UserState.token ?: ""
+                                                preferences[USERNAME] = UserState.name ?: ""
+                                                preferences[IS_LOGGED_IN] = UserState.isLoggedIn
+                                            }
+
+                                            navController.backQueue.clear()
+                                            navController.navigate(Screens.Home.route)
+                                        }
+                                        userException != null -> {
+                                            state.snackbarHostState.showCustomSnackbar(
+                                                message = userException.message ?: "Could not retrieve user data",
+                                                snackbarType = SnackbarType.DANGER
+                                            )
+                                        }
+                                    }
+                                }
+                                loginException != null -> {
+                                    state.snackbarHostState.showCustomSnackbar(
+                                        message = loginException.message ?: "Failed to login",
+                                        snackbarType = SnackbarType.DANGER
+                                    )
+                                }
+                            }
                         }
                     }
                 ) {

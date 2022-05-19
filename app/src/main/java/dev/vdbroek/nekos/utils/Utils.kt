@@ -1,13 +1,12 @@
 package dev.vdbroek.nekos.utils
 
 import android.content.Context
+import android.content.ContextWrapper
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
@@ -95,4 +94,8 @@ object App {
 
         return percentAvailable <= 5.0f
     }
+}
+
+val LocalActivity = staticCompositionLocalOf<ComponentActivity> {
+    error("CompositionLocal LocalActivity not present")
 }

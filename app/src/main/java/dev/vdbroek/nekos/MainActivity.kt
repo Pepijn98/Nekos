@@ -3,7 +3,6 @@ package dev.vdbroek.nekos
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
@@ -12,7 +11,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -28,11 +30,8 @@ import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.screens.*
 import dev.vdbroek.nekos.ui.theme.NekosTheme
 import dev.vdbroek.nekos.utils.App
-import dev.vdbroek.nekos.utils.LocalUserState
-import dev.vdbroek.nekos.utils.UserState
+import dev.vdbroek.nekos.utils.LocalActivity
 import dev.vdbroek.nekos.utils.dataStore
-
-var drawerGesture by mutableStateOf(true)
 
 @Composable
 fun EnterAnimation(content: @Composable () -> Unit) {
@@ -50,16 +49,14 @@ fun EnterAnimation(content: @Composable () -> Unit) {
 }
 
 class MainActivity : ComponentActivity() {
-    private val userState by viewModels<UserState>()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            CompositionLocalProvider(LocalUserState provides userState) {
-                val navController = rememberNavController()
-                val scaffoldState = rememberScaffoldState(rememberDrawerState(DrawerValue.Closed))
-                val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val navController = rememberNavController()
+            val scaffoldState = rememberScaffoldState(rememberDrawerState(DrawerValue.Closed))
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
 
+            CompositionLocalProvider(LocalActivity provides this) {
                 NekosTheme {
                     Scaffold(
                         scaffoldState = scaffoldState,
@@ -106,7 +103,7 @@ class MainActivity : ComponentActivity() {
                             }
                             composable(route = Screens.Login.route) {
                                 EnterAnimation {
-                                    Login(state = scaffoldState, navController = navController)
+                                    Login(state = scaffoldState, dataStore = dataStore, navController = navController)
                                 }
                             }
 
@@ -119,6 +116,12 @@ class MainActivity : ComponentActivity() {
                             composable(route = Screens.Register.route) {
                                 EnterAnimation {
                                     Register(navController = navController)
+                                }
+                            }
+
+                            composable(route = Screens.ForgotPassword.route) {
+                                EnterAnimation {
+                                    ForgotPassword(navController = navController)
                                 }
                             }
                         }

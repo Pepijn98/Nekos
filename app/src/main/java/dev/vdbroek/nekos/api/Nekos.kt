@@ -13,37 +13,37 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 
+object NekosState {
+    var end by mutableStateOf(false)
+    var skip by mutableStateOf(0)
+    var sort by mutableStateOf("newest")
+    var tags = mutableStateListOf(
+        "-bare shoulders",
+        "-bikini",
+        "-crop top",
+        "-swimsuit",
+        "-midriff",
+        "-no bra",
+        "-panties",
+        "-covered nipples",
+        "-from behind",
+        "-knees up",
+        "-leotard",
+        "-black bikini top",
+        "-black bikini bottom",
+        "-off-shoulder shirt",
+        "-naked shirt"
+    )
+}
+
 object Nekos {
     private val coroutine = CoroutineScope(Dispatchers.IO)
 
-    object State {
-        var end by mutableStateOf(false)
-        var skip by mutableStateOf(0)
-        var sort by mutableStateOf("newest")
-        var tags = mutableStateListOf(
-            "-bare shoulders",
-            "-bikini",
-            "-crop top",
-            "-swimsuit",
-            "-midriff",
-            "-no bra",
-            "-panties",
-            "-covered nipples",
-            "-from behind",
-            "-knees up",
-            "-leotard",
-            "-black bikini top",
-            "-black bikini bottom",
-            "-off-shoulder shirt",
-            "-naked shirt"
-        )
-    }
-
     suspend fun getImages(): Response<NekosResponse?, Exception?> {
-        if (State.end) return Response(null, EndException("You have reached the end"))
+        if (NekosState.end) return Response(null, EndException("You have reached the end"))
 
         // Remove all images with tags that could potentially show sexually suggestive images
-        val tags = State.tags.joinToString(", ") {
+        val tags = NekosState.tags.joinToString(", ") {
             if (it.startsWith("-")) {
                 val tag = it.replaceFirst("-", "")
                 "-\\\"$tag\\\""
@@ -55,19 +55,19 @@ object Nekos {
         val (_, _, result) = coroutine.async {
             return@async "/images/search".httpPost()
                 .header(mapOf("Content-Type" to "application/json"))
-                .body("{\"nsfw\": false, \"tags\": \"$tags\", \"limit\": 30, \"skip\": ${State.skip}, \"sort\": \"${State.sort}\"}")
+                .body("{\"nsfw\": false, \"tags\": \"$tags\", \"limit\": 30, \"skip\": ${NekosState.skip}, \"sort\": \"${NekosState.sort}\"}")
                 .responseString()
         }.await()
 
         val (data, exception) = result
         when (result) {
             is Result.Success -> {
-                State.skip += 30
+                NekosState.skip += 30
 
                 if (data != null) {
                     val nekosResponse = Gson().fromJson(data, NekosResponse::class.java)
                     if (nekosResponse.images.size == 0) {
-                        State.end = true
+                        NekosState.end = true
                         return Response(null, EndException("You have reached the end"))
                     }
 

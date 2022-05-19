@@ -8,7 +8,7 @@ import dev.vdbroek.nekos.utils.Response
 
 object Api {
 
-    fun <T> handleException(exception: FuelError?): Response<T?, Exception> {
+    fun <T> handleException(exception: FuelError?, label: String = "UNKNOWN"): Response<T?, Exception> {
         return if (exception != null) {
             val httpException: HttpException? = try {
                 Gson().fromJson(exception.response.responseMessage, HttpException::class.java)
@@ -18,7 +18,7 @@ object Api {
 
             Response(null, if (httpException != null) ApiException(httpException) else exception)
         } else {
-            Response(null, Exception("No data returned"))
+            Response(null, Exception("[$label]: Invalid response from API"))
         }
     }
 }

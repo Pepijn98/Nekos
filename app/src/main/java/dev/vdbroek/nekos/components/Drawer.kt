@@ -1,5 +1,6 @@
 package dev.vdbroek.nekos.components
 
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -10,6 +11,7 @@ import androidx.compose.material.ButtonDefaults.elevation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,8 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
@@ -32,16 +33,13 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import dev.vdbroek.nekos.IS_DARK
-import dev.vdbroek.nekos.MANUAL
 import dev.vdbroek.nekos.R
-import dev.vdbroek.nekos.drawerGesture
+import dev.vdbroek.nekos.SplashActivity
+import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.ColorUI
 import dev.vdbroek.nekos.ui.theme.ThemeState
-import dev.vdbroek.nekos.utils.App
-import dev.vdbroek.nekos.utils.LocalUserState
-import dev.vdbroek.nekos.utils.px
+import dev.vdbroek.nekos.utils.*
 import kotlinx.coroutines.launch
 
 @Composable
@@ -50,7 +48,8 @@ fun Drawer(
     dataStore: DataStore<Preferences>,
     scaffoldState: ScaffoldState
 ) {
-    val user = LocalUserState.current
+    val activity = LocalActivity.current
+    val context = LocalContext.current
     val coroutine = rememberCoroutineScope()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
@@ -100,25 +99,28 @@ fun Drawer(
                         .fillMaxSize()
                         .padding(8.dp)
                 ) {
-                    Column(modifier = Modifier.align(Alignment.BottomStart)) {
-                        Image(
-                            painter = painterResource(id = R.drawable.profile_placeholder),
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .size(100.dp),
-                            contentDescription = null
-                        )
-                        Text(
-                            text = "Pepijn van den Broek",
-                            modifier = Modifier.padding(top = 8.dp, end = 8.dp, bottom = 8.dp),
-                            fontWeight = FontWeight(900),
-                            color = ColorUI.light
-                        )
+                    if (UserState.isLoggedIn) {
+                        Column(modifier = Modifier.align(Alignment.BottomStart)) {
+                            Image(
+                                painter = painterResource(id = R.drawable.profile_placeholder),
+                                modifier = Modifier
+                                    .clip(CircleShape)
+                                    .size(100.dp),
+                                contentDescription = null
+                            )
+                            Text(
+                                text = UserState.name ?: "",
+                                modifier = Modifier.padding(top = 8.dp, end = 8.dp, bottom = 8.dp),
+                                fontWeight = FontWeight(900),
+                                color = ColorUI.light
+                            )
+                        }
                     }
                 }
             }
         }
         DrawerRow(
+            scaffoldState = scaffoldState,
             icon = { textColor ->
                 Icon(
                     modifier = Modifier.padding(end = 5.dp),
@@ -128,17 +130,18 @@ fun Drawer(
                 )
             },
             title = "Home",
-            selected = navBackStackEntry?.destination?.route == Screens.Home.route,
-            onClick = {
-                if (navBackStackEntry?.destination?.route != Screens.Home.route) {
-                    coroutine.launch { scaffoldState.drawerState.close() }
-                    navController.backQueue.clear()
-                    navController.navigate(Screens.Home.route)
+            selected = navBackStackEntry?.destination?.route == Screens.Home.route
+        ) {
+            if (navBackStackEntry?.destination?.route != Screens.Home.route) {
+                navController.backQueue.clear()
+                navController.navigate(Screens.Home.route) {
+                    restoreState = true
                 }
             }
-        )
-        if (user.isLoggedIn) {
+        }
+        if (UserState.isLoggedIn) {
             DrawerRow(
+                scaffoldState = scaffoldState,
                 icon = { textColor ->
                     Icon(
                         modifier = Modifier.padding(end = 5.dp),
@@ -148,35 +151,78 @@ fun Drawer(
                     )
                 },
                 title = "Profile",
-                selected = navBackStackEntry?.destination?.route == Screens.Profile.route,
-                onClick = {
-                    if (navBackStackEntry?.destination?.route != Screens.Profile.route) {
-                        coroutine.launch { scaffoldState.drawerState.close() }
-                        navController.navigate(Screens.Profile.route)
-                    }
+                selected = navBackStackEntry?.destination?.route == Screens.Profile.route
+            ) {
+                if (navBackStackEntry?.destination?.route != Screens.Profile.route) {
+                    navController.navigate(Screens.Profile.route)
                 }
-            )
+            }
+            DrawerRow(
+                scaffoldState = scaffoldState,
+                icon = { textColor ->
+                    Icon(
+                        modifier = Modifier.padding(end = 5.dp),
+                        painter = painterResource(id = R.drawable.logout),
+                        contentDescription = "",
+                        tint = textColor
+                    )
+                },
+                title = "Logout",
+                selected = navBackStackEntry?.destination?.route == Screens.Login.route
+            ) {
+                dataStore.edit { preferences ->
+                    preferences[TOKEN] = ""
+                    preferences[USERNAME] = ""
+                    preferences[IS_LOGGED_IN] = false
+                }
+
+                UserState.apply {
+                    token = null
+                    name = null
+                    isLoggedIn = false
+                }
+            }
+        } else {
+            DrawerRow(
+                scaffoldState = scaffoldState,
+                icon = { textColor ->
+                    Icon(
+                        modifier = Modifier.padding(end = 5.dp),
+                        painter = painterResource(id = R.drawable.login),
+                        contentDescription = "",
+                        tint = textColor
+                    )
+                },
+                title = "Login",
+                selected = navBackStackEntry?.destination?.route == Screens.Login.route
+            ) {
+                if (navBackStackEntry?.destination?.route != Screens.Login.route) {
+                    navController.navigate(Screens.Login.route)
+                }
+            }
         }
         DrawerRow(
+            scaffoldState = scaffoldState,
             icon = { textColor ->
                 Icon(
                     modifier = Modifier.padding(end = 5.dp),
-                    painter = painterResource(id = R.drawable.login),
+                    imageVector = Icons.Filled.Refresh,
                     contentDescription = "",
                     tint = textColor
                 )
             },
-            title = "Login",
-            selected = navBackStackEntry?.destination?.route == Screens.Login.route,
-            onClick = {
-                if (navBackStackEntry?.destination?.route != Screens.Login.route) {
-                    coroutine.launch {
-                        scaffoldState.drawerState.close()
-                    }
-                    navController.navigate(Screens.Login.route)
-                }
-            }
-        )
+            title = "Restart"
+        ) {
+            /*
+            TODO:
+             Create an option where people can choose to use a staggered layout or fixed size layout
+             Restart app on option change
+             */
+            val splashActivity = Intent(context, SplashActivity::class.java)
+            activity.finish()
+            activity.startActivity(splashActivity)
+        }
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End
@@ -202,13 +248,25 @@ fun Drawer(
 }
 
 @Composable
-private fun DrawerRow(icon: @Composable (textColor: Color) -> Unit, title: String, selected: Boolean, onClick: () -> Unit) {
+private fun DrawerRow(
+    scaffoldState: ScaffoldState,
+    icon: @Composable (textColor: Color) -> Unit,
+    title: String,
+    selected: Boolean = false,
+    onClick: suspend () -> Unit
+) {
+    val coroutine = rememberCoroutineScope()
     val drawerItemShape = RoundedCornerShape(percent = 50)
     val background = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f) else Color.Transparent
     val textColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
 
     Button(
-        onClick = onClick,
+        onClick = {
+            coroutine.launch {
+                scaffoldState.drawerState.close()
+                onClick()
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 8.dp, top = 2.dp, end = 8.dp)

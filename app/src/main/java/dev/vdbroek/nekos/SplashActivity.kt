@@ -6,19 +6,15 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.lifecycle.lifecycleScope
 import com.github.kittinunf.fuel.core.FuelManager
 import dev.vdbroek.nekos.api.Nekos
+import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.ui.screens.images
 import dev.vdbroek.nekos.ui.theme.ThemeState
-import dev.vdbroek.nekos.utils.App
-import dev.vdbroek.nekos.utils.dataStore
+import dev.vdbroek.nekos.utils.*
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-
-val IS_DARK = booleanPreferencesKey("is_dark")
-val MANUAL = booleanPreferencesKey("manual")
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : ComponentActivity() {
@@ -29,6 +25,8 @@ class SplashActivity : ComponentActivity() {
             splashScreen.setKeepOnScreenCondition { true }
         }
         super.onCreate(savedInstanceState)
+
+        println("SPLASH ACTIVITY")
 
         val (version, code) = App.getVersions(this)
         App.version = version
@@ -42,6 +40,12 @@ class SplashActivity : ComponentActivity() {
             // Set theme colors
             ThemeState.isDark = dataStore.data.map { it[IS_DARK] ?: true }.first()
             ThemeState.manual = dataStore.data.map { it[MANUAL] ?: false }.first()
+
+            UserState.isLoggedIn = dataStore.data.map { it[IS_LOGGED_IN] ?: false }.first()
+            if (UserState.isLoggedIn) {
+                UserState.token = dataStore.data.map { it[TOKEN] }.first()
+                UserState.name = dataStore.data.map { it[USERNAME] }.first()
+            }
 
             val (response, exception) = Nekos.getImages()
             when {
