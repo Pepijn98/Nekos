@@ -1,7 +1,7 @@
 package dev.vdbroek.nekos.api
 
-import androidx.compose.material.ScaffoldState
-import androidx.compose.material.SnackbarDuration
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -23,9 +23,8 @@ object UserState {
     var isLoggedIn by mutableStateOf(false)
     var isBusy by mutableStateOf(false)
     var token by mutableStateOf<String?>(null)
-    var name by mutableStateOf<String?>(null)
 
-    suspend fun signIn(scaffoldState: ScaffoldState, username: String, password: String) {
+    suspend fun signIn(snackbarHost: SnackbarHostState, username: String, password: String) {
         isBusy = true
         val (data, exception) = User.authenticate(username, password)
         when {
@@ -34,9 +33,10 @@ object UserState {
                 isLoggedIn = true
             }
             exception != null -> {
-                scaffoldState.snackbarHostState.showCustomSnackbar(
+                snackbarHost.showCustomSnackbar(
                     message = exception.message ?: "Authentication Faild",
                     actionLabel = "X",
+                    withDismissAction = true,
                     snackbarType = SnackbarType.DANGER,
                     duration = SnackbarDuration.Long
                 )

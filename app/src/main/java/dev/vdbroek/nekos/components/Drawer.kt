@@ -37,7 +37,7 @@ import dev.vdbroek.nekos.R
 import dev.vdbroek.nekos.SplashActivity
 import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.ui.Screens
-import dev.vdbroek.nekos.ui.theme.ColorUI
+import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.*
 import kotlinx.coroutines.launch
@@ -86,9 +86,9 @@ fun Drawer(
                     .fillMaxSize()
                     .background(
                         Brush.linearGradient(
-                            0.0f to ColorUI.blue200,
-                            0.5f to ColorUI.blue500,
-                            1.0f to ColorUI.blue700,
+                            0.0f to NekoColors.blue200,
+                            0.5f to NekoColors.blue500,
+                            1.0f to NekoColors.blue700,
                             start = Offset(x = 0.0f, y = 0.0f),
                             end = Offset(x = constraints.maxWidth.px, y = constraints.maxHeight.px)
                         )
@@ -108,12 +108,12 @@ fun Drawer(
                                     .size(100.dp),
                                 contentDescription = null
                             )
-                            Text(
-                                text = UserState.name ?: "",
-                                modifier = Modifier.padding(top = 8.dp, end = 8.dp, bottom = 8.dp),
-                                fontWeight = FontWeight(900),
-                                color = ColorUI.light
-                            )
+//                            Text(
+//                                text = UserState.name ?: "",
+//                                modifier = Modifier.padding(top = 8.dp, end = 8.dp, bottom = 8.dp),
+//                                fontWeight = FontWeight(900),
+//                                color = NekoColors.light
+//                            )
                         }
                     }
                 }
@@ -162,7 +162,7 @@ fun Drawer(
                 icon = { textColor ->
                     Icon(
                         modifier = Modifier.padding(end = 5.dp),
-                        painter = painterResource(id = R.drawable.logout),
+                        painter = painterResource(id = R.drawable.ic_logout),
                         contentDescription = "",
                         tint = textColor
                     )
@@ -178,7 +178,6 @@ fun Drawer(
 
                 UserState.apply {
                     token = null
-                    name = null
                     isLoggedIn = false
                 }
             }
@@ -188,7 +187,7 @@ fun Drawer(
                 icon = { textColor ->
                     Icon(
                         modifier = Modifier.padding(end = 5.dp),
-                        painter = painterResource(id = R.drawable.login),
+                        painter = painterResource(id = R.drawable.ic_login),
                         contentDescription = "",
                         tint = textColor
                     )
@@ -238,7 +237,7 @@ fun Drawer(
                 }
             }) {
                 Icon(
-                    painter = if (ThemeState.isDark) painterResource(id = R.drawable.light_mode) else painterResource(id = R.drawable.dark_mode),
+                    painter = if (ThemeState.isDark) painterResource(id = R.drawable.ic_light_mode) else painterResource(id = R.drawable.ic_dark_mode),
                     contentDescription = "Change Theme",
                     tint = MaterialTheme.colorScheme.onBackground
                 )

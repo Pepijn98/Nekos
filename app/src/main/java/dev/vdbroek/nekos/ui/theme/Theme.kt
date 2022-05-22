@@ -4,52 +4,87 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import com.google.accompanist.systemuicontroller.SystemUiController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 object ThemeState {
     var isDark by mutableStateOf(true)
     var manual by mutableStateOf(false)
+    var staggered by mutableStateOf(false)
 }
 
-private val DarkColorScheme = darkColorScheme(
-    primary = ColorUI.blue200,
-    secondary = ColorUI.blue500,
-    tertiary = ColorUI.blue700,
-    background = ColorUI.dark,
-    surface = ColorUI.dark,
-    error = ColorUI.danger,
-    onPrimary = ColorUI.dark,
-    onSecondary = ColorUI.dark,
-    onTertiary = ColorUI.light,
-    onBackground = ColorUI.light,
-    onError = ColorUI.light
+private val LightThemeColors = lightColorScheme(
+    primary = NekoColors.md_theme_light_primary,
+    onPrimary = NekoColors.md_theme_light_onPrimary,
+    primaryContainer = NekoColors.md_theme_light_primaryContainer,
+    onPrimaryContainer = NekoColors.md_theme_light_onPrimaryContainer,
+    secondary = NekoColors.md_theme_light_secondary,
+    onSecondary = NekoColors.md_theme_light_onSecondary,
+    secondaryContainer = NekoColors.md_theme_light_secondaryContainer,
+    onSecondaryContainer = NekoColors.md_theme_light_onSecondaryContainer,
+    tertiary = NekoColors.md_theme_light_tertiary,
+    onTertiary = NekoColors.md_theme_light_onTertiary,
+    tertiaryContainer = NekoColors.md_theme_light_tertiaryContainer,
+    onTertiaryContainer = NekoColors.md_theme_light_onTertiaryContainer,
+    error = NekoColors.md_theme_light_error,
+    errorContainer = NekoColors.md_theme_light_errorContainer,
+    onError = NekoColors.md_theme_light_onError,
+    onErrorContainer = NekoColors.md_theme_light_onErrorContainer,
+    background = NekoColors.md_theme_light_background,
+    onBackground = NekoColors.md_theme_light_onBackground,
+    surface = NekoColors.md_theme_light_surface,
+    onSurface = NekoColors.md_theme_light_onSurface,
+    surfaceVariant = NekoColors.md_theme_light_surfaceVariant,
+    onSurfaceVariant = NekoColors.md_theme_light_onSurfaceVariant,
+    outline = NekoColors.md_theme_light_outline,
+    inverseOnSurface = NekoColors.md_theme_light_inverseOnSurface,
+    inverseSurface = NekoColors.md_theme_light_inverseSurface,
+    inversePrimary = NekoColors.md_theme_light_inversePrimary,
 )
-
-private val LightColorScheme = lightColorScheme(
-    primary = ColorUI.blue200,
-    secondary = ColorUI.blue500,
-    tertiary = ColorUI.blue700,
-    background = ColorUI.light,
-    surface = ColorUI.light,
-    error = ColorUI.danger,
-    onPrimary = ColorUI.dark,
-    onSecondary = ColorUI.dark,
-    onTertiary = ColorUI.light,
-    onBackground = ColorUI.dark,
-    onError = ColorUI.light
+private val DarkThemeColors = darkColorScheme(
+    primary = NekoColors.md_theme_dark_primary,
+    onPrimary = NekoColors.md_theme_dark_onPrimary,
+    primaryContainer = NekoColors.md_theme_dark_primaryContainer,
+    onPrimaryContainer = NekoColors.md_theme_dark_onPrimaryContainer,
+    secondary = NekoColors.md_theme_dark_secondary,
+    onSecondary = NekoColors.md_theme_dark_onSecondary,
+    secondaryContainer = NekoColors.md_theme_dark_secondaryContainer,
+    onSecondaryContainer = NekoColors.md_theme_dark_onSecondaryContainer,
+    tertiary = NekoColors.md_theme_dark_tertiary,
+    onTertiary = NekoColors.md_theme_dark_onTertiary,
+    tertiaryContainer = NekoColors.md_theme_dark_tertiaryContainer,
+    onTertiaryContainer = NekoColors.md_theme_dark_onTertiaryContainer,
+    error = NekoColors.md_theme_dark_error,
+    errorContainer = NekoColors.md_theme_dark_errorContainer,
+    onError = NekoColors.md_theme_dark_onError,
+    onErrorContainer = NekoColors.md_theme_dark_onErrorContainer,
+    background = NekoColors.md_theme_dark_background,
+    onBackground = NekoColors.md_theme_dark_onBackground,
+    surface = NekoColors.md_theme_dark_surface,
+    onSurface = NekoColors.md_theme_dark_onSurface,
+    surfaceVariant = NekoColors.md_theme_dark_surfaceVariant,
+    onSurfaceVariant = NekoColors.md_theme_dark_onSurfaceVariant,
+    outline = NekoColors.md_theme_dark_outline,
+    inverseOnSurface = NekoColors.md_theme_dark_inverseOnSurface,
+    inverseSurface = NekoColors.md_theme_dark_inverseSurface,
+    inversePrimary = NekoColors.md_theme_dark_inversePrimary,
 )
 
 @Composable
-fun NekosTheme(content: @Composable () -> Unit) {
+fun NekosTheme(uiController: SystemUiController, content: @Composable () -> Unit) {
     ThemeState.isDark = if (ThemeState.manual) ThemeState.isDark else isSystemInDarkTheme()
 
+//    uiController.setSystemBarsColor(color = Color.Transparent)
+
     val colors = if (ThemeState.isDark) {
-        DarkColorScheme
+        DarkThemeColors
     } else {
-        LightColorScheme
+        LightThemeColors
     }
 
     MaterialTheme(

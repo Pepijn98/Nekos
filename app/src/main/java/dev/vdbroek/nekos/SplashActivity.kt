@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.github.kittinunf.fuel.core.FuelManager
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dev.vdbroek.nekos.api.Nekos
 import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.ui.screens.images
@@ -26,8 +27,6 @@ class SplashActivity : ComponentActivity() {
         }
         super.onCreate(savedInstanceState)
 
-        println("SPLASH ACTIVITY")
-
         val (version, code) = App.getVersions(this)
         App.version = version
         App.versionCode = code
@@ -40,11 +39,11 @@ class SplashActivity : ComponentActivity() {
             // Set theme colors
             ThemeState.isDark = dataStore.data.map { it[IS_DARK] ?: true }.first()
             ThemeState.manual = dataStore.data.map { it[MANUAL] ?: false }.first()
+            ThemeState.staggered = dataStore.data.map { it[STAGGERED] ?: false }.first()
 
             UserState.isLoggedIn = dataStore.data.map { it[IS_LOGGED_IN] ?: false }.first()
             if (UserState.isLoggedIn) {
                 UserState.token = dataStore.data.map { it[TOKEN] }.first()
-                UserState.name = dataStore.data.map { it[USERNAME] }.first()
             }
 
             val (response, exception) = Nekos.getImages()

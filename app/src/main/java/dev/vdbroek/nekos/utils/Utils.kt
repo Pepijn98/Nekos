@@ -1,13 +1,13 @@
 package dev.vdbroek.nekos.utils
 
 import android.content.Context
-import android.content.ContextWrapper
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -33,7 +33,10 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "se
  * Dim color
  */
 fun Color.dim(factor: Float): Color {
-//    return Color(ColorUtils.blendARGB(toArgb(), Color.Black.toArgb(), 0.2f))
+    require(factor in 0.0..1.0) {
+        "factor has to be between 0.0 and 1.0"
+    }
+
     val r = min((red * factor), 255f)
     val g = min((green * factor), 255f)
     val b = min((blue * factor), 255f)
@@ -44,17 +47,22 @@ fun Color.dim(factor: Float): Color {
  * Lighten color
  */
 fun Color.lighten(factor: Float): Color {
+    require(factor in 0.0..1.0) {
+        "factor has to be between 0.0 and 1.0"
+    }
+
     return Color(ColorUtils.blendARGB(toArgb(), Color.White.toArgb(), factor))
+}
 
-//    val r = min((red + 255 * factor), 255f)
-//    val g = min((green + 255 * factor), 255f)
-//    val b = min((blue + 255 * factor), 255f)
-//    return Color(r, g, b, alpha)
+/**
+ * Set alpha for color
+ */
+fun Color.alpha(newAlpha: Float): Color {
+    require(newAlpha in 0.0..1.0) {
+        "alpha has to be between 0.0 and 1.0"
+    }
 
-//    val r = (255 - red) * factor + red
-//    val g = (255 - green) * factor + green
-//    val b = (255 - blue) * factor + blue
-//    return Color(r, g, b, alpha, ColorSpaces.ProPhotoRgb)
+    return Color(red, green, blue, newAlpha)
 }
 
 val PaddingValues.top: Dp get() = calculateTopPadding()

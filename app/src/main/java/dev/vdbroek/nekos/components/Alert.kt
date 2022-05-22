@@ -1,8 +1,8 @@
 package dev.vdbroek.nekos.components
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material.*
+import androidx.compose.material3.*
+//import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Clear
 import androidx.compose.runtime.*
@@ -13,7 +13,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.vdbroek.nekos.ui.theme.ColorUI
+import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import kotlinx.coroutines.delay
 import java.util.*
@@ -35,6 +35,7 @@ var SnackbarHostState.type by mutableStateOf(SnackbarType.DEFAULT)
 suspend fun SnackbarHostState.showCustomSnackbar(
     message: String,
     actionLabel: String? = null,
+    withDismissAction: Boolean,
     snackbarType: SnackbarType = SnackbarType.DEFAULT,
     duration: SnackbarDuration = SnackbarDuration.Short
 ): SnackbarResult {
@@ -47,7 +48,7 @@ suspend fun SnackbarHostState.showCustomSnackbar(
 
     type = snackbarType
     isActive = true
-    return showSnackbar(message, actionLabel, duration)
+    return showSnackbar(message, actionLabel, withDismissAction, duration)
 }
 
 @Composable
@@ -62,8 +63,8 @@ fun Alert(
         snackbar = { data ->
             // Update snackbar active state when snackbar auto hides after X seconds.
             // Unless it's set to Indefinite, which means the user has to manually dismiss the snackbar
-            if (data.duration != SnackbarDuration.Indefinite) {
-                val time = when (data.duration) {
+            if (data.visuals.duration != SnackbarDuration.Indefinite) {
+                val time = when (data.visuals.duration) {
                     SnackbarDuration.Long -> 10000L
                     SnackbarDuration.Short -> 4000L
                     else -> return@SnackbarHost // Else will never reach but Kotlin doesn't seem to recognize that
@@ -76,25 +77,25 @@ fun Alert(
             }
 
             val backgroundColor = when (hostState.type) {
-                SnackbarType.DEFAULT -> if (ThemeState.isDark) ColorUI.darkCard else MaterialTheme.colorScheme.background
-                SnackbarType.INFO -> ColorUI.info
-                SnackbarType.SUCCESS -> ColorUI.success
-                SnackbarType.WARNING -> ColorUI.warning
-                SnackbarType.DANGER -> ColorUI.danger
+                SnackbarType.DEFAULT -> if (ThemeState.isDark) NekoColors.darkCard else MaterialTheme.colorScheme.background
+                SnackbarType.INFO -> NekoColors.info
+                SnackbarType.SUCCESS -> NekoColors.success
+                SnackbarType.WARNING -> NekoColors.warning
+                SnackbarType.DANGER -> NekoColors.danger
             }
 
             val textColor = when (hostState.type) {
-                SnackbarType.DEFAULT -> if (ThemeState.isDark) ColorUI.light else MaterialTheme.colorScheme.onBackground
+                SnackbarType.DEFAULT -> if (ThemeState.isDark) NekoColors.light else MaterialTheme.colorScheme.onBackground
                 SnackbarType.WARNING -> Color.Black
-                else -> ColorUI.light
+                else -> NekoColors.light
             }
 
             Snackbar(
                 modifier = Modifier.padding(8.dp),
-                backgroundColor = backgroundColor,
-                elevation = 1.dp,
+                containerColor = backgroundColor,
+//                elevation = 1.dp,
                 action = {
-                    data.actionLabel?.let { label ->
+                    data.visuals.actionLabel?.let { label ->
                         if (label.lowercase(Locale.getDefault()) == "x") {
                             IconButton(onClick = { onDismiss() }) {
                                 Icon(imageVector = Icons.Rounded.Clear, contentDescription = null)
@@ -116,7 +117,7 @@ fun Alert(
                 },
                 content = {
                     Text(
-                        text = data.message,
+                        text = data.visuals.message,
                         style = TextStyle(
                             fontFamily = FontFamily.Default,
                             fontWeight = FontWeight.W500,

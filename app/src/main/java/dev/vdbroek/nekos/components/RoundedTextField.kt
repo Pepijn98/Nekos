@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -53,7 +52,7 @@ fun RoundedTextField(
             leadingIcon = icon,
             trailingIcon = {
                 if (isPassword) {
-                    val image = if (pwVisible) painterResource(id = R.drawable.visibility) else painterResource(id = R.drawable.visibility_off)
+                    val image = if (pwVisible) painterResource(id = R.drawable.ic_visibility) else painterResource(id = R.drawable.ic_visibility_off)
                     val description = if (pwVisible) "Hide password" else "Show password"
                     IconButton(onClick = { pwVisible = !pwVisible }) {
                         Icon(painter = image, description)

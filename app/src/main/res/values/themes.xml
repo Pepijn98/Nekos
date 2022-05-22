@@ -3,6 +3,6 @@
     <style name="Theme.Nekos" parent="android:Theme.Material.NoActionBar" />
 
     <style name="Theme.Nekos.Splash" parent="Theme.Nekos">
-        <item name="android:windowBackground">@drawable/bg_splash</item>
+        <item name="android:windowBackground">@drawable/ic_logo_splash</item>
     </style>
 </resources>

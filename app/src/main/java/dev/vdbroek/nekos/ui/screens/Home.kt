@@ -1,7 +1,7 @@
 package dev.vdbroek.nekos.ui.screens
 
-import androidx.compose.material.ScaffoldState
-import androidx.compose.material.SnackbarDuration
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -18,8 +18,8 @@ import kotlinx.coroutines.launch
 val images = mutableStateListOf<Neko>()
 
 @Composable
-fun Home(state: ScaffoldState, navController: NavHostController) {
-    App.screenTitle = "Home"
+fun Home(snackbarHost: SnackbarHostState, navController: NavHostController) {
+    App.screenTitle = "Posts"
 
     val coroutine = rememberCoroutineScope()
 
@@ -29,17 +29,19 @@ fun Home(state: ScaffoldState, navController: NavHostController) {
             when {
                 response != null -> images.addAll(response.images)
                 exception != null && exception is EndException -> {
-                    state.snackbarHostState.showCustomSnackbar(
+                    snackbarHost.showCustomSnackbar(
                         message = exception.message,
                         actionLabel = "X",
+                        withDismissAction = true,
                         snackbarType = SnackbarType.INFO,
                         duration = SnackbarDuration.Short
                     )
                 }
                 exception != null -> {
-                    state.snackbarHostState.showCustomSnackbar(
+                    snackbarHost.showCustomSnackbar(
                         message = exception.message ?: "Failed to fetch more images",
                         actionLabel = "X",
+                        withDismissAction = true,
                         snackbarType = SnackbarType.DANGER,
                         duration = SnackbarDuration.Long
                     )

@@ -3,7 +3,6 @@ package dev.vdbroek.nekos.ui.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.ScaffoldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Lock
@@ -40,15 +39,15 @@ object LoginState {
 
 @Composable
 fun Login(
-    state: ScaffoldState,
+    snackbarHost: SnackbarHostState,
     dataStore: DataStore<Preferences>,
     navController: NavHostController
 ) {
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(key1 = true) {
-        state.drawerState.close()
-    }
+//    LaunchedEffect(key1 = true) {
+//        state.drawerState.close()
+//    }
 
     App.screenTitle = "Login"
 
@@ -140,11 +139,8 @@ fun Login(
                                     val (userData, userException) = User.getMe()
                                     when {
                                         userData != null -> {
-                                            UserState.name = userData.user.username
-
                                             dataStore.edit { preferences ->
                                                 preferences[TOKEN] = UserState.token ?: ""
-                                                preferences[USERNAME] = UserState.name ?: ""
                                                 preferences[IS_LOGGED_IN] = UserState.isLoggedIn
                                             }
 
@@ -152,16 +148,18 @@ fun Login(
                                             navController.navigate(Screens.Home.route)
                                         }
                                         userException != null -> {
-                                            state.snackbarHostState.showCustomSnackbar(
+                                            snackbarHost.showCustomSnackbar(
                                                 message = userException.message ?: "Could not retrieve user data",
+                                                withDismissAction = true,
                                                 snackbarType = SnackbarType.DANGER
                                             )
                                         }
                                     }
                                 }
                                 loginException != null -> {
-                                    state.snackbarHostState.showCustomSnackbar(
+                                    snackbarHost.showCustomSnackbar(
                                         message = loginException.message ?: "Failed to login",
+                                        withDismissAction = true,
                                         snackbarType = SnackbarType.DANGER
                                     )
                                 }
@@ -177,7 +175,11 @@ fun Login(
                     shape = CircleShape,
                     onClick = {
                         scope.launch {
-                            state.snackbarHostState.showCustomSnackbar(message = "TODO : Open forgot password url", snackbarType = SnackbarType.INFO)
+                            snackbarHost.showCustomSnackbar(
+                                message = "TODO : Open forgot password url",
+                                withDismissAction = true,
+                                snackbarType = SnackbarType.INFO
+                            )
                         }
                     }
                 ) {
@@ -189,7 +191,11 @@ fun Login(
                     shape = CircleShape,
                     onClick = {
                         scope.launch {
-                            state.snackbarHostState.showCustomSnackbar(message = "TODO : Navigate to register screen", snackbarType = SnackbarType.INFO)
+                            snackbarHost.showCustomSnackbar(
+                                message = "TODO : Navigate to register screen",
+                                withDismissAction = true,
+                                snackbarType = SnackbarType.INFO
+                            )
                         }
                     }
                 ) {
