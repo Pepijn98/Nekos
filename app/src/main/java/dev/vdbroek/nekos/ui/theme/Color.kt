@@ -28,7 +28,7 @@ object NekoColors {
     val md_theme_light_onTertiary = Color(0xFFffffff)
     val md_theme_light_tertiaryContainer = Color(0xFFefdbff)
     val md_theme_light_onTertiaryContainer = Color(0xFF221533)
-    val md_theme_light_error = Color(0xFFba1b1b)
+    val md_theme_light_error = danger
     val md_theme_light_errorContainer = Color(0xFFffdad4)
     val md_theme_light_onError = Color(0xFFffffff)
     val md_theme_light_onErrorContainer = Color(0xFF410001)
@@ -56,9 +56,9 @@ object NekoColors {
     val md_theme_dark_onTertiary = Color(0xFF382a4a)
     val md_theme_dark_tertiaryContainer = Color(0xFF4f4161)
     val md_theme_dark_onTertiaryContainer = Color(0xFFefdbff)
-    val md_theme_dark_error = Color(0xFFffb4a9)
+    val md_theme_dark_error = danger
     val md_theme_dark_errorContainer = Color(0xFF930006)
-    val md_theme_dark_onError = Color(0xFF680003)
+    val md_theme_dark_onError = Color(0xFFffffff)
     val md_theme_dark_onErrorContainer = Color(0xFFffdad4)
     val md_theme_dark_background = Color(0xFF1a1c1e)
     val md_theme_dark_onBackground = Color(0xFFe2e2e5)
@@ -73,5 +73,5 @@ object NekoColors {
     val md_theme_dark_shadow = Color(0xFF000000)
 
     val seed = Color(0xFF81b2df)
-    val error = Color(0xFFba1b1b)
+    val error = danger
 }

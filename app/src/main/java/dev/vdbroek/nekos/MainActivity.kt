@@ -206,7 +206,7 @@ class MainActivity : ComponentActivity() {
                             composable(route = Screens.Settings.route) {
                                 EnterAnimation {
                                     TopBar(navController, Screens.Settings.route) {
-                                        Settings(navController = navController, dataStore = dataStore)
+                                        Settings(dataStore = dataStore)
                                     }
                                 }
                             }
