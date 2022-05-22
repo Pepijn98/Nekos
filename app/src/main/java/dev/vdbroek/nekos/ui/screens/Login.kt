@@ -139,8 +139,11 @@ fun Login(
                                     val (userData, userException) = User.getMe()
                                     when {
                                         userData != null -> {
+                                            UserState.username = userData.user.username
+
                                             dataStore.edit { preferences ->
                                                 preferences[TOKEN] = UserState.token ?: ""
+                                                preferences[USERNAME] = UserState.username ?: ""
                                                 preferences[IS_LOGGED_IN] = UserState.isLoggedIn
                                             }
 

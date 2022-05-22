@@ -3,6 +3,7 @@ package dev.vdbroek.nekos.api
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.github.kittinunf.fuel.httpGet
@@ -11,18 +12,40 @@ import com.github.kittinunf.result.Result
 import com.google.gson.Gson
 import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
-import dev.vdbroek.nekos.models.LoginResponse
-import dev.vdbroek.nekos.models.UserResponse
+import dev.vdbroek.nekos.models.*
 import dev.vdbroek.nekos.utils.Response
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 
+object NekosUserState {
+    var end by mutableStateOf(false)
+    var skip by mutableStateOf(0)
+    var tags = mutableStateListOf(
+        "-bare shoulders",
+        "-bikini",
+        "-crop top",
+        "-swimsuit",
+        "-midriff",
+        "-no bra",
+        "-panties",
+        "-covered nipples",
+        "-from behind",
+        "-knees up",
+        "-leotard",
+        "-black bikini top",
+        "-black bikini bottom",
+        "-off-shoulder shirt",
+        "-naked shirt"
+    )
+}
+
 object UserState {
     var isLoggedIn by mutableStateOf(false)
     var isBusy by mutableStateOf(false)
     var token by mutableStateOf<String?>(null)
+    var username by mutableStateOf<String?>(null)
 
     suspend fun signIn(snackbarHost: SnackbarHostState, username: String, password: String) {
         isBusy = true
@@ -123,6 +146,74 @@ object User {
             }
             is Result.Failure -> {
                 Api.handleException(exception, "GET_ME")
+            }
+        }
+    }
+
+    suspend fun getUploads(uploader: String): Response<NekosResponse?, Exception?> {
+        println(NekosUserState.end)
+
+        if (NekosUserState.end) return Response(null, EndException("You have reached the end"))
+
+        // Remove all images with tags that could potentially show sexually suggestive images
+        val tags = NekosUserState.tags.map {
+            if (it.startsWith("-")) {
+                val tag = it.replaceFirst("-", "")
+                "-\"$tag\""
+            } else {
+                "\"$it\""
+            }
+        }
+
+        val bodyData = Nekos.ImagesBody(
+            tags = tags,
+            skip = NekosUserState.skip,
+            sort = "newest",
+            uploader = uploader
+        )
+
+        val (_, _, result) = coroutine.async {
+            return@async "/images/search".httpPost()
+                .header(mapOf("Content-Type" to "application/json"))
+                .body(Gson().toJson(bodyData))
+                .responseString()
+        }.await()
+
+        val (data, exception) = result
+        when (result) {
+            is Result.Success -> {
+                NekosUserState.skip += 30
+
+                if (data != null) {
+                    val nekosResponse = Gson().fromJson(data, NekosResponse::class.java)
+                    println(nekosResponse)
+
+                    if (nekosResponse.images.size == 0) {
+                        NekosUserState.end = true
+                        return Response(null, EndException("You have reached the end"))
+                    }
+
+                    // We request 30 images if the amount of images returned is less we've reached the end
+                    // but we don't need to return since the response still has some images
+                    if (nekosResponse.images.size < 30) {
+                        NekosUserState.end = true
+                    }
+
+                    return Response(nekosResponse, null)
+                }
+                return Response(null, Exception("No data returned"))
+            }
+            is Result.Failure -> {
+                if (exception != null) {
+                    val httpException: HttpException? = try {
+                        Gson().fromJson(exception.response.responseMessage, HttpException::class.java)
+                    } catch (e: Exception) {
+                        null
+                    }
+
+                    return Response(null, if (httpException != null) ApiException(httpException) else exception)
+                }
+                return Response(null, Exception("No data returned"))
             }
         }
     }

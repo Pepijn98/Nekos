@@ -23,7 +23,11 @@ fun Home(snackbarHost: SnackbarHostState, navController: NavHostController) {
 
     val coroutine = rememberCoroutineScope()
 
-    InfiniteList(items = images, navController = navController) {
+    InfiniteList(
+        items = images,
+        navController = navController,
+        cells = 2
+    ) {
         coroutine.launch {
             val (response, exception) = Nekos.getImages()
             when {

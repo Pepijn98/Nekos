@@ -39,23 +39,38 @@ object NekosState {
 object Nekos {
     private val coroutine = CoroutineScope(Dispatchers.IO)
 
+    data class ImagesBody(
+        val nsfw: Boolean = false,
+        val tags: List<String>,
+        val limit: Int = 30,
+        val skip: Int,
+        val sort: String,
+        val uploader: String? = null
+    )
+
     suspend fun getImages(): Response<NekosResponse?, Exception?> {
         if (NekosState.end) return Response(null, EndException("You have reached the end"))
 
         // Remove all images with tags that could potentially show sexually suggestive images
-        val tags = NekosState.tags.joinToString(", ") {
+        val tags = NekosState.tags.map {
             if (it.startsWith("-")) {
                 val tag = it.replaceFirst("-", "")
-                "-\\\"$tag\\\""
+                "-\"$tag\""
             } else {
-                "\\\"$it\\\""
+                "\"$it\""
             }
         }
+
+        val bodyData = ImagesBody(
+            tags = tags,
+            skip = NekosState.skip,
+            sort = NekosState.sort
+        )
 
         val (_, _, result) = coroutine.async {
             return@async "/images/search".httpPost()
                 .header(mapOf("Content-Type" to "application/json"))
-                .body("{\"nsfw\": false, \"tags\": \"$tags\", \"limit\": 30, \"skip\": ${NekosState.skip}, \"sort\": \"${NekosState.sort}\"}")
+                .body(Gson().toJson(bodyData))
                 .responseString()
         }.await()
 

@@ -112,9 +112,7 @@ class MainActivity : ComponentActivity() {
                                     onClick = {
                                         if (!isHome) {
                                             navController.backQueue.clear()
-                                            navController.navigate(Screens.Home.route) {
-                                                restoreState = true
-                                            }
+                                            navController.navigate(Screens.Home.route)
                                         }
                                     }
                                 )
@@ -187,7 +185,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             composable(route = Screens.Home.route) {
                                 EnterAnimation {
-                                    TopBar(navController, Screens.Home.route) {
+                                    TopBar(navController, dataStore, Screens.Home.route) {
                                         Home(snackbarHost = snackbarHost, navController = navController)
                                     }
                                 }
@@ -197,7 +195,7 @@ class MainActivity : ComponentActivity() {
                                 val jsonData = it.arguments?.getString("data")
                                 val data = Gson().fromJson(jsonData, Neko::class.java)
                                 EnterAnimation {
-                                    TopBar(navController, Screens.ImageDetails.route) {
+                                    TopBar(navController, dataStore, Screens.ImageDetails.route) {
                                         ImageDetails(data = data)
                                     }
                                 }
@@ -205,7 +203,7 @@ class MainActivity : ComponentActivity() {
 
                             composable(route = Screens.Settings.route) {
                                 EnterAnimation {
-                                    TopBar(navController, Screens.Settings.route) {
+                                    TopBar(navController, dataStore, Screens.Settings.route) {
                                         Settings(dataStore = dataStore)
                                     }
                                 }
@@ -214,8 +212,11 @@ class MainActivity : ComponentActivity() {
                             // -BEGIN: PROFILE FLOW
                             composable(route = Screens.Profile.route) {
                                 EnterAnimation {
-                                    TopBar(navController, Screens.Profile.route) {
-                                        Profile(navController = navController)
+                                    TopBar(navController, dataStore, Screens.Profile.route) {
+                                        Profile(
+                                            navController = navController,
+                                            snackbarHost = snackbarHost
+                                        )
                                     }
                                 }
                             }

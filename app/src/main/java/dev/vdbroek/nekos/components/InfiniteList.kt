@@ -35,6 +35,7 @@ import java.net.URLEncoder
 fun InfiniteList(
     items: SnapshotStateList<Neko>,
     navController: NavController,
+    cells: Int,
     onLoadMore: () -> Unit
 ) {
     val scrollableState: ScrollableState
@@ -44,14 +45,16 @@ fun InfiniteList(
         StaggeredItems(
             listState = scrollableState,
             items = items,
-            navController = navController
+            navController = navController,
+            cells = cells
         )
     } else {
         scrollableState = rememberLazyGridState()
         FixedItems(
             gridState = scrollableState,
             items = items,
-            navController = navController
+            navController = navController,
+            cells = cells
         )
     }
 
@@ -64,12 +67,13 @@ fun InfiniteList(
 fun StaggeredItems(
     listState: LazyListState,
     items: SnapshotStateList<Neko>,
-    navController: NavController
+    navController: NavController,
+    cells: Int
 ) {
     LazyStaggeredGrid(
         modifier = Modifier.fillMaxWidth(),
         state = listState,
-        cells = StaggeredCells.Fixed(2),
+        cells = StaggeredCells.Fixed(cells),
         contentPadding = PaddingValues(
             start = 6.dp,
             top = 8.dp,
@@ -92,17 +96,18 @@ fun StaggeredItems(
 fun FixedItems(
     gridState: LazyGridState,
     items: SnapshotStateList<Neko>,
-    navController: NavController
+    navController: NavController,
+    cells: Int
 ) {
     LazyVerticalGrid(
         modifier = Modifier.fillMaxWidth(),
         state = gridState,
-        columns = GridCells.Fixed(2),
+        columns = GridCells.Fixed(cells),
         contentPadding = PaddingValues(
-            start = 12.dp,
-            top = 16.dp,
-            end = 12.dp,
-            bottom = 16.dp
+            start = 6.dp,
+            top = 8.dp,
+            end = 6.dp,
+            bottom = 8.dp
         )
     ) {
         items(items.size) { i ->

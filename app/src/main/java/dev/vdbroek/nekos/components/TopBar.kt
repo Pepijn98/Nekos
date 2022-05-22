@@ -9,15 +9,24 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.R
+import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.utils.App
+import dev.vdbroek.nekos.utils.IS_LOGGED_IN
+import dev.vdbroek.nekos.utils.TOKEN
+import dev.vdbroek.nekos.utils.USERNAME
+import kotlinx.coroutines.launch
 import me.onebone.toolbar.CollapsingToolbarScaffold
 import me.onebone.toolbar.CollapsingToolbarScaffoldScope
 import me.onebone.toolbar.ScrollStrategy
@@ -26,11 +35,14 @@ import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 @Composable
 fun TopBar(
     navController: NavHostController,
+    dataStore: DataStore<Preferences>,
     route: String,
     body: @Composable (CollapsingToolbarScaffoldScope.() -> Unit)
 ) {
+    val coroutine = rememberCoroutineScope()
     val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
     val progress = toolbarScaffoldState.toolbarState.progress
+
     CollapsingToolbarScaffold(
         modifier = Modifier
             .fillMaxSize(),
@@ -121,12 +133,27 @@ fun TopBar(
                                 whenExpanded = Alignment.TopEnd
                             ),
                         onClick = {
-                            // TODO : Logout
+                            navController.backQueue.clear()
+                            navController.navigate(Screens.Home.route)
+
+                            UserState.apply {
+                                isLoggedIn = false
+                                token = null
+                                username = null
+                            }
+
+                            coroutine.launch {
+                                dataStore.edit { preferences ->
+                                    preferences[IS_LOGGED_IN] = false
+                                    preferences[TOKEN] = ""
+                                    preferences[USERNAME] = ""
+                                }
+                            }
                         }
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_logout),
-                            contentDescription = "Order",
+                            contentDescription = "Logout",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
@@ -146,15 +173,4 @@ fun TopBar(
         },
         body = body
     )
-
-//    TopAppBar(
-//        backgroundColor = MaterialTheme.colorScheme.primary,
-//        contentColor = MaterialTheme.colorScheme.primary,
-//        title = {
-//            Text(
-//                text = title ?: stringResource(id = R.string.app_name),
-//                color = MaterialTheme.colorScheme.onPrimary
-//            )
-//        }
-//    )
 }

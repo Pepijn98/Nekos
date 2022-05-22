@@ -44,6 +44,7 @@ class SplashActivity : ComponentActivity() {
             UserState.isLoggedIn = dataStore.data.map { it[IS_LOGGED_IN] ?: false }.first()
             if (UserState.isLoggedIn) {
                 UserState.token = dataStore.data.map { it[TOKEN] }.first()
+                UserState.username = dataStore.data.map { it[USERNAME] }.first()
             }
 
             val (response, exception) = Nekos.getImages()
