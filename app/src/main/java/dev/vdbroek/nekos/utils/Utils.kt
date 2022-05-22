@@ -1,6 +1,7 @@
 package dev.vdbroek.nekos.utils
 
 import android.content.Context
+import android.text.format.DateUtils
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -17,6 +18,8 @@ import androidx.core.graphics.ColorUtils
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.math.min
 
 /**
@@ -77,6 +80,12 @@ fun PaddingValues.copy(
     end: Dp = this.end,
     bottom: Dp = this.bottom
 ): PaddingValues = PaddingValues(start, top, end, bottom)
+
+fun timestamp(timeCreated: String): String {
+    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH)
+    val timeCreatedDate = dateFormat.parse(timeCreated)!!
+    return DateUtils.getRelativeTimeSpanString(timeCreatedDate.time, System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS) as String
+}
 
 object App {
     var screenTitle by mutableStateOf("")

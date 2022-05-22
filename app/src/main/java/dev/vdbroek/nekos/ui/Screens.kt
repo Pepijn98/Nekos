@@ -2,7 +2,7 @@ package dev.vdbroek.nekos.ui
 
 sealed class Screens(val route: String) {
     object Home : Screens("home")
-    object ImageDetails : Screens("image_details/data={data}")
+    object PostInfo : Screens("post_info/data={data}")
     object Settings : Screens("settings")
     object Login : Screens("login")
     object Profile : Screens("profile")

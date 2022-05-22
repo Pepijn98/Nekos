@@ -22,6 +22,7 @@ import kotlinx.coroutines.delay
 object NekosUserState {
     var end by mutableStateOf(false)
     var skip by mutableStateOf(0)
+//    var tags = mutableStateListOf<String>()
     var tags = mutableStateListOf(
         "-bare shoulders",
         "-bikini",
@@ -151,8 +152,6 @@ object User {
     }
 
     suspend fun getUploads(uploader: String): Response<NekosResponse?, Exception?> {
-        println(NekosUserState.end)
-
         if (NekosUserState.end) return Response(null, EndException("You have reached the end"))
 
         // Remove all images with tags that could potentially show sexually suggestive images
@@ -166,6 +165,7 @@ object User {
         }
 
         val bodyData = Nekos.ImagesBody(
+//            nsfw = true,
             tags = tags,
             skip = NekosUserState.skip,
             sort = "newest",

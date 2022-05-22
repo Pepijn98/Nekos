@@ -91,7 +91,7 @@ fun TopBar(
                     }
                 }
                 Screens.Settings.route,
-                Screens.ImageDetails.route -> {
+                Screens.PostInfo.route -> {
                     IconButton(
                         modifier = Modifier
                             .road(

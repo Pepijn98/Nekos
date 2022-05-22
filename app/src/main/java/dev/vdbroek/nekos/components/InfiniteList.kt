@@ -86,7 +86,7 @@ fun StaggeredItems(
                 val jsonData = Gson().toJson(it)
                 // We HAVE to urlencode the json since there's a tag that contains a forward slash (":/") which breaks the navigation routing obviously
                 val encoded = URLEncoder.encode(jsonData, "utf-8")
-                navController.navigate(Screens.ImageDetails.route.replace("{data}", encoded))
+                navController.navigate(Screens.PostInfo.route.replace("{data}", encoded))
             }
         }
     }
@@ -115,7 +115,7 @@ fun FixedItems(
                 val jsonData = Gson().toJson(it)
                 // We HAVE to urlencode the json since there's a tag that contains a forward slash (":/") which breaks the navigation routing obviously
                 val encoded = URLEncoder.encode(jsonData, "utf-8")
-                navController.navigate(Screens.ImageDetails.route.replace("{data}", encoded))
+                navController.navigate(Screens.PostInfo.route.replace("{data}", encoded))
             }
         }
     }

@@ -17,6 +17,7 @@ object NekosState {
     var end by mutableStateOf(false)
     var skip by mutableStateOf(0)
     var sort by mutableStateOf("newest")
+//    var tags = mutableStateListOf<String>()
     var tags = mutableStateListOf(
         "-bare shoulders",
         "-bikini",
@@ -62,6 +63,7 @@ object Nekos {
         }
 
         val bodyData = ImagesBody(
+//            nsfw = true,
             tags = tags,
             skip = NekosState.skip,
             sort = NekosState.sort

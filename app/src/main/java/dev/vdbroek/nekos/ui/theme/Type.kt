@@ -85,13 +85,6 @@ val Typography = Typography(
         lineHeight = 20.sp,
         letterSpacing = 0.1.sp,
     ),
-    labelLarge = TextStyle(
-        fontFamily = Nunito,
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.1.sp,
-    ),
     bodyLarge = TextStyle(
         fontFamily = Nunito,
         fontWeight = FontWeight.W400,
@@ -112,6 +105,13 @@ val Typography = Typography(
         fontSize = 12.sp,
         lineHeight = 16.sp,
         letterSpacing = 0.4.sp,
+    ),
+    labelLarge = TextStyle(
+        fontFamily = Nunito,
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp,
     ),
     labelMedium = TextStyle(
         fontFamily = Nunito,

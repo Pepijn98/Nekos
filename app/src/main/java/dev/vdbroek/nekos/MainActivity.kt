@@ -25,7 +25,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.compose.NavHost
@@ -77,6 +76,7 @@ class MainActivity : ComponentActivity() {
             val isProfile = navBackStackEntry?.destination?.route == Screens.Profile.route
             val isSettings = navBackStackEntry?.destination?.route == Screens.Settings.route
             val isLogin = navBackStackEntry?.destination?.route == Screens.Login.route
+            val isPost = navBackStackEntry?.destination?.route == Screens.PostInfo.route
 
             CompositionLocalProvider(LocalActivity provides this) {
                 NekosTheme(systemUiController) {
@@ -89,13 +89,14 @@ class MainActivity : ComponentActivity() {
                         )
                     } else {
                         @Suppress("DEPRECATION")
-                        window.decorView.systemUiVisibility = if (ThemeState.isDark) 0 else window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                        window.decorView.systemUiVisibility =
+                            if (ThemeState.isDark) 0 else window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
                     }
 
                     Scaffold(
                         contentColor = MaterialTheme.colorScheme.background,
                         bottomBar = {
-                            if (isLogin) return@Scaffold
+                            if (isLogin || isPost) return@Scaffold
 
                             NavigationBar {
                                 NavigationBarItem(
@@ -185,25 +186,39 @@ class MainActivity : ComponentActivity() {
                         ) {
                             composable(route = Screens.Home.route) {
                                 EnterAnimation {
-                                    TopBar(navController, dataStore, Screens.Home.route) {
+                                    TopBar(
+                                        navController = navController,
+                                        dataStore = dataStore,
+                                        route = Screens.Home.route
+                                    ) {
                                         Home(snackbarHost = snackbarHost, navController = navController)
                                     }
                                 }
                             }
 
-                            composable(route = Screens.ImageDetails.route) {
+                            composable(route = Screens.PostInfo.route) {
                                 val jsonData = it.arguments?.getString("data")
                                 val data = Gson().fromJson(jsonData, Neko::class.java)
                                 EnterAnimation {
-                                    TopBar(navController, dataStore, Screens.ImageDetails.route) {
-                                        ImageDetails(data = data)
+                                    TopBar(
+                                        navController = navController,
+                                        dataStore = dataStore,
+                                        route = Screens.PostInfo.route
+                                    ) {
+                                        PostInfo(
+                                            data = data
+                                        )
                                     }
                                 }
                             }
 
                             composable(route = Screens.Settings.route) {
                                 EnterAnimation {
-                                    TopBar(navController, dataStore, Screens.Settings.route) {
+                                    TopBar(
+                                        navController = navController,
+                                        dataStore = dataStore,
+                                        route = Screens.Settings.route
+                                    ) {
                                         Settings(dataStore = dataStore)
                                     }
                                 }
@@ -212,7 +227,11 @@ class MainActivity : ComponentActivity() {
                             // -BEGIN: PROFILE FLOW
                             composable(route = Screens.Profile.route) {
                                 EnterAnimation {
-                                    TopBar(navController, dataStore, Screens.Profile.route) {
+                                    TopBar(
+                                        navController = navController,
+                                        dataStore = dataStore,
+                                        route = Screens.Profile.route
+                                    ) {
                                         Profile(
                                             navController = navController,
                                             snackbarHost = snackbarHost

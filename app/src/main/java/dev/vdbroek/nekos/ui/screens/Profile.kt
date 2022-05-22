@@ -12,7 +12,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -24,6 +23,7 @@ import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
 import dev.vdbroek.nekos.models.EndException
 import dev.vdbroek.nekos.models.Neko
+import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.imageShape
 import dev.vdbroek.nekos.utils.App
 import kotlinx.coroutines.launch
@@ -89,12 +89,12 @@ fun Profile(
                     Icon(
                         modifier = Modifier.padding(end = 8.dp),
                         imageVector = Icons.Filled.ThumbUp,
-                        tint = Color(0xFF209CEE),
+                        tint = NekoColors.like,
                         contentDescription = "Thumb up icon"
                     )
                     Text(
                         text = "${user!!.likesReceived} Likes",
-                        color = Color(0xFF209CEE),
+                        color = NekoColors.like,
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
@@ -105,12 +105,12 @@ fun Profile(
                     Icon(
                         modifier = Modifier.padding(end = 8.dp),
                         imageVector = Icons.Filled.Favorite,
-                        tint = Color(0xFFFF3860),
+                        tint = NekoColors.favorite,
                         contentDescription = "Favorite icon"
                     )
                     Text(
                         text = "${user!!.favoritesReceived} Favorites",
-                        color = Color(0xFFFF3860),
+                        color = NekoColors.favorite,
                         style = MaterialTheme.typography.titleLarge
                     )
                 }
@@ -136,7 +136,8 @@ fun Profile(
                     style = MaterialTheme.typography.labelLarge
                 )
                 Text(
-                    modifier = Modifier.padding(start = 4.dp, top = 8.dp),
+                    modifier = Modifier
+                        .padding(start = 4.dp, top = 8.dp),
                     text = "Uploads",
                     color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.headlineSmall

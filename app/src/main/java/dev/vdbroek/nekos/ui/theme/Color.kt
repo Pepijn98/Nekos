@@ -16,6 +16,9 @@ object NekoColors {
     val warning = Color(0xFFFFDD57)
     val danger = Color(0xFFFF3860)
 
+    val like = Color(0xFF209CEE)
+    val favorite = Color(0xFFFF3860)
+
     val md_theme_light_primary = Color(0xFF00639a)
     val md_theme_light_onPrimary = Color(0xFFffffff)
     val md_theme_light_primaryContainer = Color(0xFFcbe5ff)
