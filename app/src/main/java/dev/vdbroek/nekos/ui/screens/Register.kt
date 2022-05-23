@@ -125,6 +125,9 @@ fun Register(
                     .padding(vertical = 2.dp),
                 text = email,
                 placeholder = "Email",
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email
+                ),
                 counter = true,
                 isError = emailError,
                 maxChar = App.maxEmailChars,
