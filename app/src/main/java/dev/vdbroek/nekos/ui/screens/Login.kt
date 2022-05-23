@@ -1,19 +1,25 @@
 package dev.vdbroek.nekos.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -32,40 +38,62 @@ import dev.vdbroek.nekos.utils.TOKEN
 import dev.vdbroek.nekos.utils.USERNAME
 import kotlinx.coroutines.launch
 
-object LoginState {
-    var username by mutableStateOf("")
-    var password by mutableStateOf("")
-}
-
 @Composable
 fun Login(
     snackbarHost: SnackbarHostState,
     dataStore: DataStore<Preferences>,
     navController: NavHostController
 ) {
-    val scope = rememberCoroutineScope()
-
-//    LaunchedEffect(key1 = true) {
-//        state.drawerState.close()
-//    }
-
     App.screenTitle = "Login"
 
+    val coroutine = rememberCoroutineScope()
+
+    var username by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    var usernameError by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf(false) }
+
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
     ) {
+        // -START: HEADER
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(400.dp)
         ) {
             Image(
-                modifier = Modifier.fillMaxSize(),
-                painter = painterResource(id = R.drawable.wave),
-                contentDescription = "",
+                modifier = Modifier
+                    .fillMaxSize(),
+                painter = painterResource(id = R.drawable.header_login),
+                contentDescription = "Login header",
                 contentScale = ContentScale.FillHeight,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
+            IconButton(
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(start = 6.dp, top = 6.dp)
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.background,
+                        shape = CircleShape
+                    ),
+                onClick = {
+                    navController.popBackStack()
+                },
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = MaterialTheme.colorScheme.background
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowLeft,
+                    contentDescription = "Back"
+                )
+            }
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -74,17 +102,22 @@ fun Login(
                 verticalArrangement = Arrangement.Top
             ) {
                 Image(
-                    modifier = Modifier.size(148.dp),
+                    modifier = Modifier
+                        .size(148.dp),
                     imageVector = Icons.Filled.AccountCircle,
                     contentDescription = "",
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimary)
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
                 )
                 Text(
                     text = App.screenTitle,
-                    style = MaterialTheme.typography.titleLarge
+                    color = MaterialTheme.colorScheme.background,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
+        // -END: HEADER
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -92,46 +125,109 @@ fun Login(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            val maxUsernameChars = 15
-            val maxPasswordChars = 15
+            // -START: INPUT
+            RoundedTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 2.dp),
+                text = username,
+                placeholder = "Username",
+                counter = true,
+                isError = usernameError,
+                maxChar = App.maxUsernameChars,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Filled.Person,
+                        contentDescription = "Username icon"
+                    )
+                }
+            ) {
+                if (it.length <= App.maxUsernameChars) {
+                    username = it
+                    usernameError = !App.validateUsername(it)
+                }
+            }
 
             RoundedTextField(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 2.dp),
-                text = LoginState.username,
-                placeholder = "Username",
-                counter = true,
-                maxChar = maxUsernameChars,
-                icon = { Icon(imageVector = Icons.Filled.Person, contentDescription = "Username icon") }
-            ) {
-                if (it.length > maxUsernameChars) return@RoundedTextField
-                LoginState.username = it
-            }
-            RoundedTextField(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 2.dp),
-                text = LoginState.password,
+                text = password,
                 placeholder = "Password",
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password
+                ),
                 counter = true,
-                maxChar = maxPasswordChars,
+                isError = passwordError,
+                maxChar = App.maxPasswordChars,
                 isPassword = true,
-                icon = { Icon(imageVector = Icons.Filled.Lock, contentDescription = "Password icon") }
+                icon = {
+                    Icon(
+                        imageVector = Icons.Filled.Lock,
+                        contentDescription = "Password icon"
+                    )
+                }
             ) {
-                if (it.length > maxPasswordChars) return@RoundedTextField
-                LoginState.password = it
+                if (it.length <= App.maxPasswordChars) {
+                    password = it
+                    passwordError = !App.validatePassword(it)
+                }
             }
+            // -END: INPUT
+
             Column(
-                modifier = Modifier.padding(top = 16.dp)
+                modifier = Modifier
+                    .padding(top = 16.dp)
             ) {
                 Button(
                     modifier = Modifier
                         .fillMaxWidth(),
                     shape = CircleShape,
                     onClick = {
-                        scope.launch {
-                            val (login, loginException) = User.authenticate(LoginState.username, LoginState.password)
+                        if (usernameError) {
+                            coroutine.launch {
+                                snackbarHost.showCustomSnackbar(
+                                    message = "Invalid username",
+                                    actionLabel = "x",
+                                    withDismissAction = true,
+                                    snackbarType = SnackbarType.WARNING,
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                            return@Button
+                        }
+
+                        if (passwordError) {
+                            coroutine.launch {
+                                snackbarHost.showCustomSnackbar(
+                                    message = "Invalid password",
+                                    actionLabel = "x",
+                                    withDismissAction = true,
+                                    snackbarType = SnackbarType.WARNING,
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                            return@Button
+                        }
+
+                        if (username.isBlank() || password.isBlank()) {
+                            coroutine.launch {
+                                snackbarHost.showCustomSnackbar(
+                                    message = "One or more required fields are blank",
+                                    actionLabel = "x",
+                                    withDismissAction = true,
+                                    snackbarType = SnackbarType.WARNING,
+                                    duration = SnackbarDuration.Short
+                                )
+                            }
+                            return@Button
+                        }
+
+                        coroutine.launch {
+                            val (login, loginException) = User.authenticate(
+                                username = username,
+                                password = password
+                            )
                             when {
                                 login != null -> {
                                     UserState.token = login.token
@@ -172,34 +268,13 @@ fun Login(
                 ) {
                     Text(text = "Login")
                 }
+
                 TextButton(
                     modifier = Modifier
                         .fillMaxWidth(),
                     shape = CircleShape,
                     onClick = {
-                        scope.launch {
-                            snackbarHost.showCustomSnackbar(
-                                message = "TODO : Open forgot password url",
-                                withDismissAction = true,
-                                snackbarType = SnackbarType.INFO
-                            )
-                        }
-                    }
-                ) {
-                    Text(text = "FORGOT PASSWORD")
-                }
-                TextButton(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    shape = CircleShape,
-                    onClick = {
-                        scope.launch {
-                            snackbarHost.showCustomSnackbar(
-                                message = "TODO : Navigate to register screen",
-                                withDismissAction = true,
-                                snackbarType = SnackbarType.INFO
-                            )
-                        }
+                        navController.navigate(Screens.Register.route)
                     }
                 ) {
                     Text(text = "New User? Register Now")

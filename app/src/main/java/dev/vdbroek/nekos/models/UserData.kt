@@ -1,10 +1,10 @@
 package dev.vdbroek.nekos.models
 
 data class UserResponse(
-    val user: User
+    val user: UserData
 )
 
-data class User(
+data class UserData(
     val id: String,
     val username: String,
     val createdAt: String,

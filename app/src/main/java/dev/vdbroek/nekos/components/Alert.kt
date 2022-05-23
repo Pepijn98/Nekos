@@ -1,10 +1,11 @@
 package dev.vdbroek.nekos.components
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.*
 //import androidx.compose.material.*
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,7 +40,6 @@ suspend fun SnackbarHostState.showCustomSnackbar(
     snackbarType: SnackbarType = SnackbarType.DEFAULT,
     duration: SnackbarDuration = SnackbarDuration.Short
 ): SnackbarResult {
-    println(isActive)
     // If there's currently a snackbar dismiss that one and open the new one
     if (isActive) {
         currentSnackbarData?.dismiss()
@@ -93,24 +93,49 @@ fun Alert(
             Snackbar(
                 modifier = Modifier.padding(8.dp),
                 containerColor = backgroundColor,
-//                elevation = 1.dp,
                 action = {
                     data.visuals.actionLabel?.let { label ->
-                        if (label.lowercase(Locale.getDefault()) == "x") {
-                            IconButton(onClick = { onDismiss() }) {
-                                Icon(imageVector = Icons.Rounded.Clear, contentDescription = null)
+                        when (label.lowercase(Locale.getDefault())) {
+                            "x" -> {
+                                IconButton(
+                                    onClick = {
+                                        onDismiss()
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Clear,
+                                        contentDescription = null
+                                    )
+                                }
                             }
-                        } else {
-                            TextButton(onClick = { onDismiss() }) {
-                                Text(
-                                    text = label,
-                                    style = TextStyle(
-                                        fontFamily = FontFamily.Default,
-                                        fontWeight = FontWeight.W500,
-                                        fontSize = 16.sp
-                                    ),
-                                    color = textColor
-                                )
+                            "home" -> {
+                                IconButton(
+                                    onClick = {
+                                        onDismiss()
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Home,
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                            else -> {
+                                TextButton(
+                                    onClick = {
+                                        onDismiss()
+                                    }
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = TextStyle(
+                                            fontFamily = FontFamily.Default,
+                                            fontWeight = FontWeight.W500,
+                                            fontSize = 16.sp
+                                        ),
+                                        color = textColor
+                                    )
+                                }
                             }
                         }
                     }

@@ -19,7 +19,6 @@ import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.R
 import dev.vdbroek.nekos.api.NekosUserState
 import dev.vdbroek.nekos.api.User
-import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.components.InfiniteRow
 import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
@@ -34,18 +33,19 @@ import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
 
-object ProfileScreenState {
+object UserScreenState {
     val uploaderImages = mutableStateListOf<Neko>()
     var initialRequest by mutableStateOf(true)
     var user by mutableStateOf<UserData?>(null)
 }
 
 @Composable
-fun Profile(
+fun User(
     navController: NavHostController,
-    snackbarHost: SnackbarHostState
+    snackbarHost: SnackbarHostState,
+    id: String
 ) {
-    App.screenTitle = UserState.username ?: "Profile"
+    App.screenTitle = ""
 
     val coroutine = rememberCoroutineScope()
 
@@ -58,24 +58,23 @@ fun Profile(
             tags = App.defaultTags
         }
 
-        ProfileScreenState.apply {
+        UserScreenState.apply {
             uploaderImages.clear()
             initialRequest = true
             user = null
         }
     }
 
-    println(ProfileScreenState.uploaderImages.size)
-    println(ProfileScreenState.initialRequest)
-    println(ProfileScreenState.user?.id)
+    println(UserScreenState.uploaderImages.size)
+    println(UserScreenState.initialRequest)
+    println(UserScreenState.user?.id)
 
     suspend fun getUserUploads(
-        username: String,
-        snackbarHost: SnackbarHostState
+        username: String
     ) {
         val (response, exception) = User.getUploads(username)
         when {
-            response != null -> ProfileScreenState.uploaderImages.addAll(response.images)
+            response != null -> UserScreenState.uploaderImages.addAll(response.images)
             exception != null && exception is EndException -> return
             exception != null -> {
                 snackbarHost.showCustomSnackbar(
@@ -90,14 +89,13 @@ fun Profile(
     }
 
     LaunchedEffect(key1 = true) {
-        if (ProfileScreenState.initialRequest) {
-            val (userData, userException) = User.getMe()
+        if (UserScreenState.initialRequest) {
+            val (userData, userException) = User.getUser(id)
             when {
                 userData != null -> {
-                    UserState.username = userData.user.username
-                    ProfileScreenState.user = userData.user
-                    getUserUploads(userData.user.username, snackbarHost)
-                    ProfileScreenState.initialRequest = false
+                    UserScreenState.user = userData.user
+                    getUserUploads(userData.user.username)
+                    UserScreenState.initialRequest = false
                 }
                 userException != null -> {
                     snackbarHost.showCustomSnackbar(
@@ -111,8 +109,10 @@ fun Profile(
     }
 
     Column {
-        if (ProfileScreenState.user != null) {
-            val dateTime = ProfileScreenState.user!!.createdAt.split("T")[0]
+        if (UserScreenState.user != null) {
+            App.screenTitle = UserScreenState.user!!.username
+
+            val dateTime = UserScreenState.user!!.createdAt.split("T")[0]
             val from = LocalDate.parse(dateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
             val today = LocalDate.now()
             val period = Period.between(from, today)
@@ -139,7 +139,7 @@ fun Profile(
                         contentDescription = "Thumb up icon"
                     )
                     Text(
-                        text = "${ProfileScreenState.user!!.likesReceived} Likes",
+                        text = "${UserScreenState.user!!.likesReceived} Likes",
                         color = NekoColors.like,
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -155,7 +155,7 @@ fun Profile(
                         contentDescription = "Favorite icon"
                     )
                     Text(
-                        text = "${ProfileScreenState.user!!.favoritesReceived} Favorites",
+                        text = "${UserScreenState.user!!.favoritesReceived} Favorites",
                         color = NekoColors.favorite,
                         style = MaterialTheme.typography.titleLarge
                     )
@@ -170,14 +170,14 @@ fun Profile(
                 Text(
                     modifier = Modifier
                         .padding(start = 16.dp, top = 8.dp),
-                    text = "Posted ${ProfileScreenState.user!!.uploads} images",
+                    text = "Posted ${UserScreenState.user!!.uploads} images",
                     color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.labelLarge
                 )
                 Text(
                     modifier = Modifier
                         .padding(start = 16.dp, top = 8.dp),
-                    text = "Has given ${ProfileScreenState.user!!.likes.size} likes and ${ProfileScreenState.user!!.favorites.size} favorites",
+                    text = "Has given ${UserScreenState.user!!.likes.size} likes and ${UserScreenState.user!!.favorites.size} favorites",
                     color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.labelLarge
                 )
@@ -194,12 +194,12 @@ fun Profile(
                 )
             }
             InfiniteRow(
-                items = ProfileScreenState.uploaderImages,
+                items = UserScreenState.uploaderImages,
                 navController = navController
             ) {
                 coroutine.launch {
-                    if (!ProfileScreenState.initialRequest)
-                        getUserUploads(ProfileScreenState.user!!.username, snackbarHost)
+                    if (!UserScreenState.initialRequest)
+                        getUserUploads(UserScreenState.user!!.username)
                 }
             }
         }

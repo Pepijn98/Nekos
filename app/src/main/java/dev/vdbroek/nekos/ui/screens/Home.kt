@@ -18,11 +18,13 @@ import kotlinx.coroutines.launch
 val images = mutableStateListOf<Neko>()
 
 @Composable
-fun Home(snackbarHost: SnackbarHostState, navController: NavHostController) {
+fun Home(
+    snackbarHost: SnackbarHostState,
+    navController: NavHostController
+) {
     App.screenTitle = "Posts"
 
     val coroutine = rememberCoroutineScope()
-
     InfiniteList(
         items = images,
         navController = navController,

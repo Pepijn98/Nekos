@@ -2,7 +2,6 @@ package dev.vdbroek.nekos.ui.screens
 
 import android.content.Intent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
@@ -56,7 +55,7 @@ fun Settings(
     } else {
         themeOptions[2]
     }
-    val (selectedThemeOption, onThemeOptionSelected) = remember { mutableStateOf(defaultThemeOption) }
+    var selectedThemeOption by remember { mutableStateOf(defaultThemeOption) }
 
     val layoutOptions = listOf("fixed", "staggered")
     val defaultLayoutOption = if (ThemeState.staggered) {
@@ -85,7 +84,7 @@ fun Settings(
                         .selectable(
                             selected = text == selectedThemeOption,
                             onClick = {
-                                onThemeOptionSelected(text)
+                                selectedThemeOption = text
                                 coroutine.launch { changeTheme(text, isSystemInDarkTheme, dataStore) }
                             }
                         )
@@ -96,7 +95,7 @@ fun Settings(
                         modifier = Modifier.padding(all = Dp(value = 8F)),
                         selected = (text == selectedThemeOption),
                         onClick = {
-                            onThemeOptionSelected(text)
+                            selectedThemeOption = text
                             coroutine.launch { changeTheme(text, isSystemInDarkTheme, dataStore) }
                         }
                     )
@@ -160,6 +159,7 @@ fun Settings(
         }
     }
 
+    // TODO : Move Dialog to components/dialog as StaggeredWarningDialog
     if (openStaggeredWarning) {
         Dialog(
             onDismissRequest = { openStaggeredWarning = false }
@@ -243,6 +243,7 @@ fun Settings(
     }
 }
 
+// TODO : Move functions to utils/Utils.kt in App
 suspend fun changeTheme(
     theme: String,
     isSystemInDarkTheme: Boolean,

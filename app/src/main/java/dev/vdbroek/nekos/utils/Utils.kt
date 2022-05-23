@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.colorspace.ColorSpaces
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -21,6 +23,30 @@ import androidx.datastore.preferences.preferencesDataStore
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.min
+
+val LocalActivity = staticCompositionLocalOf<ComponentActivity> {
+    error("CompositionLocal LocalActivity not present")
+}
+
+@Composable
+fun <T : Any> rememberMutableStateListOf(vararg elements: T): SnapshotStateList<T> {
+    return rememberSaveable(
+        saver = listSaver(
+            save = { stateList ->
+                if (stateList.isNotEmpty()) {
+                    val first = stateList.first()
+                    if (!canBeSaved(first)) {
+                        throw IllegalStateException("${first::class} cannot be saved. By default only types which can be stored in the Bundle class can be saved.")
+                    }
+                }
+                stateList.toList()
+            },
+            restore = { it.toMutableStateList() }
+        )
+    ) {
+        elements.toList().toMutableStateList()
+    }
+}
 
 /**
  * Converts dp to px using LocalDensity.
@@ -81,20 +107,65 @@ fun PaddingValues.copy(
     bottom: Dp = this.bottom
 ): PaddingValues = PaddingValues(start, top, end, bottom)
 
-fun timestamp(timeCreated: String): String {
-    val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH)
-    val timeCreatedDate = dateFormat.parse(timeCreated)!!
-    return DateUtils.getRelativeTimeSpanString(timeCreatedDate.time, System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS) as String
-}
-
 object App {
     var screenTitle by mutableStateOf("")
 
     const val baseUrl = "https://nekos.moe/api/v1"
 
+    val defaultTags = mutableStateListOf(
+        "-bare shoulders",
+        "-bikini",
+        "-crop top",
+        "-swimsuit",
+        "-midriff",
+        "-no bra",
+        "-panties",
+        "-covered nipples",
+        "-from behind",
+        "-knees up",
+        "-leotard",
+        "-black bikini top",
+        "-black bikini bottom",
+        "-off-shoulder shirt",
+        "-naked shirt"
+    )
+
     lateinit var version: String
     lateinit var versionCode: String
     lateinit var userAgent: String
+
+    const val minUsernameChars = 1
+    const val maxUsernameChars = 35
+
+    const val minEmailChars = 5
+    const val maxEmailChars = 70
+
+    const val minPasswordChars = 8
+    const val maxPasswordChars = 70
+
+    /**
+     * Usernames cannot contain whitespace chars, newlines or "@" and have to be between 1 and 35 characters
+     */
+    fun validateUsername(text: String): Boolean =
+        (!Regex("[@\\r\\n\\t\\s]").containsMatchIn(text) && text.length in minUsernameChars..maxUsernameChars)
+
+    /**
+     * Validate email pattern and have to be between 5 and 70 characters
+     */
+    fun validateEmail(text: String): Boolean =
+        (Regex("^[^@]+@[^.@]+\\.[^.@]+$").matches(text) && text.length in minEmailChars..maxEmailChars)
+
+    /**
+     * Passwords have to be between 8 and 70 characters
+     */
+    fun validatePassword(text: String): Boolean =
+        (text.length in minPasswordChars..maxPasswordChars)
+
+    fun timestamp(timeCreated: String): String {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH)
+        val timeCreatedDate = dateFormat.parse(timeCreated)!!
+        return DateUtils.getRelativeTimeSpanString(timeCreatedDate.time, System.currentTimeMillis(), DateUtils.SECOND_IN_MILLIS) as String
+    }
 
     fun getVersions(ctx: Context): Pair<String, String> {
         val packageInfo = ctx.packageManager.getPackageInfo(ctx.packageName, 0)
@@ -111,8 +182,4 @@ object App {
 
         return percentAvailable <= 5.0f
     }
-}
-
-val LocalActivity = staticCompositionLocalOf<ComponentActivity> {
-    error("CompositionLocal LocalActivity not present")
 }

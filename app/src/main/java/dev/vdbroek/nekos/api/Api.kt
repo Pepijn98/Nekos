@@ -11,12 +11,12 @@ object Api {
     fun <T> handleException(exception: FuelError?, label: String = "UNKNOWN"): Response<T?, Exception> {
         return if (exception != null) {
             val httpException: HttpException? = try {
-                Gson().fromJson(exception.response.responseMessage, HttpException::class.java)
+                Gson().fromJson(String(exception.errorData), HttpException::class.java)
             } catch (e: Exception) {
                 null
             }
 
-            Response(null, if (httpException != null) ApiException(httpException) else exception)
+            Response(null, if (httpException != null) ApiException(httpException, label) else exception)
         } else {
             Response(null, Exception("[$label]: Invalid response from API"))
         }

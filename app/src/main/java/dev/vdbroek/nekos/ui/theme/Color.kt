@@ -3,10 +3,6 @@ package dev.vdbroek.nekos.ui.theme
 import androidx.compose.ui.graphics.Color
 
 object NekoColors {
-    val blue200 = Color(0xFF90CAF9)
-    val blue500 = Color(0xFF2196F3)
-    val blue700 = Color(0xFF1976D2)
-
     val darkCard = Color(0xFF292E35)
 
     val dark = Color(0xFF21252b)

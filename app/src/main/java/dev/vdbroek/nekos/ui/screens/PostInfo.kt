@@ -21,16 +21,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import dev.vdbroek.nekos.api.NekosUserState
+import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.components.ZoomableNetworkImage
 import dev.vdbroek.nekos.models.Neko
+import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.imageShape
 import dev.vdbroek.nekos.utils.App
-import dev.vdbroek.nekos.utils.timestamp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostInfo(
+    navController: NavHostController,
     data: Neko
 ) {
     App.screenTitle = "Post Info"
@@ -95,7 +99,7 @@ fun PostInfo(
                         contentColor = Color.White
                     ),
                     onClick = {
-                        // TODO: Like
+                        // TODO: Favorite
                     }
                 ) {
                     Icon(
@@ -128,7 +132,19 @@ fun PostInfo(
                     modifier = Modifier
                         .padding(start = 2.dp)
                         .clickable {
-                            // Navigate to user/{id}
+                            NekosUserState.apply {
+                                end = false
+                                skip = 0
+                                tags = App.defaultTags
+                            }
+
+                            UserScreenState.apply {
+                                uploaderImages.clear()
+                                initialRequest = true
+                                user = null
+                            }
+
+                            navController.navigate(Screens.User.route.replace("{id}", data.uploader.id))
                         },
                     text = data.uploader.username,
                     color = MaterialTheme.colorScheme.primary,
@@ -137,32 +153,38 @@ fun PostInfo(
             }
         }
 
-        item {
-            Row(
-                modifier = Modifier
-                    .padding(start = 16.dp, top = 8.dp)
-            ) {
-                Text(
-                    text = "Approver:",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.ExtraBold,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                if (data.approver != null) {
+        if (data.approver != null) {
+            item {
+                Row(
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 8.dp)
+                ) {
+                    Text(
+                        text = "Approver:",
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.ExtraBold,
+                        style = MaterialTheme.typography.titleMedium
+                    )
                     Text(
                         modifier = Modifier
                             .padding(start = 2.dp)
                             .clickable {
-                                // Navigate to user/{id}
+                                NekosUserState.apply {
+                                    end = false
+                                    skip = 0
+                                    tags = App.defaultTags
+                                }
+
+                                UserScreenState.apply {
+                                    uploaderImages.clear()
+                                    initialRequest = true
+                                    user = null
+                                }
+
+                                navController.navigate(Screens.User.route.replace("{id}", data.approver.id))
                             },
                         text = data.approver.username,
                         color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                } else {
-                    Text(
-                        text = "-",
-                        color = MaterialTheme.colorScheme.onBackground,
                         style = MaterialTheme.typography.titleMedium
                     )
                 }
@@ -183,7 +205,7 @@ fun PostInfo(
                 Text(
                     modifier = Modifier
                         .padding(start = 4.dp),
-                    text = timestamp(data.createdAt),
+                    text = App.timestamp(data.createdAt),
                     color = MaterialTheme.colorScheme.onBackground,
                     style = MaterialTheme.typography.titleMedium
                 )

@@ -13,6 +13,7 @@ import com.google.gson.Gson
 import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
 import dev.vdbroek.nekos.models.*
+import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.Response
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,23 +24,7 @@ object NekosUserState {
     var end by mutableStateOf(false)
     var skip by mutableStateOf(0)
 //    var tags = mutableStateListOf<String>()
-    var tags = mutableStateListOf(
-        "-bare shoulders",
-        "-bikini",
-        "-crop top",
-        "-swimsuit",
-        "-midriff",
-        "-no bra",
-        "-panties",
-        "-covered nipples",
-        "-from behind",
-        "-knees up",
-        "-leotard",
-        "-black bikini top",
-        "-black bikini bottom",
-        "-off-shoulder shirt",
-        "-naked shirt"
-    )
+    var tags = App.defaultTags
 }
 
 object UserState {
@@ -103,7 +88,7 @@ object User {
         }
     }
 
-    suspend fun register(username: String, email: String, password: String): Response<String?, Exception?> {
+    suspend fun register(email: String, username: String, password: String): Response<String?, Exception?> {
         val (_, response, result) = coroutine.async {
             return@async "/register".httpPost()
                 .header(mapOf("Content-Type" to "application/json"))
@@ -147,6 +132,27 @@ object User {
             }
             is Result.Failure -> {
                 Api.handleException(exception, "GET_ME")
+            }
+        }
+    }
+
+    suspend fun getUser(id: String): Response<UserResponse?, Exception?> {
+        val (_, _, result) = coroutine.async {
+            return@async "/user/$id".httpGet()
+                .responseString()
+        }.await()
+
+        val (data, exception) = result
+        return when (result) {
+            is Result.Success -> {
+                if (data != null) {
+                    Response(Gson().fromJson(data, UserResponse::class.java), null)
+                } else {
+                    Response(null, Exception("[GET_USER]: Invalid response from API"))
+                }
+            }
+            is Result.Failure -> {
+                Api.handleException(exception, "GET_USER")
             }
         }
     }

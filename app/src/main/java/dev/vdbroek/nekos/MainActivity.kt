@@ -11,7 +11,10 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -20,10 +23,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
@@ -35,6 +35,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.gson.Gson
 import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.components.Alert
+import dev.vdbroek.nekos.components.InfiniteListState
 import dev.vdbroek.nekos.components.TopBar
 import dev.vdbroek.nekos.components.isActive
 import dev.vdbroek.nekos.models.Neko
@@ -44,6 +45,7 @@ import dev.vdbroek.nekos.ui.theme.NekosTheme
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.LocalActivity
 import dev.vdbroek.nekos.utils.dataStore
+import kotlinx.coroutines.launch
 
 @Composable
 fun EnterAnimation(content: @Composable () -> Unit) {
@@ -67,6 +69,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
+            val coroutine = rememberCoroutineScope()
             val snackbarHost = remember { SnackbarHostState() }
             val navController = rememberNavController()
             val systemUiController = rememberSystemUiController()
@@ -76,6 +79,7 @@ class MainActivity : ComponentActivity() {
             val isProfile = navBackStackEntry?.destination?.route == Screens.Profile.route
             val isSettings = navBackStackEntry?.destination?.route == Screens.Settings.route
             val isLogin = navBackStackEntry?.destination?.route == Screens.Login.route
+            val isRegister = navBackStackEntry?.destination?.route == Screens.Register.route
             val isPost = navBackStackEntry?.destination?.route == Screens.PostInfo.route
 
             CompositionLocalProvider(LocalActivity provides this) {
@@ -96,7 +100,11 @@ class MainActivity : ComponentActivity() {
                     Scaffold(
                         contentColor = MaterialTheme.colorScheme.background,
                         bottomBar = {
-                            if (isLogin || isPost) return@Scaffold
+                            if (
+                                isLogin ||
+                                isRegister ||
+                                isPost
+                            ) return@Scaffold
 
                             NavigationBar {
                                 NavigationBarItem(
@@ -114,6 +122,23 @@ class MainActivity : ComponentActivity() {
                                         if (!isHome) {
                                             navController.backQueue.clear()
                                             navController.navigate(Screens.Home.route)
+                                        } else {
+                                            coroutine.launch {
+                                                when (InfiniteListState.scrollState) {
+                                                    is LazyListState -> {
+                                                        val state = (InfiniteListState.scrollState as LazyListState)
+                                                        if (state.layoutInfo.visibleItemsInfo[0].index > 1) {
+                                                            state.animateScrollToItem(0)
+                                                        }
+                                                    }
+                                                    is LazyGridState -> {
+                                                        val state = (InfiniteListState.scrollState as LazyGridState)
+                                                        if (state.layoutInfo.visibleItemsInfo[0].index > 1) {
+                                                            state.animateScrollToItem(0)
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 )
@@ -184,19 +209,26 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             startDestination = Screens.Home.route
                         ) {
-                            composable(route = Screens.Home.route) {
+                            composable(
+                                route = Screens.Home.route
+                            ) {
                                 EnterAnimation {
                                     TopBar(
                                         navController = navController,
                                         dataStore = dataStore,
                                         route = Screens.Home.route
                                     ) {
-                                        Home(snackbarHost = snackbarHost, navController = navController)
+                                        Home(
+                                            snackbarHost = snackbarHost,
+                                            navController = navController
+                                        )
                                     }
                                 }
                             }
 
-                            composable(route = Screens.PostInfo.route) {
+                            composable(
+                                route = Screens.PostInfo.route
+                            ) {
                                 val jsonData = it.arguments?.getString("data")
                                 val data = Gson().fromJson(jsonData, Neko::class.java)
                                 EnterAnimation {
@@ -206,13 +238,16 @@ class MainActivity : ComponentActivity() {
                                         route = Screens.PostInfo.route
                                     ) {
                                         PostInfo(
+                                            navController = navController,
                                             data = data
                                         )
                                     }
                                 }
                             }
 
-                            composable(route = Screens.Settings.route) {
+                            composable(
+                                route = Screens.Settings.route
+                            ) {
                                 EnterAnimation {
                                     TopBar(
                                         navController = navController,
@@ -225,7 +260,32 @@ class MainActivity : ComponentActivity() {
                             }
 
                             // -BEGIN: PROFILE FLOW
-                            composable(route = Screens.Profile.route) {
+                            composable(
+                                route = Screens.Login.route
+                            ) {
+                                EnterAnimation {
+                                    Login(
+                                        snackbarHost = snackbarHost,
+                                        dataStore = dataStore,
+                                        navController = navController
+                                    )
+                                }
+                            }
+
+                            composable(
+                                route = Screens.Register.route
+                            ) {
+                                EnterAnimation {
+                                    Register(
+                                        snackbarHost = snackbarHost,
+                                        navController = navController
+                                    )
+                                }
+                            }
+
+                            composable(
+                                route = Screens.Profile.route
+                            ) {
                                 EnterAnimation {
                                     TopBar(
                                         navController = navController,
@@ -240,21 +300,22 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
 
-                            composable(route = Screens.Login.route) {
+                            composable(
+                                route = Screens.User.route
+                            ) {
+                                val userID = it.arguments?.getString("id") ?: return@composable
                                 EnterAnimation {
-                                    Login(snackbarHost = snackbarHost, dataStore = dataStore, navController = navController)
-                                }
-                            }
-
-                            composable(route = Screens.Register.route) {
-                                EnterAnimation {
-                                    Register(navController = navController)
-                                }
-                            }
-
-                            composable(route = Screens.ForgotPassword.route) {
-                                EnterAnimation {
-                                    ForgotPassword(navController = navController)
+                                    TopBar(
+                                        navController = navController,
+                                        dataStore = dataStore,
+                                        route = Screens.User.route
+                                    ) {
+                                        User(
+                                            navController = navController,
+                                            snackbarHost = snackbarHost,
+                                            id = userID
+                                        )
+                                    }
                                 }
                             }
                             // -END: PROFILE FLOW

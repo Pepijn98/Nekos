@@ -20,8 +20,11 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.R
+import dev.vdbroek.nekos.api.NekosUserState
 import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.ui.Screens
+import dev.vdbroek.nekos.ui.screens.ProfileScreenState
+import dev.vdbroek.nekos.ui.screens.UserScreenState
 import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.IS_LOGGED_IN
 import dev.vdbroek.nekos.utils.TOKEN
@@ -118,6 +121,18 @@ fun TopBar(
                             ),
                         onClick = {
                             navController.popBackStack()
+
+                            NekosUserState.apply {
+                                end = false
+                                skip = 0
+                                tags = App.defaultTags
+                            }
+
+                            ProfileScreenState.apply {
+                                uploaderImages.clear()
+                                initialRequest = true
+                                user = null
+                            }
                         }
                     ) {
                         Icon(
@@ -142,6 +157,18 @@ fun TopBar(
                                 username = null
                             }
 
+                            NekosUserState.apply {
+                                end = false
+                                skip = 0
+                                tags = App.defaultTags
+                            }
+
+                            ProfileScreenState.apply {
+                                uploaderImages.clear()
+                                initialRequest = true
+                                user = null
+                            }
+
                             coroutine.launch {
                                 dataStore.edit { preferences ->
                                     preferences[IS_LOGGED_IN] = false
@@ -154,6 +181,36 @@ fun TopBar(
                         Icon(
                             painter = painterResource(id = R.drawable.ic_logout),
                             contentDescription = "Logout",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                }
+                Screens.User.route -> {
+                    IconButton(
+                        modifier = Modifier
+                            .road(
+                                whenCollapsed = Alignment.CenterStart,
+                                whenExpanded = Alignment.TopStart
+                            ),
+                        onClick = {
+                            navController.popBackStack()
+
+                            NekosUserState.apply {
+                                end = false
+                                skip = 0
+                                tags = App.defaultTags
+                            }
+
+                            UserScreenState.apply {
+                                uploaderImages.clear()
+                                initialRequest = true
+                                user = null
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.ArrowBack,
+                            contentDescription = "Back",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }

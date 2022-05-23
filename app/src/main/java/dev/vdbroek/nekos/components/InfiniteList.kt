@@ -31,6 +31,10 @@ import dev.vdbroek.nekos.ui.theme.imageShape
 import kotlinx.coroutines.flow.distinctUntilChanged
 import java.net.URLEncoder
 
+object InfiniteListState {
+    var scrollState: ScrollableState? = null
+}
+
 @Composable
 fun InfiniteList(
     items: SnapshotStateList<Neko>,
@@ -38,27 +42,25 @@ fun InfiniteList(
     cells: Int,
     onLoadMore: () -> Unit
 ) {
-    val scrollableState: ScrollableState
-
     if (ThemeState.staggered) {
-        scrollableState = rememberLazyListState()
+        InfiniteListState.scrollState = rememberLazyListState()
         StaggeredItems(
-            listState = scrollableState,
+            listState = InfiniteListState.scrollState as LazyListState,
             items = items,
             navController = navController,
             cells = cells
         )
     } else {
-        scrollableState = rememberLazyGridState()
+        InfiniteListState.scrollState = rememberLazyGridState()
         FixedItems(
-            gridState = scrollableState,
+            gridState = InfiniteListState.scrollState as LazyGridState,
             items = items,
             navController = navController,
             cells = cells
         )
     }
 
-    InfiniteListHandler(scrollableState = scrollableState) {
+    InfiniteListHandler(scrollableState = InfiniteListState.scrollState!!) {
         onLoadMore()
     }
 }
