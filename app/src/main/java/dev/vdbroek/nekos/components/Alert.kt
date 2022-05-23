@@ -86,13 +86,16 @@ fun Alert(
 
             val textColor = when (hostState.type) {
                 SnackbarType.DEFAULT -> if (ThemeState.isDark) NekoColors.light else MaterialTheme.colorScheme.onBackground
-                SnackbarType.WARNING -> Color.Black
+                SnackbarType.WARNING -> NekoColors.dark
                 else -> NekoColors.light
             }
 
             Snackbar(
-                modifier = Modifier.padding(8.dp),
+                modifier = Modifier
+                    .padding(8.dp),
                 containerColor = backgroundColor,
+                contentColor = textColor,
+                actionContentColor = textColor,
                 action = {
                     data.visuals.actionLabel?.let { label ->
                         when (label.lowercase(Locale.getDefault())) {
