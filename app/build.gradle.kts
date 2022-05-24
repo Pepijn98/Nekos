@@ -106,11 +106,11 @@ dependencies {
     implementation("androidx.compose.ui:ui:1.2.0-beta02")
     implementation("androidx.compose.ui:ui-tooling-preview:1.2.0-beta02")
     implementation("androidx.compose.material3:material3:1.0.0-alpha12")
-    implementation("androidx.compose.material:material:1.2.0-beta02")
     implementation("androidx.navigation:navigation-compose:2.4.2")
     implementation("androidx.core:core-splashscreen:1.0.0-rc01")
     implementation("me.onebone:toolbar-compose:2.3.3")
     implementation("com.github.iamjosephmj:Flinger:1.1.1")
+    implementation("androidx.compose.material:material-icons-extended:1.2.0-beta02")
     // Until lazy staggered grid is officially supported this is the best implementation I could find
     // It is on the roadmap https://developer.android.com/jetpack/androidx/compose-roadmap
     // So surely some day it will be added to jetpack compose :)

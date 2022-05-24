@@ -69,7 +69,7 @@ fun Login(
                 modifier = Modifier
                     .clip(RoundedCornerShape(bottomStart = 100.dp))
                     .fillMaxSize(),
-                painter = painterResource(id = R.drawable.ic_header_2),
+                painter = painterResource(id = R.drawable.ic_header),
                 contentDescription = "Header",
                 contentScale = ContentScale.FillBounds,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)

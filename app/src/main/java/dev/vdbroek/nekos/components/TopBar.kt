@@ -3,7 +3,9 @@ package dev.vdbroek.nekos.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -97,7 +99,7 @@ fun TopBar(
                         }
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_sort),
+                            imageVector = Icons.Filled.Sort,
                             contentDescription = "Order",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
@@ -189,7 +191,7 @@ fun TopBar(
                         }
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_logout),
+                            imageVector = Icons.Filled.Logout,
                             contentDescription = "Logout",
                             tint = MaterialTheme.colorScheme.onBackground
                         )

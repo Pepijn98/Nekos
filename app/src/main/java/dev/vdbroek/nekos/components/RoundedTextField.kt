@@ -8,6 +8,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -83,12 +86,6 @@ fun RoundedTextField(
                 leadingIcon = icon,
                 trailingIcon = {
                     if (isPassword) {
-                        val image = if (pwVisible) {
-                            painterResource(id = R.drawable.ic_visibility)
-                        } else {
-                            painterResource(id = R.drawable.ic_visibility_off)
-                        }
-
                         val description = if (pwVisible) {
                             "Hide password"
                         } else {
@@ -101,7 +98,7 @@ fun RoundedTextField(
                             }
                         ) {
                             Icon(
-                                painter = image,
+                                imageVector = if (pwVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
                                 contentDescription = description
                             )
                         }
