@@ -1,46 +1,72 @@
 package dev.vdbroek.nekos.api
 
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
 import com.google.gson.Gson
-import dev.vdbroek.nekos.models.*
+import dev.vdbroek.nekos.components.SnackbarType
+import dev.vdbroek.nekos.components.showCustomSnackbar
+import dev.vdbroek.nekos.models.ApiException
+import dev.vdbroek.nekos.models.EndException
+import dev.vdbroek.nekos.models.HttpException
+import dev.vdbroek.nekos.models.NekosResponse
+import dev.vdbroek.nekos.ui.screens.HomeScreenState
+import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.Response
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlin.properties.Delegates
 
-object NekosState {
+object NekosRequestState {
     var end by mutableStateOf(false)
     var skip by mutableStateOf(0)
-    var sort by mutableStateOf("newest")
-//    var tags = mutableStateListOf<String>()
-    var tags = mutableStateListOf(
-        "-bare shoulders",
-        "-bikini",
-        "-crop top",
-        "-swimsuit",
-        "-midriff",
-        "-no bra",
-        "-panties",
-        "-covered nipples",
-        "-from behind",
-        "-knees up",
-        "-leotard",
-        "-black bikini top",
-        "-black bikini bottom",
-        "-off-shoulder shirt",
-        "-naked shirt"
-    )
+    //    var tags = mutableStateListOf<String>()
+    var tags = App.defaultTags.toMutableStateList()
+    var sort by Delegates.observable("newest") { _, _, _ ->
+        // Clear current loaded images and request new ones with the updated sorting option
+        val coroutine = CoroutineScope(Dispatchers.Default)
+        coroutine.launch {
+            val (response, exception) = Nekos.getImages()
+            when {
+                response != null -> {
+                    HomeScreenState.images.apply {
+                        clear()
+                        addAll(response.images.filter { !it.tags.contains(App.buggedTag) })
+                    }
+                }
+                exception != null && exception is EndException -> {
+                    App.snackbarHost.showCustomSnackbar(
+                        message = exception.message,
+                        actionLabel = "x",
+                        withDismissAction = true,
+                        snackbarType = SnackbarType.INFO,
+                        duration = SnackbarDuration.Short
+                    )
+                }
+                exception != null -> {
+                    App.snackbarHost.showCustomSnackbar(
+                        message = exception.message ?: "Failed to fetch more images",
+                        actionLabel = "x",
+                        withDismissAction = true,
+                        snackbarType = SnackbarType.DANGER,
+                        duration = SnackbarDuration.Long
+                    )
+                }
+            }
+        }
+    }
 }
 
 object Nekos {
     private val coroutine = CoroutineScope(Dispatchers.IO)
 
-    data class ImagesBody(
+    data class ImageSearchBody(
         val nsfw: Boolean = false,
         val tags: List<String>,
         val limit: Int = 30,
@@ -50,10 +76,10 @@ object Nekos {
     )
 
     suspend fun getImages(): Response<NekosResponse?, Exception?> {
-        if (NekosState.end) return Response(null, EndException("You have reached the end"))
+        if (NekosRequestState.end) return Response(null, EndException("You have reached the end"))
 
         // Remove all images with tags that could potentially show sexually suggestive images
-        val tags = NekosState.tags.map {
+        val tags = NekosRequestState.tags.map {
             if (it.startsWith("-")) {
                 val tag = it.replaceFirst("-", "")
                 "-\"$tag\""
@@ -62,11 +88,11 @@ object Nekos {
             }
         }
 
-        val bodyData = ImagesBody(
+        val bodyData = ImageSearchBody(
 //            nsfw = true,
             tags = tags,
-            skip = NekosState.skip,
-            sort = NekosState.sort
+            skip = NekosRequestState.skip,
+            sort = NekosRequestState.sort
         )
 
         val (_, _, result) = coroutine.async {
@@ -79,12 +105,12 @@ object Nekos {
         val (data, exception) = result
         when (result) {
             is Result.Success -> {
-                NekosState.skip += 30
+                NekosRequestState.skip += 30
 
                 if (data != null) {
                     val nekosResponse = Gson().fromJson(data, NekosResponse::class.java)
                     if (nekosResponse.images.size == 0) {
-                        NekosState.end = true
+                        NekosRequestState.end = true
                         return Response(null, EndException("You have reached the end"))
                     }
 

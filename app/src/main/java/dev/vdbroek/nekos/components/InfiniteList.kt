@@ -28,6 +28,7 @@ import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.ui.theme.imageShape
+import dev.vdbroek.nekos.utils.App
 import kotlinx.coroutines.flow.distinctUntilChanged
 import java.net.URLEncoder
 
@@ -104,6 +105,7 @@ fun FixedItems(
     LazyVerticalGrid(
         modifier = Modifier.fillMaxWidth(),
         state = gridState,
+        flingBehavior = App.flingBehavior(),
         columns = GridCells.Fixed(cells),
         contentPadding = PaddingValues(
             start = 6.dp,
@@ -179,7 +181,9 @@ private fun ListItem(data: Neko, onItemClicked: (Neko) -> Unit) {
     ) {
         NetworkImage(
             url = data.getThumbnailUrl(),
-            modifier = if (ThemeState.staggered) Modifier.fillMaxSize() else Modifier.fillMaxWidth().height(180.dp),
+            modifier = if (ThemeState.staggered) Modifier.fillMaxSize() else Modifier
+                .fillMaxWidth()
+                .height(180.dp),
             alignment = Alignment.Center,
             contentScale = if (ThemeState.staggered) ContentScale.FillWidth else ContentScale.Crop,
             contentDescription = "Image"

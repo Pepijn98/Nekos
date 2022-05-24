@@ -3,9 +3,9 @@ package dev.vdbroek.nekos.api
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
@@ -15,16 +15,18 @@ import dev.vdbroek.nekos.components.showCustomSnackbar
 import dev.vdbroek.nekos.models.*
 import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.Response
+import dev.vdbroek.nekos.utils.copy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 
-object NekosUserState {
+object UserRequestState {
     var end by mutableStateOf(false)
     var skip by mutableStateOf(0)
-//    var tags = mutableStateListOf<String>()
-    var tags = App.defaultTags
+
+    //    var tags = mutableStateListOf<String>()
+    var tags = App.defaultTags.toMutableStateList()
 }
 
 object UserState {
@@ -158,10 +160,10 @@ object User {
     }
 
     suspend fun getUploads(uploader: String): Response<NekosResponse?, Exception?> {
-        if (NekosUserState.end) return Response(null, EndException("You have reached the end"))
+        if (UserRequestState.end) return Response(null, EndException("You have reached the end"))
 
         // Remove all images with tags that could potentially show sexually suggestive images
-        val tags = NekosUserState.tags.map {
+        val tags = UserRequestState.tags.map {
             if (it.startsWith("-")) {
                 val tag = it.replaceFirst("-", "")
                 "-\"$tag\""
@@ -170,10 +172,10 @@ object User {
             }
         }
 
-        val bodyData = Nekos.ImagesBody(
+        val bodyData = Nekos.ImageSearchBody(
 //            nsfw = true,
             tags = tags,
-            skip = NekosUserState.skip,
+            skip = UserRequestState.skip,
             sort = "newest",
             uploader = uploader
         )
@@ -188,21 +190,20 @@ object User {
         val (data, exception) = result
         when (result) {
             is Result.Success -> {
-                NekosUserState.skip += 30
+                UserRequestState.skip += 30
 
                 if (data != null) {
                     val nekosResponse = Gson().fromJson(data, NekosResponse::class.java)
-                    println(nekosResponse)
 
                     if (nekosResponse.images.size == 0) {
-                        NekosUserState.end = true
+                        UserRequestState.end = true
                         return Response(null, EndException("You have reached the end"))
                     }
 
                     // We request 30 images if the amount of images returned is less we've reached the end
                     // but we don't need to return since the response still has some images
                     if (nekosResponse.images.size < 30) {
-                        NekosUserState.end = true
+                        UserRequestState.end = true
                     }
 
                     return Response(nekosResponse, null)

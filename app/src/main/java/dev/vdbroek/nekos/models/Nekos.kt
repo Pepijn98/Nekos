@@ -16,16 +16,16 @@ data class Neko(
     val uploader: Uploader,
     val approver: Approver?,
     val nsfw: Boolean,
-    val artist: String,
+    val artist: String?,
     val tags: ArrayList<String>,
     val comments: ArrayList<String>,
     val createdAt: String,
     val likes: Int,
     val favorites: Int
 ) {
-    fun getPostUrl(): String = "https://nekos.moe/post/${this.id}"
-    fun getImageUrl(): String = "https://nekos.moe/image/${this.id}"
-    fun getThumbnailUrl(): String = "https://nekos.moe/thumbnail/${this.id}"
+    fun getPostUrl(): String = "https://nekos.moe/post/$id"
+    fun getImageUrl(): String = "https://nekos.moe/image/$id"
+    fun getThumbnailUrl(): String = "https://nekos.moe/thumbnail/$id"
 }
 
 data class NekosResponse(

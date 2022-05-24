@@ -8,9 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
-import com.google.accompanist.systemuicontroller.SystemUiController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 object ThemeState {
     var isDark by mutableStateOf(true)
@@ -76,7 +73,7 @@ private val DarkThemeColors = darkColorScheme(
 )
 
 @Composable
-fun NekosTheme(uiController: SystemUiController, content: @Composable () -> Unit) {
+fun NekosTheme(content: @Composable () -> Unit) {
     ThemeState.isDark = if (ThemeState.manual) ThemeState.isDark else isSystemInDarkTheme()
 
 //    uiController.setSystemBarsColor(color = Color.Transparent)

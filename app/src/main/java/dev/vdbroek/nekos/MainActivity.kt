@@ -11,7 +11,6 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -31,7 +30,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.gson.Gson
 import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.components.Alert
@@ -43,9 +41,12 @@ import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.screens.*
 import dev.vdbroek.nekos.ui.theme.NekosTheme
 import dev.vdbroek.nekos.ui.theme.ThemeState
+import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.LocalActivity
 import dev.vdbroek.nekos.utils.dataStore
 import kotlinx.coroutines.launch
+import me.onebone.toolbar.ExperimentalToolbarApi
+import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 @Composable
 fun EnterAnimation(content: @Composable () -> Unit) {
@@ -54,9 +55,11 @@ fun EnterAnimation(content: @Composable () -> Unit) {
             MutableTransitionState(
                 initialState = false
             )
-        }.apply { targetState = true },
-        enter = fadeIn(animationSpec = tween(500), initialAlpha = 0.3f),
-        exit = fadeOut(animationSpec = tween(500))
+        }.apply {
+            targetState = true
+        },
+        enter = fadeIn(animationSpec = tween(200), initialAlpha = 0.3f),
+        exit = fadeOut(animationSpec = tween(200))
     ) {
         content()
     }
@@ -65,61 +68,69 @@ fun EnterAnimation(content: @Composable () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
 
+    @OptIn(ExperimentalToolbarApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
             val coroutine = rememberCoroutineScope()
-            val snackbarHost = remember { SnackbarHostState() }
             val navController = rememberNavController()
-            val systemUiController = rememberSystemUiController()
+            val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
-
-            val isHome = navBackStackEntry?.destination?.route == Screens.Home.route
-            val isProfile = navBackStackEntry?.destination?.route == Screens.Profile.route
-            val isSettings = navBackStackEntry?.destination?.route == Screens.Settings.route
-            val isLogin = navBackStackEntry?.destination?.route == Screens.Login.route
-            val isRegister = navBackStackEntry?.destination?.route == Screens.Register.route
-            val isPost = navBackStackEntry?.destination?.route == Screens.PostInfo.route
+            val toolbarState by remember { derivedStateOf { toolbarScaffoldState.toolbarState } }
+            val currentRoute by remember { derivedStateOf { navBackStackEntry?.destination?.route } }
 
             CompositionLocalProvider(LocalActivity provides this) {
-                NekosTheme(systemUiController) {
-                    window.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
+                NekosTheme {
+                    when (currentRoute) {
+                        Screens.Login.route,
+                        Screens.Register.route -> {
+                            window.statusBarColor = MaterialTheme.colorScheme.primary.toArgb()
+                        }
+                        else -> {
+                            window.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
+                        }
+                    }
 
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                         window.insetsController?.setSystemBarsAppearance(
-                            if (ThemeState.isDark) 0 else WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
-                            WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+                            if (ThemeState.isDark)
+                                0
+                            else
+                                WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
                         )
                     } else {
                         @Suppress("DEPRECATION")
                         window.decorView.systemUiVisibility =
-                            if (ThemeState.isDark) 0 else window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+                            if (ThemeState.isDark)
+                                0
+                            else
+                                window.decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
                     }
 
                     Scaffold(
                         contentColor = MaterialTheme.colorScheme.background,
                         bottomBar = {
                             if (
-                                isLogin ||
-                                isRegister ||
-                                isPost
+                                currentRoute == Screens.Login.route ||
+                                currentRoute == Screens.Register.route ||
+                                currentRoute == Screens.PostInfo.route
                             ) return@Scaffold
 
                             NavigationBar {
                                 NavigationBarItem(
-                                    selected = isHome,
+                                    selected = currentRoute == Screens.Home.route,
                                     label = {
                                         Text(text = "Home")
                                     },
                                     icon = {
                                         Icon(
-                                            imageVector = if (isHome) Icons.Filled.Home else Icons.Outlined.Home,
+                                            imageVector = if (currentRoute == Screens.Home.route) Icons.Filled.Home else Icons.Outlined.Home,
                                             contentDescription = "Home"
                                         )
                                     },
                                     onClick = {
-                                        if (!isHome) {
+                                        if (currentRoute != Screens.Home.route) {
                                             navController.backQueue.clear()
                                             navController.navigate(Screens.Home.route)
                                         } else {
@@ -127,14 +138,20 @@ class MainActivity : ComponentActivity() {
                                                 when (InfiniteListState.scrollState) {
                                                     is LazyListState -> {
                                                         val state = (InfiniteListState.scrollState as LazyListState)
-                                                        if (state.layoutInfo.visibleItemsInfo[0].index > 1) {
-                                                            state.animateScrollToItem(0)
+                                                        val firstVisibleItemIndex by derivedStateOf { state.firstVisibleItemIndex }
+
+                                                        if (firstVisibleItemIndex > 1) {
+                                                            state.scrollToItem(0)
+                                                            toolbarState.expand()
                                                         }
                                                     }
                                                     is LazyGridState -> {
                                                         val state = (InfiniteListState.scrollState as LazyGridState)
-                                                        if (state.layoutInfo.visibleItemsInfo[0].index > 1) {
-                                                            state.animateScrollToItem(0)
+                                                        val firstVisibleItemIndex by derivedStateOf { state.firstVisibleItemIndex }
+
+                                                        if (firstVisibleItemIndex > 1) {
+                                                            state.scrollToItem(0)
+                                                            toolbarState.expand()
                                                         }
                                                     }
                                                 }
@@ -144,18 +161,18 @@ class MainActivity : ComponentActivity() {
                                 )
                                 if (UserState.isLoggedIn) {
                                     NavigationBarItem(
-                                        selected = isProfile,
+                                        selected = currentRoute == Screens.Profile.route,
                                         label = {
                                             Text(text = "Profile")
                                         },
                                         icon = {
                                             Icon(
-                                                imageVector = if (isProfile) Icons.Filled.Person else Icons.Outlined.Person,
+                                                imageVector = if (currentRoute == Screens.Profile.route) Icons.Filled.Person else Icons.Outlined.Person,
                                                 contentDescription = "Profile"
                                             )
                                         },
                                         onClick = {
-                                            if (!isProfile) {
+                                            if (currentRoute != Screens.Profile.route) {
                                                 navController.navigate(Screens.Profile.route)
                                             }
                                         }
@@ -178,13 +195,13 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                                 NavigationBarItem(
-                                    selected = isSettings,
+                                    selected = currentRoute == Screens.Settings.route,
                                     label = {
                                         Text(text = "Settings")
                                     },
                                     icon = {
                                         Icon(
-                                            imageVector = if (isSettings) Icons.Filled.Settings else Icons.Outlined.Settings,
+                                            imageVector = if (currentRoute == Screens.Settings.route) Icons.Filled.Settings else Icons.Outlined.Settings,
                                             contentDescription = "Settings"
                                         )
                                     },
@@ -196,10 +213,9 @@ class MainActivity : ComponentActivity() {
                         },
                         snackbarHost = {
                             Alert(
-                                hostState = snackbarHost,
                                 onDismiss = {
-                                    snackbarHost.isActive = false
-                                    snackbarHost.currentSnackbarData?.dismiss()
+                                    App.snackbarHost.isActive = false
+                                    App.snackbarHost.currentSnackbarData?.dismiss()
                                 }
                             )
                         },
@@ -215,11 +231,11 @@ class MainActivity : ComponentActivity() {
                                 EnterAnimation {
                                     TopBar(
                                         navController = navController,
+                                        toolbarScaffoldState = toolbarScaffoldState,
                                         dataStore = dataStore,
                                         route = Screens.Home.route
                                     ) {
                                         Home(
-                                            snackbarHost = snackbarHost,
                                             navController = navController
                                         )
                                     }
@@ -234,6 +250,7 @@ class MainActivity : ComponentActivity() {
                                 EnterAnimation {
                                     TopBar(
                                         navController = navController,
+                                        toolbarScaffoldState = toolbarScaffoldState,
                                         dataStore = dataStore,
                                         route = Screens.PostInfo.route
                                     ) {
@@ -251,6 +268,7 @@ class MainActivity : ComponentActivity() {
                                 EnterAnimation {
                                     TopBar(
                                         navController = navController,
+                                        toolbarScaffoldState = toolbarScaffoldState,
                                         dataStore = dataStore,
                                         route = Screens.Settings.route
                                     ) {
@@ -265,7 +283,6 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 EnterAnimation {
                                     Login(
-                                        snackbarHost = snackbarHost,
                                         dataStore = dataStore,
                                         navController = navController
                                     )
@@ -277,7 +294,6 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 EnterAnimation {
                                     Register(
-                                        snackbarHost = snackbarHost,
                                         navController = navController
                                     )
                                 }
@@ -289,12 +305,12 @@ class MainActivity : ComponentActivity() {
                                 EnterAnimation {
                                     TopBar(
                                         navController = navController,
+                                        toolbarScaffoldState = toolbarScaffoldState,
                                         dataStore = dataStore,
                                         route = Screens.Profile.route
                                     ) {
                                         Profile(
-                                            navController = navController,
-                                            snackbarHost = snackbarHost
+                                            navController = navController
                                         )
                                     }
                                 }
@@ -307,12 +323,12 @@ class MainActivity : ComponentActivity() {
                                 EnterAnimation {
                                     TopBar(
                                         navController = navController,
+                                        toolbarScaffoldState = toolbarScaffoldState,
                                         dataStore = dataStore,
                                         route = Screens.User.route
                                     ) {
                                         User(
                                             navController = navController,
-                                            snackbarHost = snackbarHost,
                                             id = userID
                                         )
                                     }

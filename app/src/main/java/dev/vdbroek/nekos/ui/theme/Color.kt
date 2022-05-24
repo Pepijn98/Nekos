@@ -44,7 +44,8 @@ object NekoColors {
     val md_theme_light_shadow = Color(0xFF000000)
 
     val md_theme_dark_primary = Color(0xFF92ccff)
-    val md_theme_dark_onPrimary = Color(0xFF003353)
+    val md_theme_dark_onPrimary = Color(0xFF1a1c1e)
+//    val md_theme_dark_onPrimary = Color(0xFF003353)
     val md_theme_dark_primaryContainer = Color(0xFF004a75)
     val md_theme_dark_onPrimaryContainer = Color(0xFFcbe5ff)
     val md_theme_dark_secondary = Color(0xFFb8c8da)

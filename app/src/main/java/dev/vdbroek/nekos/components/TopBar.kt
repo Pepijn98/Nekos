@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -20,7 +21,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.R
-import dev.vdbroek.nekos.api.NekosUserState
+import dev.vdbroek.nekos.api.UserRequestState
 import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.screens.ProfileScreenState
@@ -32,18 +33,18 @@ import dev.vdbroek.nekos.utils.USERNAME
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.CollapsingToolbarScaffold
 import me.onebone.toolbar.CollapsingToolbarScaffoldScope
+import me.onebone.toolbar.CollapsingToolbarScaffoldState
 import me.onebone.toolbar.ScrollStrategy
-import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 @Composable
 fun TopBar(
     navController: NavHostController,
+    toolbarScaffoldState: CollapsingToolbarScaffoldState,
     dataStore: DataStore<Preferences>,
     route: String,
     body: @Composable (CollapsingToolbarScaffoldScope.() -> Unit)
 ) {
     val coroutine = rememberCoroutineScope()
-    val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
     val progress = toolbarScaffoldState.toolbarState.progress
 
     CollapsingToolbarScaffold(
@@ -60,21 +61,30 @@ fun TopBar(
             )
             when (route) {
                 Screens.Home.route -> {
-                    IconButton(
+                    Box(
                         modifier = Modifier
-                            .road(
-                                whenCollapsed = Alignment.CenterStart,
-                                whenExpanded = Alignment.TopStart
-                            ),
-                        onClick = {
-                            // TODO : Animated into TextInput
-                        }
+                            .fillMaxSize()
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = "Search",
-                            tint = MaterialTheme.colorScheme.onBackground
+                        SortingDropdown(
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
                         )
+                        IconButton(
+                            modifier = Modifier
+                                .road(
+                                    whenCollapsed = Alignment.CenterStart,
+                                    whenExpanded = Alignment.TopStart
+                                ),
+                            onClick = {
+                                // TODO : Animated into TextInput
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Search,
+                                contentDescription = "Search",
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
                     }
                     IconButton(
                         modifier = Modifier
@@ -83,7 +93,7 @@ fun TopBar(
                                 whenExpanded = Alignment.TopEnd
                             ),
                         onClick = {
-                            // TODO : Show options menu
+                            SortingDropdownState.expanded = true
                         }
                     ) {
                         Icon(
@@ -122,10 +132,10 @@ fun TopBar(
                         onClick = {
                             navController.popBackStack()
 
-                            NekosUserState.apply {
+                            UserRequestState.apply {
                                 end = false
                                 skip = 0
-                                tags = App.defaultTags
+                                tags = App.defaultTags.toMutableStateList()
                             }
 
                             ProfileScreenState.apply {
@@ -157,10 +167,10 @@ fun TopBar(
                                 username = null
                             }
 
-                            NekosUserState.apply {
+                            UserRequestState.apply {
                                 end = false
                                 skip = 0
-                                tags = App.defaultTags
+                                tags = App.defaultTags.toMutableStateList()
                             }
 
                             ProfileScreenState.apply {
@@ -195,10 +205,10 @@ fun TopBar(
                         onClick = {
                             navController.popBackStack()
 
-                            NekosUserState.apply {
+                            UserRequestState.apply {
                                 end = false
                                 skip = 0
-                                tags = App.defaultTags
+                                tags = App.defaultTags.toMutableStateList()
                             }
 
                             UserScreenState.apply {

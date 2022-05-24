@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -11,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
@@ -27,10 +29,8 @@ import dev.vdbroek.nekos.components.showCustomSnackbar
 import dev.vdbroek.nekos.utils.App
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Register(
-    snackbarHost: SnackbarHostState,
     navController: NavHostController
 ) {
     App.screenTitle = "Register"
@@ -55,44 +55,22 @@ fun Register(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp)
+                .height(300.dp)
         ) {
             Image(
                 modifier = Modifier
+                    .clip(RoundedCornerShape(bottomStart = 100.dp))
                     .fillMaxSize(),
-                painter = painterResource(id = R.drawable.header_register),
-                contentDescription = "Register header",
-                contentScale = ContentScale.FillHeight,
+                painter = painterResource(id = R.drawable.ic_header_2),
+                contentDescription = "Header",
+                contentScale = ContentScale.FillBounds,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
-            IconButton(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(start = 6.dp, top = 6.dp)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.background,
-                        shape = CircleShape
-                    ),
-                onClick = {
-                    navController.popBackStack()
-                },
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.background
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.KeyboardArrowLeft,
-                    contentDescription = "Back"
-                )
-            }
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 64.dp),
+                    .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
+                verticalArrangement = Arrangement.Center
             ) {
                 Image(
                     modifier = Modifier
@@ -114,9 +92,8 @@ fun Register(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(start = 16.dp, top = 36.dp, end = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // -START: INPUT
             RoundedTextField(
@@ -228,77 +205,67 @@ fun Register(
                         .fillMaxWidth(),
                     shape = CircleShape,
                     onClick = {
-                        if (emailError) {
-                            coroutine.launch {
-                                snackbarHost.showCustomSnackbar(
+                        coroutine.launch {
+                            if (emailError) {
+                                App.snackbarHost.showCustomSnackbar(
                                     message = "Invalid email address",
                                     actionLabel = "x",
                                     withDismissAction = true,
                                     snackbarType = SnackbarType.WARNING,
                                     duration = SnackbarDuration.Short
                                 )
+                                return@launch
                             }
-                            return@Button
-                        }
 
-                        if (usernameError) {
-                            coroutine.launch {
-                                snackbarHost.showCustomSnackbar(
+                            if (usernameError) {
+                                App.snackbarHost.showCustomSnackbar(
                                     message = "Invalid username",
                                     actionLabel = "x",
                                     withDismissAction = true,
                                     snackbarType = SnackbarType.WARNING,
                                     duration = SnackbarDuration.Short
                                 )
+                                return@launch
                             }
-                            return@Button
-                        }
 
-                        if (passwordError) {
-                            coroutine.launch {
-                                snackbarHost.showCustomSnackbar(
+                            if (passwordError) {
+                                App.snackbarHost.showCustomSnackbar(
                                     message = "Invalid password",
                                     actionLabel = "x",
                                     withDismissAction = true,
                                     snackbarType = SnackbarType.WARNING,
                                     duration = SnackbarDuration.Short
                                 )
+                                return@launch
                             }
-                            return@Button
-                        }
 
-                        if (confirmPasswordError) {
-                            coroutine.launch {
-                                snackbarHost.showCustomSnackbar(
+                            if (confirmPasswordError) {
+                                App.snackbarHost.showCustomSnackbar(
                                     message = "Invalid password confirmation",
                                     actionLabel = "x",
                                     withDismissAction = true,
                                     snackbarType = SnackbarType.WARNING,
                                     duration = SnackbarDuration.Short
                                 )
+                                return@launch
                             }
-                            return@Button
-                        }
 
-                        if (
-                            email.isBlank() ||
-                            username.isBlank() ||
-                            password.isBlank() ||
-                            confirmPassword.isBlank()
-                        ) {
-                            coroutine.launch {
-                                snackbarHost.showCustomSnackbar(
+                            if (
+                                email.isBlank() ||
+                                username.isBlank() ||
+                                password.isBlank() ||
+                                confirmPassword.isBlank()
+                            ) {
+                                App.snackbarHost.showCustomSnackbar(
                                     message = "One or more required fields are blank",
                                     actionLabel = "x",
                                     withDismissAction = true,
                                     snackbarType = SnackbarType.WARNING,
                                     duration = SnackbarDuration.Short
                                 )
+                                return@launch
                             }
-                            return@Button
-                        }
 
-                        coroutine.launch {
                             val (message, exception) = User.register(
                                 email = email,
                                 username = username,
@@ -312,15 +279,17 @@ fun Register(
                                     password = ""
                                     confirmPassword = ""
 
-                                    snackbarHost.showCustomSnackbar(
+                                    App.snackbarHost.showCustomSnackbar(
                                         message = message,
+                                        actionLabel = "x",
                                         withDismissAction = true,
                                         snackbarType = SnackbarType.INFO
                                     )
                                 }
                                 exception != null -> {
-                                    snackbarHost.showCustomSnackbar(
+                                    App.snackbarHost.showCustomSnackbar(
                                         message = exception.message ?: "Failed to register",
+                                        actionLabel = "x",
                                         withDismissAction = true,
                                         snackbarType = SnackbarType.DANGER
                                     )
@@ -330,6 +299,28 @@ fun Register(
                     }
                 ) {
                     Text(text = "Register")
+                }
+
+                IconButton(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            shape = CircleShape
+                        ),
+                    onClick = {
+                        navController.popBackStack()
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.onBackground
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowLeft,
+                        contentDescription = "Back"
+                    )
                 }
             }
         }

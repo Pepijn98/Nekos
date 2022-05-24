@@ -8,10 +8,9 @@ import androidx.activity.ComponentActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.github.kittinunf.fuel.core.FuelManager
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dev.vdbroek.nekos.api.Nekos
 import dev.vdbroek.nekos.api.UserState
-import dev.vdbroek.nekos.ui.screens.images
+import dev.vdbroek.nekos.ui.screens.HomeScreenState
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.*
 import kotlinx.coroutines.flow.first
@@ -49,7 +48,7 @@ class SplashActivity : ComponentActivity() {
 
             val (response, exception) = Nekos.getImages()
             when {
-                response != null -> images.addAll(response.images)
+                response != null -> HomeScreenState.images.addAll(response.images.filter { !it.tags.contains(App.buggedTag) })
                 exception != null -> finish()
             }
 

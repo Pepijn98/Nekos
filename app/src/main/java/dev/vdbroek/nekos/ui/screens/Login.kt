@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -14,6 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
@@ -40,7 +42,6 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun Login(
-    snackbarHost: SnackbarHostState,
     dataStore: DataStore<Preferences>,
     navController: NavHostController
 ) {
@@ -62,44 +63,22 @@ fun Login(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp)
+                .height(300.dp)
         ) {
             Image(
                 modifier = Modifier
+                    .clip(RoundedCornerShape(bottomStart = 100.dp))
                     .fillMaxSize(),
-                painter = painterResource(id = R.drawable.header_login),
-                contentDescription = "Login header",
-                contentScale = ContentScale.FillHeight,
+                painter = painterResource(id = R.drawable.ic_header_2),
+                contentDescription = "Header",
+                contentScale = ContentScale.FillBounds,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
             )
-            IconButton(
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .padding(start = 6.dp, top = 6.dp)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.background,
-                        shape = CircleShape
-                    ),
-                onClick = {
-                    navController.popBackStack()
-                },
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.background
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.KeyboardArrowLeft,
-                    contentDescription = "Back"
-                )
-            }
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 64.dp),
+                    .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Top
+                verticalArrangement = Arrangement.Center
             ) {
                 Image(
                     modifier = Modifier
@@ -121,9 +100,8 @@ fun Login(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(start = 16.dp, top = 36.dp, end = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // -START: INPUT
             RoundedTextField(
@@ -184,46 +162,40 @@ fun Login(
                         .fillMaxWidth(),
                     shape = CircleShape,
                     onClick = {
-                        if (usernameError) {
-                            coroutine.launch {
-                                snackbarHost.showCustomSnackbar(
+                        coroutine.launch {
+                            if (usernameError) {
+                                App.snackbarHost.showCustomSnackbar(
                                     message = "Invalid username",
                                     actionLabel = "x",
                                     withDismissAction = true,
                                     snackbarType = SnackbarType.WARNING,
                                     duration = SnackbarDuration.Short
                                 )
+                                return@launch
                             }
-                            return@Button
-                        }
 
-                        if (passwordError) {
-                            coroutine.launch {
-                                snackbarHost.showCustomSnackbar(
+                            if (passwordError) {
+                                App.snackbarHost.showCustomSnackbar(
                                     message = "Invalid password",
                                     actionLabel = "x",
                                     withDismissAction = true,
                                     snackbarType = SnackbarType.WARNING,
                                     duration = SnackbarDuration.Short
                                 )
+                                return@launch
                             }
-                            return@Button
-                        }
 
-                        if (username.isBlank() || password.isBlank()) {
-                            coroutine.launch {
-                                snackbarHost.showCustomSnackbar(
+                            if (username.isBlank() || password.isBlank()) {
+                                App.snackbarHost.showCustomSnackbar(
                                     message = "One or more required fields are blank",
                                     actionLabel = "x",
                                     withDismissAction = true,
                                     snackbarType = SnackbarType.WARNING,
                                     duration = SnackbarDuration.Short
                                 )
+                                return@launch
                             }
-                            return@Button
-                        }
 
-                        coroutine.launch {
                             val (login, loginException) = User.authenticate(
                                 username = username,
                                 password = password
@@ -247,8 +219,9 @@ fun Login(
                                             navController.navigate(Screens.Home.route)
                                         }
                                         userException != null -> {
-                                            snackbarHost.showCustomSnackbar(
+                                            App.snackbarHost.showCustomSnackbar(
                                                 message = userException.message ?: "Could not retrieve user data",
+                                                actionLabel = "x",
                                                 withDismissAction = true,
                                                 snackbarType = SnackbarType.DANGER
                                             )
@@ -256,8 +229,9 @@ fun Login(
                                     }
                                 }
                                 loginException != null -> {
-                                    snackbarHost.showCustomSnackbar(
+                                    App.snackbarHost.showCustomSnackbar(
                                         message = loginException.message ?: "Failed to login",
+                                        actionLabel = "x",
                                         withDismissAction = true,
                                         snackbarType = SnackbarType.DANGER
                                     )
@@ -278,6 +252,29 @@ fun Login(
                     }
                 ) {
                     Text(text = "New User? Register Now")
+                }
+
+                IconButton(
+                    modifier = Modifier
+                        .padding(top = 4.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            shape = CircleShape
+                        ),
+                    onClick = {
+                        navController.popBackStack()
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.onBackground
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowLeft,
+                        contentDescription = "Back"
+                    )
                 }
             }
         }

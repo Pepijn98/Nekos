@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -22,8 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import dev.vdbroek.nekos.api.NekosUserState
-import dev.vdbroek.nekos.api.UserState
+import dev.vdbroek.nekos.api.UserRequestState
 import dev.vdbroek.nekos.components.ZoomableNetworkImage
 import dev.vdbroek.nekos.models.Neko
 import dev.vdbroek.nekos.ui.Screens
@@ -132,10 +132,10 @@ fun PostInfo(
                     modifier = Modifier
                         .padding(start = 2.dp)
                         .clickable {
-                            NekosUserState.apply {
+                            UserRequestState.apply {
                                 end = false
                                 skip = 0
-                                tags = App.defaultTags
+                                tags = App.defaultTags.toMutableStateList()
                             }
 
                             UserScreenState.apply {
@@ -169,10 +169,10 @@ fun PostInfo(
                         modifier = Modifier
                             .padding(start = 2.dp)
                             .clickable {
-                                NekosUserState.apply {
+                                UserRequestState.apply {
                                     end = false
                                     skip = 0
-                                    tags = App.defaultTags
+                                    tags = App.defaultTags.toMutableStateList()
                                 }
 
                                 UserScreenState.apply {
@@ -212,24 +212,26 @@ fun PostInfo(
             }
         }
 
-        item {
-            Row(
-                modifier = Modifier
-                    .padding(start = 16.dp, top = 8.dp)
-            ) {
-                Text(
-                    text = if (data.artist.contains("+")) "Artists:" else "Artist:",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.ExtraBold,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
+        if (data.artist != null) {
+            item {
+                Row(
                     modifier = Modifier
-                        .padding(start = 4.dp),
-                    text = data.artist.replace("+", ", "),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                        .padding(start = 16.dp, top = 8.dp)
+                ) {
+                    Text(
+                        text = if (data.artist.contains("+")) "Artists:" else "Artist:",
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontWeight = FontWeight.ExtraBold,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        modifier = Modifier
+                            .padding(start = 4.dp),
+                        text = data.artist.replace("+", ", "),
+                        color = MaterialTheme.colorScheme.onBackground,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
             }
         }
 
@@ -256,7 +258,6 @@ fun PostInfo(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChipGroup(
     tags: List<String>,

@@ -6,9 +6,8 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -20,32 +19,15 @@ import androidx.core.graphics.ColorUtils
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import io.iamjosephmj.flinger.configs.FlingConfiguration
+import io.iamjosephmj.flinger.flings.flingBehavior
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.ln
 import kotlin.math.min
 
 val LocalActivity = staticCompositionLocalOf<ComponentActivity> {
     error("CompositionLocal LocalActivity not present")
-}
-
-@Composable
-fun <T : Any> rememberMutableStateListOf(vararg elements: T): SnapshotStateList<T> {
-    return rememberSaveable(
-        saver = listSaver(
-            save = { stateList ->
-                if (stateList.isNotEmpty()) {
-                    val first = stateList.first()
-                    if (!canBeSaved(first)) {
-                        throw IllegalStateException("${first::class} cannot be saved. By default only types which can be stored in the Bundle class can be saved.")
-                    }
-                }
-                stateList.toList()
-            },
-            restore = { it.toMutableStateList() }
-        )
-    ) {
-        elements.toList().toMutableStateList()
-    }
 }
 
 /**
@@ -107,12 +89,29 @@ fun PaddingValues.copy(
     bottom: Dp = this.bottom
 ): PaddingValues = PaddingValues(start, top, end, bottom)
 
-object App {
-    var screenTitle by mutableStateOf("")
+/**
+ * Create a copy of the original state list
+ */
+fun <T> SnapshotStateList<T>.copy() = mutableStateListOf<T>().also { it.addAll(this) }
 
+/**
+ * Capitalize string (defaults to Locale.ROOT)
+ */
+fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
+
+object App {
     const val baseUrl = "https://nekos.moe/api/v1"
 
-    val defaultTags = mutableStateListOf(
+    var screenTitle by mutableStateOf("")
+    val snackbarHost = SnackbarHostState()
+
+    lateinit var version: String
+    lateinit var versionCode: String
+    lateinit var userAgent: String
+
+    const val defaultSort = "newest"
+    const val buggedTag = "off-shoulder shirt"
+    val defaultTags = listOf(
         "-bare shoulders",
         "-bikini",
         "-crop top",
@@ -130,10 +129,6 @@ object App {
         "-naked shirt"
     )
 
-    lateinit var version: String
-    lateinit var versionCode: String
-    lateinit var userAgent: String
-
     const val minUsernameChars = 1
     const val maxUsernameChars = 35
 
@@ -142,6 +137,22 @@ object App {
 
     const val minPasswordChars = 8
     const val maxPasswordChars = 70
+
+    @Composable
+    fun flingBehavior() = flingBehavior(
+        FlingConfiguration.Builder()
+            .scrollViewFriction(0.008f)
+            .absVelocityThreshold(0f)
+            .gravitationalForce(9.80665f)
+            .inchesPerMeter(39.37f)
+            .decelerationRate((ln(0.78) / ln(0.9)).toFloat())
+            .decelerationFriction(0.09f)
+            .splineInflection(0.1f)
+            .splineStartTension(0.1f)
+            .splineEndTension(1.0f)
+            .numberOfSplinePoints(100)
+            .build(),
+    )
 
     /**
      * Usernames cannot contain whitespace chars, newlines or "@" and have to be between 1 and 35 characters

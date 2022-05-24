@@ -17,8 +17,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.R
-import dev.vdbroek.nekos.api.NekosUserState
 import dev.vdbroek.nekos.api.User
+import dev.vdbroek.nekos.api.UserRequestState
 import dev.vdbroek.nekos.components.InfiniteRow
 import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
@@ -42,7 +42,6 @@ object UserScreenState {
 @Composable
 fun User(
     navController: NavHostController,
-    snackbarHost: SnackbarHostState,
     id: String
 ) {
     App.screenTitle = ""
@@ -52,10 +51,10 @@ fun User(
     BackHandler {
         navController.popBackStack()
 
-        NekosUserState.apply {
+        UserRequestState.apply {
             end = false
             skip = 0
-            tags = App.defaultTags
+            tags = App.defaultTags.toMutableStateList()
         }
 
         UserScreenState.apply {
@@ -65,21 +64,17 @@ fun User(
         }
     }
 
-    println(UserScreenState.uploaderImages.size)
-    println(UserScreenState.initialRequest)
-    println(UserScreenState.user?.id)
-
     suspend fun getUserUploads(
         username: String
     ) {
         val (response, exception) = User.getUploads(username)
         when {
-            response != null -> UserScreenState.uploaderImages.addAll(response.images)
+            response != null -> UserScreenState.uploaderImages.addAll(response.images.filter { !it.tags.contains(App.buggedTag) })
             exception != null && exception is EndException -> return
             exception != null -> {
-                snackbarHost.showCustomSnackbar(
+                App.snackbarHost.showCustomSnackbar(
                     message = exception.message ?: "Failed to fetch more images",
-                    actionLabel = "X",
+                    actionLabel = "x",
                     withDismissAction = true,
                     snackbarType = SnackbarType.DANGER,
                     duration = SnackbarDuration.Long
@@ -98,8 +93,9 @@ fun User(
                     UserScreenState.initialRequest = false
                 }
                 userException != null -> {
-                    snackbarHost.showCustomSnackbar(
+                    App.snackbarHost.showCustomSnackbar(
                         message = userException.message ?: "Could not retrieve user data",
+                        actionLabel = "x",
                         withDismissAction = true,
                         snackbarType = SnackbarType.DANGER
                     )

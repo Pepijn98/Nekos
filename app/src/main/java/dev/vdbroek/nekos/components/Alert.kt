@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.ThemeState
+import dev.vdbroek.nekos.utils.App
 import kotlinx.coroutines.delay
 import java.util.*
 
@@ -51,13 +52,12 @@ suspend fun SnackbarHostState.showCustomSnackbar(
 
 @Composable
 fun Alert(
-    hostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit?
 ) {
     SnackbarHost(
         modifier = modifier,
-        hostState = hostState,
+        hostState = App.snackbarHost,
         snackbar = { data ->
             // Update snackbar active state when snackbar auto hides after X seconds.
             // Unless it's set to Indefinite, which means the user has to manually dismiss the snackbar
@@ -74,7 +74,7 @@ fun Alert(
                 }
             }
 
-            val backgroundColor = when (hostState.type) {
+            val backgroundColor = when (App.snackbarHost.type) {
                 SnackbarType.DEFAULT -> if (ThemeState.isDark) NekoColors.darkCard else MaterialTheme.colorScheme.background
                 SnackbarType.INFO -> NekoColors.info
                 SnackbarType.SUCCESS -> NekoColors.success
@@ -82,7 +82,7 @@ fun Alert(
                 SnackbarType.DANGER -> NekoColors.danger
             }
 
-            val textColor = when (hostState.type) {
+            val textColor = when (App.snackbarHost.type) {
                 SnackbarType.DEFAULT -> if (ThemeState.isDark) NekoColors.light else MaterialTheme.colorScheme.onBackground
                 SnackbarType.WARNING -> NekoColors.dark
                 else -> NekoColors.light
