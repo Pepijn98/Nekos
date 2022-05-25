@@ -4,15 +4,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Logout
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.toMutableStateList
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,21 +28,20 @@ import dev.vdbroek.nekos.utils.IS_LOGGED_IN
 import dev.vdbroek.nekos.utils.TOKEN
 import dev.vdbroek.nekos.utils.USERNAME
 import kotlinx.coroutines.launch
-import me.onebone.toolbar.CollapsingToolbarScaffold
-import me.onebone.toolbar.CollapsingToolbarScaffoldScope
-import me.onebone.toolbar.CollapsingToolbarScaffoldState
-import me.onebone.toolbar.ScrollStrategy
+import me.onebone.toolbar.*
 
 @Composable
-fun TopBar(
+fun NekosAppBar(
     navController: NavHostController,
-    toolbarScaffoldState: CollapsingToolbarScaffoldState,
     dataStore: DataStore<Preferences>,
-    route: String,
-    body: @Composable (CollapsingToolbarScaffoldScope.() -> Unit)
+    route: String?,
+    body: @Composable (CollapsingToolbarScaffoldScope.(CollapsingToolbarState) -> Unit)
 ) {
+    val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
     val coroutine = rememberCoroutineScope()
-    val progress = toolbarScaffoldState.toolbarState.progress
+    val toolbarState by remember { derivedStateOf { toolbarScaffoldState.toolbarState } }
+
+    App.globalToolbarState = toolbarState
 
     CollapsingToolbarScaffold(
         modifier = Modifier
@@ -57,36 +53,10 @@ fun TopBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
-                    .pin()
+                    .parallax(ratio = 0.2f)
             )
             when (route) {
                 Screens.Home.route -> {
-//                    Box(
-//                        modifier = Modifier
-//                            .wrapContentSize()
-//                            .road(
-//                                whenCollapsed = Alignment.CenterStart,
-//                                whenExpanded = Alignment.TopStart
-//                            )
-//                    ) {
-//
-//                    }
-                    IconButton(
-                        modifier = Modifier
-                            .road(
-                                whenCollapsed = Alignment.CenterStart,
-                                whenExpanded = Alignment.TopStart
-                            ),
-                        onClick = {
-                            // TODO : Animated into TextInput
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = "Search",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
                     Box(
                         modifier = Modifier
                             .wrapContentSize()
@@ -240,10 +210,12 @@ fun TopBar(
                         whenExpanded = Alignment.BottomStart
                     ),
                 text = App.screenTitle,
-                fontSize = (MaterialTheme.typography.headlineLarge.fontSize.value + (30 - 18) * progress).sp,
+                fontSize = (MaterialTheme.typography.headlineLarge.fontSize.value + (30 - 18) * toolbarState.progress).sp,
                 color = MaterialTheme.colorScheme.onBackground
             )
         },
-        body = body
+        body = {
+            body(toolbarState)
+        }
     )
 }

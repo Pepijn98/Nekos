@@ -12,31 +12,20 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.grid.LazyGridState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Login
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Login
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.res.painterResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
-import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.components.Alert
-import dev.vdbroek.nekos.components.InfiniteListState
-import dev.vdbroek.nekos.components.TopBar
+import dev.vdbroek.nekos.components.NekosAppBar
+import dev.vdbroek.nekos.components.NekosNavBar
 import dev.vdbroek.nekos.components.isActive
 import dev.vdbroek.nekos.models.Neko
 import dev.vdbroek.nekos.ui.Screens
@@ -46,9 +35,6 @@ import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.LocalActivity
 import dev.vdbroek.nekos.utils.dataStore
-import kotlinx.coroutines.launch
-import me.onebone.toolbar.ExperimentalToolbarApi
-import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 @Composable
 fun EnterAnimation(content: @Composable () -> Unit) {
@@ -69,17 +55,18 @@ fun EnterAnimation(content: @Composable () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 class MainActivity : ComponentActivity() {
+    private val noNavBar = listOf(
+        Screens.Login.route,
+        Screens.Register.route,
+        Screens.PostInfo.route
+    )
 
-    @OptIn(ExperimentalToolbarApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val coroutine = rememberCoroutineScope()
             val navController = rememberNavController()
-            val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val toolbarState by remember { derivedStateOf { toolbarScaffoldState.toolbarState } }
             val currentRoute by remember { derivedStateOf { navBackStackEntry?.destination?.route } }
 
             CompositionLocalProvider(LocalActivity provides this) {
@@ -113,103 +100,10 @@ class MainActivity : ComponentActivity() {
                     Scaffold(
                         contentColor = MaterialTheme.colorScheme.background,
                         bottomBar = {
-                            if (
-                                currentRoute == Screens.Login.route ||
-                                currentRoute == Screens.Register.route ||
-                                currentRoute == Screens.PostInfo.route
-                            ) return@Scaffold
-
-                            NavigationBar {
-                                NavigationBarItem(
-                                    selected = currentRoute == Screens.Home.route,
-                                    label = {
-                                        Text(text = "Home")
-                                    },
-                                    icon = {
-                                        Icon(
-                                            imageVector = if (currentRoute == Screens.Home.route) Icons.Filled.Home else Icons.Outlined.Home,
-                                            contentDescription = "Home"
-                                        )
-                                    },
-                                    onClick = {
-                                        if (currentRoute != Screens.Home.route) {
-                                            navController.backQueue.clear()
-                                            navController.navigate(Screens.Home.route)
-                                        } else {
-                                            coroutine.launch {
-                                                when (InfiniteListState.scrollState) {
-                                                    is LazyListState -> {
-                                                        val state = (InfiniteListState.scrollState as LazyListState)
-                                                        val firstVisibleItemIndex by derivedStateOf { state.firstVisibleItemIndex }
-
-                                                        if (firstVisibleItemIndex > 1) {
-                                                            state.scrollToItem(0)
-                                                            toolbarState.expand()
-                                                        }
-                                                    }
-                                                    is LazyGridState -> {
-                                                        val state = (InfiniteListState.scrollState as LazyGridState)
-                                                        val firstVisibleItemIndex by derivedStateOf { state.firstVisibleItemIndex }
-
-                                                        if (firstVisibleItemIndex > 1) {
-                                                            state.scrollToItem(0)
-                                                            toolbarState.expand()
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                )
-                                if (UserState.isLoggedIn) {
-                                    NavigationBarItem(
-                                        selected = currentRoute == Screens.Profile.route,
-                                        label = {
-                                            Text(text = "Profile")
-                                        },
-                                        icon = {
-                                            Icon(
-                                                imageVector = if (currentRoute == Screens.Profile.route) Icons.Filled.Person else Icons.Outlined.Person,
-                                                contentDescription = "Profile"
-                                            )
-                                        },
-                                        onClick = {
-                                            if (currentRoute != Screens.Profile.route) {
-                                                navController.navigate(Screens.Profile.route)
-                                            }
-                                        }
-                                    )
-                                } else {
-                                    NavigationBarItem(
-                                        selected = false,
-                                        label = {
-                                            Text(text = "Login")
-                                        },
-                                        icon = {
-                                            Icon(
-                                                imageVector = if (currentRoute == Screens.Login.route) Icons.Filled.Login else Icons.Outlined.Login,
-                                                contentDescription = "Login"
-                                            )
-                                        },
-                                        onClick = {
-                                            navController.navigate(Screens.Login.route)
-                                        }
-                                    )
-                                }
-                                NavigationBarItem(
-                                    selected = currentRoute == Screens.Settings.route,
-                                    label = {
-                                        Text(text = "Settings")
-                                    },
-                                    icon = {
-                                        Icon(
-                                            imageVector = if (currentRoute == Screens.Settings.route) Icons.Filled.Settings else Icons.Outlined.Settings,
-                                            contentDescription = "Settings"
-                                        )
-                                    },
-                                    onClick = {
-                                        navController.navigate(Screens.Settings.route)
-                                    }
+                            if (!noNavBar.contains(currentRoute)) {
+                                NekosNavBar(
+                                    navController = navController,
+                                    currentRoute = currentRoute
                                 )
                             }
                         },
@@ -223,7 +117,8 @@ class MainActivity : ComponentActivity() {
                         },
                     ) { padding ->
                         NavHost(
-                            modifier = Modifier.padding(padding),
+                            modifier = Modifier
+                                .padding(padding),
                             navController = navController,
                             startDestination = Screens.Home.route
                         ) {
@@ -231,11 +126,10 @@ class MainActivity : ComponentActivity() {
                                 route = Screens.Home.route
                             ) {
                                 EnterAnimation {
-                                    TopBar(
+                                    NekosAppBar(
                                         navController = navController,
-                                        toolbarScaffoldState = toolbarScaffoldState,
                                         dataStore = dataStore,
-                                        route = Screens.Home.route
+                                        route = currentRoute
                                     ) {
                                         Home(
                                             navController = navController
@@ -250,13 +144,13 @@ class MainActivity : ComponentActivity() {
                                 val jsonData = it.arguments?.getString("data")
                                 val data = Gson().fromJson(jsonData, Neko::class.java)
                                 EnterAnimation {
-                                    TopBar(
+                                    NekosAppBar(
                                         navController = navController,
-                                        toolbarScaffoldState = toolbarScaffoldState,
                                         dataStore = dataStore,
-                                        route = Screens.PostInfo.route
-                                    ) {
+                                        route = currentRoute
+                                    ) { toolbarState ->
                                         PostInfo(
+                                            toolbarState = toolbarState,
                                             navController = navController,
                                             data = data
                                         )
@@ -268,11 +162,10 @@ class MainActivity : ComponentActivity() {
                                 route = Screens.Settings.route
                             ) {
                                 EnterAnimation {
-                                    TopBar(
+                                    NekosAppBar(
                                         navController = navController,
-                                        toolbarScaffoldState = toolbarScaffoldState,
                                         dataStore = dataStore,
-                                        route = Screens.Settings.route
+                                        route = currentRoute
                                     ) {
                                         Settings(dataStore = dataStore)
                                     }
@@ -305,12 +198,11 @@ class MainActivity : ComponentActivity() {
                                 route = Screens.Profile.route
                             ) {
                                 EnterAnimation {
-                                    TopBar(
+                                    NekosAppBar(
                                         navController = navController,
-                                        toolbarScaffoldState = toolbarScaffoldState,
                                         dataStore = dataStore,
-                                        route = Screens.Profile.route
-                                    ) {
+                                        route = currentRoute
+                                    ) { toolbarState ->
                                         Profile(
                                             scrollState = toolbarState,
                                             navController = navController
@@ -324,12 +216,11 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 val userID = it.arguments?.getString("id") ?: return@composable
                                 EnterAnimation {
-                                    TopBar(
+                                    NekosAppBar(
                                         navController = navController,
-                                        toolbarScaffoldState = toolbarScaffoldState,
                                         dataStore = dataStore,
-                                        route = Screens.User.route
-                                    ) {
+                                        route = currentRoute
+                                    ) { toolbarState ->
                                         User(
                                             scrollState = toolbarState,
                                             navController = navController,

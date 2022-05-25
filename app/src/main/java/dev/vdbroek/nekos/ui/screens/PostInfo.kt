@@ -2,6 +2,7 @@ package dev.vdbroek.nekos.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -33,10 +36,14 @@ import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.imageShape
 import dev.vdbroek.nekos.utils.App
+import io.iamjosephmj.flinger.flings.flingBehavior
+import me.onebone.toolbar.CollapsingToolbarState
+import me.onebone.toolbar.ExperimentalToolbarApi
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalToolbarApi::class)
 @Composable
 fun PostInfo(
+    toolbarState: CollapsingToolbarState,
     navController: NavHostController,
     data: Neko
 ) {
@@ -44,6 +51,14 @@ fun PostInfo(
 
     val groupedTags = data.tags.chunked(3)
     val scrollState = rememberLazyListState()
+
+    val config = LocalConfiguration.current
+
+    LaunchedEffect(key1 = true) {
+        toolbarState.expand()
+        toolbarState.scrollBy((config.screenHeightDp.toFloat()))
+//        scrollState.scrollBy(-(config.screenHeightDp.toFloat()))
+    }
 
     LazyColumn(
         state = scrollState

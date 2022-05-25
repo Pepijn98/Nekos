@@ -21,6 +21,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import io.iamjosephmj.flinger.configs.FlingConfiguration
 import io.iamjosephmj.flinger.flings.flingBehavior
+import me.onebone.toolbar.CollapsingToolbarState
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.ln
@@ -104,6 +105,9 @@ object App {
 
     var screenTitle by mutableStateOf("")
     val snackbarHost = SnackbarHostState()
+
+    // Only use when absolutely necessary and there is 100% no other way to access the toolbar state
+    var globalToolbarState: CollapsingToolbarState? = null
 
     lateinit var version: String
     lateinit var versionCode: String
