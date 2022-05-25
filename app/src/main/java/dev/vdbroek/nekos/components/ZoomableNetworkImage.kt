@@ -3,7 +3,6 @@ package dev.vdbroek.nekos.components
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -38,7 +37,7 @@ fun ZoomableNetworkImage(
 
     val context = LocalContext.current
     val placeholder = painterResource(id = R.drawable.placeholder)
-    val failedPlaceholder = painterResource(id = R.drawable.no_iamge_placeholder)
+    val failedPlaceholder = painterResource(id = R.drawable.no_image_placeholder)
     var state by remember { mutableStateOf(placeholder) }
 
     GlideApp.with(context)

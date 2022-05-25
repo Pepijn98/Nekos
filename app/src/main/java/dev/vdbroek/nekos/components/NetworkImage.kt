@@ -18,7 +18,6 @@ import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
 import dev.vdbroek.nekos.R
-import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.GlideApp
 import java.io.ByteArrayOutputStream
 
@@ -37,7 +36,7 @@ fun NetworkImage(
 
     val context = LocalContext.current
     val placeholder = painterResource(id = R.drawable.placeholder)
-    val failedPlaceholder = painterResource(id = R.drawable.no_iamge_placeholder)
+    val failedPlaceholder = painterResource(id = R.drawable.no_image_placeholder)
     var state by remember { mutableStateOf(placeholder) }
     var isPlaceholder by remember { mutableStateOf(true) }
 
