@@ -2,6 +2,8 @@ package dev.vdbroek.nekos.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -29,6 +31,7 @@ import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.imageShape
 import dev.vdbroek.nekos.utils.App
 import kotlinx.coroutines.launch
+import me.onebone.toolbar.CollapsingToolbarState
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -41,6 +44,7 @@ object UserScreenState {
 
 @Composable
 fun User(
+    scrollState: CollapsingToolbarState,
     navController: NavHostController,
     id: String
 ) {
@@ -104,7 +108,13 @@ fun User(
         }
     }
 
-    Column {
+    Column(
+        Modifier
+            .scrollable(
+                state = scrollState,
+                orientation = Orientation.Vertical
+            )
+    ) {
         if (UserScreenState.user != null) {
             App.screenTitle = UserScreenState.user!!.username
 
@@ -119,7 +129,7 @@ fun User(
             ) {
                 Image(
                     modifier = Modifier
-                        .size(200.dp)
+                        .size(250.dp)
                         .clip(imageShape),
                     painter = painterResource(id = R.drawable.profile_placeholder),
                     contentDescription = "Avatar"

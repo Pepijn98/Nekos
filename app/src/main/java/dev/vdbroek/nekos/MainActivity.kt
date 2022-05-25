@@ -330,6 +330,7 @@ class MainActivity : ComponentActivity() {
                                         route = Screens.User.route
                                     ) {
                                         User(
+                                            scrollState = toolbarState,
                                             navController = navController,
                                             id = userID
                                         )

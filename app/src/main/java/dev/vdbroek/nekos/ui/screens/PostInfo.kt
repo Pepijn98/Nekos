@@ -2,9 +2,11 @@ package dev.vdbroek.nekos.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -23,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.google.accompanist.flowlayout.FlowRow
 import dev.vdbroek.nekos.api.UserRequestState
 import dev.vdbroek.nekos.components.ZoomableNetworkImage
 import dev.vdbroek.nekos.models.Neko
@@ -250,7 +253,7 @@ fun PostInfo(
         }
 
         items(groupedTags.size) { i ->
-            ChipGroup(
+            TagGroup(
                 tags = groupedTags[i],
                 last = ((groupedTags.size - 1) == i)
             )
@@ -259,19 +262,20 @@ fun PostInfo(
 }
 
 @Composable
-fun ChipGroup(
+fun TagGroup(
     tags: List<String>,
     last: Boolean = false
 ) {
-    LazyRow(
-        contentPadding = PaddingValues(
-            start = 8.dp,
-            end = 4.dp,
-            bottom = if (last) 6.dp else 0.dp
-        )
+    FlowRow(
+        modifier = Modifier
+            .padding(
+                start = 8.dp,
+                end = 4.dp,
+                bottom = if (last) 6.dp else 0.dp
+            )
     ) {
-        items(tags.size) { i ->
-            val tag = tags[i].replace("+", " ")
+        tags.forEach { tag ->
+            val realTag = tag.replace("+", " ")
             Box(
                 modifier = Modifier
                     .padding(2.dp)
@@ -280,7 +284,7 @@ fun ChipGroup(
                 Text(
                     modifier = Modifier
                         .padding(horizontal = 4.dp, vertical = 2.dp),
-                    text = tag,
+                    text = realTag,
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             }

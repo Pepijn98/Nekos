@@ -118,7 +118,7 @@ fun Profile(
             ) {
                 Image(
                     modifier = Modifier
-                        .size(200.dp)
+                        .size(250.dp)
                         .clip(imageShape),
                     painter = painterResource(id = R.drawable.profile_placeholder),
                     contentDescription = "Avatar"
