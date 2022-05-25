@@ -2,6 +2,8 @@ package dev.vdbroek.nekos.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -30,6 +32,7 @@ import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.imageShape
 import dev.vdbroek.nekos.utils.App
 import kotlinx.coroutines.launch
+import me.onebone.toolbar.CollapsingToolbarState
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -42,6 +45,7 @@ object ProfileScreenState {
 
 @Composable
 fun Profile(
+    scrollState: CollapsingToolbarState,
     navController: NavHostController
 ) {
     App.screenTitle = UserState.username ?: "Profile"
@@ -105,7 +109,13 @@ fun Profile(
         }
     }
 
-    Column {
+    Column(
+        Modifier
+            .scrollable(
+                state = scrollState,
+                orientation = Orientation.Vertical
+            )
+    ) {
         if (ProfileScreenState.user != null) {
             val dateTime = ProfileScreenState.user!!.createdAt.split("T")[0]
             val from = LocalDate.parse(dateTime, DateTimeFormatter.ofPattern("yyyy-MM-dd"))

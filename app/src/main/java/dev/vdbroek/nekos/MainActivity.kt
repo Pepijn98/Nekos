@@ -312,6 +312,7 @@ class MainActivity : ComponentActivity() {
                                         route = Screens.Profile.route
                                     ) {
                                         Profile(
+                                            scrollState = toolbarState,
                                             navController = navController
                                         )
                                     }
