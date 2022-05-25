@@ -1,6 +1,7 @@
 package dev.vdbroek.nekos.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -12,16 +13,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import dev.vdbroek.nekos.R
 import dev.vdbroek.nekos.api.User
 import dev.vdbroek.nekos.components.RoundedTextField
 import dev.vdbroek.nekos.components.SnackbarType
@@ -56,16 +53,11 @@ fun Register(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(300.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(bottomStart = 100.dp)
+                )
         ) {
-            Image(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(bottomStart = 100.dp))
-                    .fillMaxSize(),
-                painter = painterResource(id = R.drawable.ic_header),
-                contentDescription = "Header",
-                contentScale = ContentScale.FillBounds,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-            )
             Column(
                 modifier = Modifier
                     .fillMaxSize(),
