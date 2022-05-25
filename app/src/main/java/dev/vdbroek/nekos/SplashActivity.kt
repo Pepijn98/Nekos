@@ -46,6 +46,11 @@ class SplashActivity : ComponentActivity() {
                 UserState.username = dataStore.data.map { it[USERNAME] }.first()
             }
 
+            val (tagsResponse) = Nekos.getTags()
+            if (tagsResponse != null) {
+                App.tags.addAll(tagsResponse.tags)
+            }
+
             val (response, exception) = Nekos.getImages()
             when {
                 response != null -> HomeScreenState.images.addAll(response.images.filter { !it.tags.contains(App.buggedTag) })

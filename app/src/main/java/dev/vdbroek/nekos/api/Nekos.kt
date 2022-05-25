@@ -5,15 +5,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
+import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
 import com.google.gson.Gson
 import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
-import dev.vdbroek.nekos.models.ApiException
-import dev.vdbroek.nekos.models.EndException
-import dev.vdbroek.nekos.models.HttpException
-import dev.vdbroek.nekos.models.NekosResponse
+import dev.vdbroek.nekos.models.*
 import dev.vdbroek.nekos.ui.screens.HomeScreenState
 import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.Response
@@ -63,9 +61,7 @@ object NekosRequestState {
     }
 }
 
-object Nekos {
-    private val coroutine = CoroutineScope(Dispatchers.IO)
-
+object Nekos : Api() {
     data class ImageSearchBody(
         val nsfw: Boolean = false,
         val tags: List<String>,
@@ -119,16 +115,29 @@ object Nekos {
                 return Response(null, Exception("No data returned"))
             }
             is Result.Failure -> {
-                if (exception != null) {
-                    val httpException: HttpException? = try {
-                        Gson().fromJson(exception.response.responseMessage, HttpException::class.java)
-                    } catch (e: Exception) {
-                        null
-                    }
+                return handleException(exception)
+            }
+        }
+    }
 
-                    return Response(null, if (httpException != null) ApiException(httpException) else exception)
+    suspend fun getTags(): Response<TagsResponse?, Exception?> {
+        val (_, response, result) = coroutine.async {
+            return@async "/tags".httpGet()
+                .header(mapOf("Content-Type" to "application/json"))
+                .responseString()
+        }.await()
+
+        val (data, exception) = result
+        return when (result) {
+            is Result.Success -> {
+                if (data != null || response.statusCode == 201) {
+                    Response(Gson().fromJson(data, TagsResponse::class.java), null)
+                } else {
+                    Response(null, Exception("[GET_TAGS]: Invalid response from API"))
                 }
-                return Response(null, Exception("No data returned"))
+            }
+            is Result.Failure -> {
+                handleException(exception, "GET_TAGS")
             }
         }
     }

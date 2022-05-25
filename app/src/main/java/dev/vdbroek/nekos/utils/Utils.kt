@@ -109,6 +109,7 @@ object App {
     lateinit var versionCode: String
     lateinit var userAgent: String
 
+    val tags = mutableStateListOf<String>()
     const val defaultSort = "newest"
     const val buggedTag = "off-shoulder shirt"
     val defaultTags = listOf(

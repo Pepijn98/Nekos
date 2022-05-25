@@ -15,14 +15,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavHostController
-import dev.vdbroek.nekos.R
 import dev.vdbroek.nekos.api.UserRequestState
 import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.ui.Screens
@@ -63,46 +61,52 @@ fun TopBar(
             )
             when (route) {
                 Screens.Home.route -> {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                    ) {
-                        SortingDropdown(
-                            modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                        )
-                        IconButton(
-                            modifier = Modifier
-                                .road(
-                                    whenCollapsed = Alignment.CenterStart,
-                                    whenExpanded = Alignment.TopStart
-                                ),
-                            onClick = {
-                                // TODO : Animated into TextInput
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Search,
-                                contentDescription = "Search",
-                                tint = MaterialTheme.colorScheme.onBackground
-                            )
-                        }
-                    }
+//                    Box(
+//                        modifier = Modifier
+//                            .wrapContentSize()
+//                            .road(
+//                                whenCollapsed = Alignment.CenterStart,
+//                                whenExpanded = Alignment.TopStart
+//                            )
+//                    ) {
+//
+//                    }
                     IconButton(
                         modifier = Modifier
                             .road(
-                                whenCollapsed = Alignment.CenterEnd,
-                                whenExpanded = Alignment.TopEnd
+                                whenCollapsed = Alignment.CenterStart,
+                                whenExpanded = Alignment.TopStart
                             ),
                         onClick = {
-                            SortingDropdownState.expanded = true
+                            // TODO : Animated into TextInput
                         }
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Sort,
-                            contentDescription = "Order",
+                            imageVector = Icons.Filled.Search,
+                            contentDescription = "Search",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .road(
+                                whenCollapsed = Alignment.CenterEnd,
+                                whenExpanded = Alignment.TopEnd
+                            )
+                    ) {
+                        SortingDropdown()
+                        IconButton(
+                            onClick = {
+                                SortingDropdownState.expanded = true
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Sort,
+                                contentDescription = "Order",
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
                     }
                 }
                 Screens.Settings.route,

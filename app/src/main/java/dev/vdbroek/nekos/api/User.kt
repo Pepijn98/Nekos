@@ -12,12 +12,12 @@ import com.github.kittinunf.result.Result
 import com.google.gson.Gson
 import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
-import dev.vdbroek.nekos.models.*
+import dev.vdbroek.nekos.models.EndException
+import dev.vdbroek.nekos.models.LoginResponse
+import dev.vdbroek.nekos.models.NekosResponse
+import dev.vdbroek.nekos.models.UserResponse
 import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.Response
-import dev.vdbroek.nekos.utils.copy
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 
@@ -64,8 +64,7 @@ object UserState {
     }
 }
 
-object User {
-    private val coroutine = CoroutineScope(Dispatchers.IO)
+object User : Api() {
 
     suspend fun authenticate(username: String, password: String): Response<LoginResponse?, Exception?> {
         val (_, _, result) = coroutine.async {
@@ -85,7 +84,7 @@ object User {
                 }
             }
             is Result.Failure -> {
-                Api.handleException(exception, "AUTH")
+                handleException(exception, "AUTH")
             }
         }
     }
@@ -108,7 +107,7 @@ object User {
                 }
             }
             is Result.Failure -> {
-                Api.handleException(exception, "REGISTER")
+                handleException(exception, "REGISTER")
             }
         }
     }
@@ -133,7 +132,7 @@ object User {
                 }
             }
             is Result.Failure -> {
-                Api.handleException(exception, "GET_ME")
+                handleException(exception, "GET_ME")
             }
         }
     }
@@ -154,7 +153,7 @@ object User {
                 }
             }
             is Result.Failure -> {
-                Api.handleException(exception, "GET_USER")
+                handleException(exception, "GET_USER")
             }
         }
     }
@@ -211,16 +210,7 @@ object User {
                 return Response(null, Exception("No data returned"))
             }
             is Result.Failure -> {
-                if (exception != null) {
-                    val httpException: HttpException? = try {
-                        Gson().fromJson(exception.response.responseMessage, HttpException::class.java)
-                    } catch (e: Exception) {
-                        null
-                    }
-
-                    return Response(null, if (httpException != null) ApiException(httpException) else exception)
-                }
-                return Response(null, Exception("No data returned"))
+                return handleException(exception)
             }
         }
     }

@@ -1,8 +1,8 @@
 package dev.vdbroek.nekos.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +27,7 @@ import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.App
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Register(
     navController: NavHostController
@@ -294,24 +295,34 @@ fun Register(
                     Text(text = "Register")
                 }
 
-                IconButton(
+                OutlinedIconButton(
                     modifier = Modifier
-                        .padding(top = 4.dp)
-                        .align(Alignment.CenterHorizontally)
-                        .border(
-                            width = 1.dp,
-                            color = if (ThemeState.isDark) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
-                            shape = CircleShape
-                        ),
-                    onClick = {
-                        navController.popBackStack()
-                    },
+                        .padding(top = 2.dp)
+                        .align(Alignment.CenterHorizontally),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = if (ThemeState.isDark) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onBackground
+                        }
+                    ),
+                    shape = CircleShape,
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = Color.Transparent,
-                        contentColor = if (ThemeState.isDark) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
-                    )
+                        contentColor = if (ThemeState.isDark) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onBackground
+                        }
+                    ),
+                    onClick = {
+                        navController.popBackStack()
+                    }
                 ) {
                     Icon(
+                        modifier = Modifier
+                            .padding(4.dp),
                         imageVector = Icons.Filled.KeyboardArrowLeft,
                         contentDescription = "Back"
                     )

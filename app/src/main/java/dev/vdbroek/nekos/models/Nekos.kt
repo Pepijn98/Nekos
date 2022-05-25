@@ -28,6 +28,11 @@ data class Neko(
     fun getThumbnailUrl(): String = "https://nekos.moe/thumbnail/$id"
 }
 
+data class TagsResponse(
+    val options: Any?,
+    val tags: ArrayList<String>
+)
+
 data class NekosResponse(
     val images: MutableList<Neko>
 )

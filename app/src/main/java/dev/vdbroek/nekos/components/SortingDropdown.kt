@@ -8,7 +8,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import dev.vdbroek.nekos.api.NekosRequestState
@@ -24,9 +23,6 @@ object SortingDropdownState {
 fun SortingDropdown(
     modifier: Modifier = Modifier
 ) {
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp.dp
-
     val items = listOf(
         "newest",
         "likes",
@@ -37,7 +33,7 @@ fun SortingDropdown(
     DropdownMenu(
         modifier = modifier,
         expanded = SortingDropdownState.expanded,
-        offset = DpOffset((screenWidth - 150.dp), -(50.dp)),
+        offset = DpOffset(36.dp, (-16).dp),
         onDismissRequest = {
             SortingDropdownState.expanded = false
         }
