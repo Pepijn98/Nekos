@@ -31,6 +31,7 @@ import dev.vdbroek.nekos.components.RoundedTextField
 import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
 import dev.vdbroek.nekos.ui.Screens
+import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.IS_LOGGED_IN
 import dev.vdbroek.nekos.utils.TOKEN
@@ -252,7 +253,7 @@ fun Login(
                         .align(Alignment.CenterHorizontally)
                         .border(
                             width = 1.dp,
-                            color = MaterialTheme.colorScheme.onBackground,
+                            color = if (ThemeState.isDark) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
                             shape = CircleShape
                         ),
                     onClick = {
@@ -260,7 +261,7 @@ fun Login(
                     },
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = Color.Transparent,
-                        contentColor = MaterialTheme.colorScheme.onBackground
+                        contentColor = if (ThemeState.isDark) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
                     )
                 ) {
                     Icon(

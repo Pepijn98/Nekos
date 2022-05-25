@@ -23,6 +23,7 @@ import dev.vdbroek.nekos.api.User
 import dev.vdbroek.nekos.components.RoundedTextField
 import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
+import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.App
 import kotlinx.coroutines.launch
 
@@ -299,7 +300,7 @@ fun Register(
                         .align(Alignment.CenterHorizontally)
                         .border(
                             width = 1.dp,
-                            color = MaterialTheme.colorScheme.onBackground,
+                            color = if (ThemeState.isDark) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground,
                             shape = CircleShape
                         ),
                     onClick = {
@@ -307,7 +308,7 @@ fun Register(
                     },
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = Color.Transparent,
-                        contentColor = MaterialTheme.colorScheme.onBackground
+                        contentColor = if (ThemeState.isDark) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
                     )
                 ) {
                     Icon(
