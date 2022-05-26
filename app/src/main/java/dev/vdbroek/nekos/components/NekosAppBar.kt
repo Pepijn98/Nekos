@@ -80,7 +80,7 @@ fun NekosAppBar(
                     }
                 }
                 Screens.Settings.route,
-                Screens.PostInfo.route -> {
+                Screens.Post.route -> {
                     IconButton(
                         modifier = Modifier
                             .road(

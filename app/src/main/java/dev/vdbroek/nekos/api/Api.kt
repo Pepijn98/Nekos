@@ -7,8 +7,10 @@ import dev.vdbroek.nekos.models.HttpException
 import dev.vdbroek.nekos.utils.Response
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import okhttp3.OkHttpClient
 
 open class Api {
+    val client = OkHttpClient()
     val coroutine = CoroutineScope(Dispatchers.IO)
 
     fun <T> handleException(exception: FuelError?, label: String = "UNKNOWN"): Response<T?, Exception> {

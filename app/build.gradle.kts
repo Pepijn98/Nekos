@@ -133,6 +133,7 @@ dependencies {
     implementation("com.github.kittinunf.fuel:fuel-android:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-gson:2.3.1")
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
 
     // Loading network images
     implementation("com.github.bumptech.glide:glide:4.13.2")

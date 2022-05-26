@@ -1,8 +1,8 @@
 package dev.vdbroek.nekos.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,36 +14,36 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.toMutableStateList
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.accompanist.flowlayout.FlowRow
+import dev.vdbroek.nekos.api.RelationshipType
+import dev.vdbroek.nekos.api.User
 import dev.vdbroek.nekos.api.UserRequestState
+import dev.vdbroek.nekos.api.UserState
+import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.ZoomableNetworkImage
+import dev.vdbroek.nekos.components.showCustomSnackbar
 import dev.vdbroek.nekos.models.Neko
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.imageShape
 import dev.vdbroek.nekos.utils.App
-import io.iamjosephmj.flinger.flings.flingBehavior
-import me.onebone.toolbar.CollapsingToolbarState
-import me.onebone.toolbar.ExperimentalToolbarApi
+import dev.vdbroek.nekos.utils.rememberMutableStateOf
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalToolbarApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PostInfo(
-    toolbarState: CollapsingToolbarState,
+fun Post(
     navController: NavHostController,
     data: Neko
 ) {
@@ -51,13 +51,32 @@ fun PostInfo(
 
     val groupedTags = data.tags.chunked(3)
     val scrollState = rememberLazyListState()
+    val coroutine = rememberCoroutineScope()
 
-    val config = LocalConfiguration.current
+    var liked by rememberMutableStateOf(false)
+    var favorited by rememberMutableStateOf(false)
 
-    LaunchedEffect(key1 = true) {
-        toolbarState.expand()
-        toolbarState.scrollBy((config.screenHeightDp.toFloat()))
-//        scrollState.scrollBy(-(config.screenHeightDp.toFloat()))
+    var likeCount by rememberMutableStateOf(data.likes)
+    var favoriteCount by rememberMutableStateOf(data.favorites)
+
+    if (UserState.isLoggedIn) {
+        LaunchedEffect(key1 = true) {
+            val (response, exception) = User.getMe()
+            when {
+                response != null -> {
+                    liked = response.user.likes.contains(data.id)
+                    favorited = response.user.favorites.contains(data.id)
+                }
+                exception != null -> {
+                    App.snackbarHost.showCustomSnackbar(
+                        message = exception.message ?: "Could not retrieve user data",
+                        actionLabel = "x",
+                        withDismissAction = true,
+                        snackbarType = SnackbarType.DANGER
+                    )
+                }
+            }
+        }
     }
 
     LazyColumn(
@@ -88,49 +107,132 @@ fun PostInfo(
                 modifier = Modifier
                     .padding(start = 16.dp, top = 8.dp)
             ) {
-                Button(
-                    modifier = Modifier
-                        .padding(end = 4.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = NekoColors.like,
-                        contentColor = Color.White
-                    ),
-                    onClick = {
-                        // TODO: Like
-                    }
-                ) {
-                    Icon(
+                // -LIKE
+                if (liked) {
+                    Button(
                         modifier = Modifier
-                            .padding(end = 2.dp),
-                        imageVector = Icons.Filled.ThumbUp,
-                        contentDescription = "Like button"
-                    )
-                    Text(
-                        text = "${data.likes} Likes",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                            .padding(end = 4.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = NekoColors.like,
+                            contentColor = Color.White
+                        ),
+                        onClick = {
+                            coroutine.launch {
+                                val (success) = User.patchRelationship(data.id, RelationshipType.Like.value, false)
+                                if (success == true) {
+                                    liked = false
+                                    likeCount--
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .padding(end = 2.dp),
+                            imageVector = Icons.Filled.ThumbUp,
+                            contentDescription = "Unlike button"
+                        )
+                        Text(
+                            text = "$likeCount Likes",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                } else {
+                    OutlinedButton(
+                        modifier = Modifier
+                            .padding(end = 4.dp),
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = NekoColors.like
+                        ),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = NekoColors.like
+                        ),
+                        onClick = {
+                            coroutine.launch {
+                                val (success) = User.patchRelationship(data.id, RelationshipType.Like.value, true)
+                                if (success == true) {
+                                    liked = true
+                                    likeCount++
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .padding(end = 2.dp),
+                            imageVector = Icons.Filled.ThumbUp,
+                            contentDescription = "Like button"
+                        )
+                        Text(
+                            text = "$likeCount Likes",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
                 }
-                Button(
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = NekoColors.favorite,
-                        contentColor = Color.White
-                    ),
-                    onClick = {
-                        // TODO: Favorite
+
+                // -FAVORITE
+                if (favorited) {
+                    Button(
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = NekoColors.favorite,
+                            contentColor = Color.White
+                        ),
+                        onClick = {
+                            coroutine.launch {
+                                val (success) = User.patchRelationship(data.id, RelationshipType.Favorite.value, false)
+                                if (success == true) {
+                                    favorited = false
+                                    favoriteCount--
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .padding(end = 2.dp),
+                            imageVector = Icons.Filled.Favorite,
+                            contentDescription = "Unfavorite button"
+                        )
+                        Text(
+                            text = "$favoriteCount Favorites",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium
+                        )
                     }
-                ) {
-                    Icon(
-                        modifier = Modifier
-                            .padding(end = 2.dp),
-                        imageVector = Icons.Filled.Favorite,
-                        contentDescription = "Favorite button"
-                    )
-                    Text(
-                        text = "${data.favorites} Favorites",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                } else {
+                    OutlinedButton(
+                        border = BorderStroke(
+                            width = 1.dp,
+                            color = NekoColors.favorite
+                        ),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = NekoColors.favorite
+                        ),
+                        onClick = {
+                            coroutine.launch {
+                                val (success) = User.patchRelationship(data.id, RelationshipType.Favorite.value, true)
+                                if (success == true) {
+                                    favorited = true
+                                    favoriteCount++
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .padding(end = 2.dp),
+                            imageVector = Icons.Filled.Favorite,
+                            contentDescription = "Favorite button"
+                        )
+                        Text(
+                            text = "$favoriteCount Favorites",
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
                 }
             }
         }

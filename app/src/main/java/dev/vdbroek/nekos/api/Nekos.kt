@@ -112,7 +112,7 @@ object Nekos : Api() {
     }
 
     suspend fun getTags(): Response<TagsResponse?, Exception?> {
-        val (_, response, result) = coroutine.async {
+        val (_, _, result) = coroutine.async {
             return@async "/tags".httpGet()
                 .header(mapOf("Content-Type" to "application/json"))
                 .responseString()
@@ -121,7 +121,7 @@ object Nekos : Api() {
         val (data, exception) = result
         return when (result) {
             is Result.Success -> {
-                if (data != null || response.statusCode == 201) {
+                if (data != null) {
                     Response(Gson().fromJson(data, TagsResponse::class.java), null)
                 } else {
                     Response(null, Exception("[GET_TAGS]: Invalid response from API"))

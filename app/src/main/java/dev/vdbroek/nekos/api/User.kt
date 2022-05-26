@@ -1,17 +1,14 @@
 package dev.vdbroek.nekos.api
 
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.toMutableStateList
+import com.github.kittinunf.fuel.core.FuelError
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPost
 import com.github.kittinunf.result.Result
 import com.google.gson.Gson
-import dev.vdbroek.nekos.components.SnackbarType
-import dev.vdbroek.nekos.components.showCustomSnackbar
 import dev.vdbroek.nekos.models.EndException
 import dev.vdbroek.nekos.models.LoginResponse
 import dev.vdbroek.nekos.models.NekosResponse
@@ -19,7 +16,15 @@ import dev.vdbroek.nekos.models.UserResponse
 import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.Response
 import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
+import okhttp3.Headers
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+
+sealed class RelationshipType(val value: String) {
+    object Like : RelationshipType("like")
+    object Favorite : RelationshipType("favorite")
+}
 
 object UserRequestState {
     var end by mutableStateOf(false)
@@ -31,37 +36,8 @@ object UserRequestState {
 
 object UserState {
     var isLoggedIn by mutableStateOf(false)
-    var isBusy by mutableStateOf(false)
     var token by mutableStateOf<String?>(null)
     var username by mutableStateOf<String?>(null)
-
-    suspend fun signIn(snackbarHost: SnackbarHostState, username: String, password: String) {
-        isBusy = true
-        val (data, exception) = User.authenticate(username, password)
-        when {
-            data != null -> {
-                token = data.token
-                isLoggedIn = true
-            }
-            exception != null -> {
-                snackbarHost.showCustomSnackbar(
-                    message = exception.message ?: "Authentication Faild",
-                    actionLabel = "X",
-                    withDismissAction = true,
-                    snackbarType = SnackbarType.DANGER,
-                    duration = SnackbarDuration.Long
-                )
-            }
-        }
-        isBusy = false
-    }
-
-    suspend fun signOut() {
-        isBusy = true
-        delay(2000)
-        isLoggedIn = false
-        isBusy = false
-    }
 }
 
 object User : Api() {
@@ -211,6 +187,53 @@ object User : Api() {
             }
             is Result.Failure -> {
                 return handleException(exception)
+            }
+        }
+    }
+
+    suspend fun patchRelationship(image: String, type: String, create: Boolean): Response<Boolean?, Exception?> {
+        if (!UserState.isLoggedIn || UserState.token.isNullOrBlank()) return Response(null, Exception("[PATCH]: Not logged in"))
+
+        val jsonBody = "{\"type\": \"$type\", \"create\": $create}"
+            .toRequestBody("application/json".toMediaTypeOrNull())
+
+        val request = Request.Builder()
+            .url("${App.baseUrl}/image/$image/relationship")
+            .headers(
+                Headers.Builder()
+                    .add("Authorization", UserState.token!!)
+                    .add("User-Agent", App.userAgent)
+                    .add("Content-Type", "application/json;charset=utf-8")
+                    .build()
+            )
+            .patch(jsonBody)
+            .build()
+
+        @Suppress("BlockingMethodInNonBlockingContext")
+        val result = coroutine.async {
+            return@async try {
+                val response = client.newCall(request)
+                    .execute()
+                    .also {
+                        it.close()
+                    }
+                if (response.isSuccessful && response.code in 200..204) {
+                    Result.success(true)
+                } else {
+                    Result.error(FuelError.wrap(Exception("Invalid response from API")))
+                }
+            } catch (e: Exception) {
+                Result.error(FuelError.wrap(e))
+            }
+        }.await()
+
+        val (data, exception) = result
+        return when (result) {
+            is Result.Success -> {
+                Response(data, null)
+            }
+            is Result.Failure -> {
+                handleException(exception, "PATCH")
             }
         }
     }

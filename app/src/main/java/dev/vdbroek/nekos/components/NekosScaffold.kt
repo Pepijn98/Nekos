@@ -32,14 +32,14 @@ fun NekosScaffold(
     currentRoute: String
 ) {
     val coroutine = rememberCoroutineScope()
-    
+
     Scaffold(
         contentColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (
                 currentRoute == Screens.Login.route ||
                 currentRoute == Screens.Register.route ||
-                currentRoute == Screens.PostInfo.route
+                currentRoute == Screens.Post.route
             ) return@Scaffold
 
             NavigationBar {
@@ -144,7 +144,7 @@ fun NekosScaffold(
                 }
             )
         },
-    ) { padding -> 
+    ) { padding ->
         Box(modifier = Modifier.padding(padding))
     }
 }
