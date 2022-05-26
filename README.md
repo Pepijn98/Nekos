@@ -3,9 +3,9 @@ Mobile app for https://nekos.moe \
 Requires Android 9+
 
 ## Download
-From the playstore: \
+**Playstore:** \
 [![play-store][playstore]](https://play.google.com/store/apps/details?id=dev.vdbroek.nekos) \
-APK: https://github.com/Pepijn98/Nekos/releases/latest
+**APK:** https://github.com/Pepijn98/Nekos/releases/latest
 
 ## Website
 [vdbroek.dev](https://vdbroek.dev)
