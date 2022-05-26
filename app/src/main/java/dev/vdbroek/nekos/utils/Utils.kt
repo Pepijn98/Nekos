@@ -100,6 +100,14 @@ fun <T> SnapshotStateList<T>.copy() = mutableStateListOf<T>().also { it.addAll(t
  */
 fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
 
+@Composable
+fun <T> rememberMutableStateOf(
+    value: T,
+    policy: SnapshotMutationPolicy<T> = structuralEqualityPolicy()
+): MutableState<T> = remember {
+    mutableStateOf(value, policy)
+}
+
 object App {
     const val baseUrl = "https://nekos.moe/api/v1"
 

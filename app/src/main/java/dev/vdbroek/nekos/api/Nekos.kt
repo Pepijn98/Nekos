@@ -38,18 +38,9 @@ object NekosRequestState {
                         addAll(response.images.filter { !it.tags.contains(App.buggedTag) })
                     }
                 }
-                exception != null && exception is EndException -> {
-                    App.snackbarHost.showCustomSnackbar(
-                        message = exception.message,
-                        actionLabel = "x",
-                        withDismissAction = true,
-                        snackbarType = SnackbarType.INFO,
-                        duration = SnackbarDuration.Short
-                    )
-                }
                 exception != null -> {
                     App.snackbarHost.showCustomSnackbar(
-                        message = exception.message ?: "Failed to fetch more images",
+                        message = exception.message ?: "Failed to fetch images",
                         actionLabel = "x",
                         withDismissAction = true,
                         snackbarType = SnackbarType.DANGER,

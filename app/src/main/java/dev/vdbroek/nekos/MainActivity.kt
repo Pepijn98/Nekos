@@ -11,22 +11,28 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.gson.Gson
-import dev.vdbroek.nekos.components.Alert
-import dev.vdbroek.nekos.components.NekosAppBar
-import dev.vdbroek.nekos.components.NekosNavBar
-import dev.vdbroek.nekos.components.isActive
+import dev.vdbroek.nekos.api.Nekos
+import dev.vdbroek.nekos.api.NekosRequestState
+import dev.vdbroek.nekos.components.*
 import dev.vdbroek.nekos.models.Neko
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.screens.*
@@ -35,6 +41,8 @@ import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.LocalActivity
 import dev.vdbroek.nekos.utils.dataStore
+import dev.vdbroek.nekos.utils.rememberMutableStateOf
+import kotlinx.coroutines.launch
 
 @Composable
 fun EnterAnimation(content: @Composable () -> Unit) {
@@ -65,6 +73,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
+            val coroutine = rememberCoroutineScope()
             val navController = rememberNavController()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute by remember { derivedStateOf { navBackStackEntry?.destination?.route } }
@@ -125,15 +134,63 @@ class MainActivity : ComponentActivity() {
                             composable(
                                 route = Screens.Home.route
                             ) {
+                                val refreshState = rememberMutableStateOf(false)
+                                val swipeRefreshState = rememberSwipeRefreshState(refreshState.value)
+
                                 EnterAnimation {
-                                    NekosAppBar(
-                                        navController = navController,
-                                        dataStore = dataStore,
-                                        route = currentRoute
+                                    SwipeRefresh(
+                                        state = swipeRefreshState,
+                                        indicatorPadding = PaddingValues(
+                                            top = 108.dp
+                                        ),
+                                        indicator = { state, trigger ->
+                                            SwipeRefreshIndicator(
+                                                state = state,
+                                                refreshTriggerDistance = trigger,
+                                                scale = true,
+                                                backgroundColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                                shape = CircleShape,
+                                            )
+                                        },
+                                        onRefresh = {
+                                            refreshState.value = true
+                                            NekosRequestState.apply {
+                                                end = false
+                                                skip = 0
+                                            }
+                                            coroutine.launch {
+                                                val (response, exception) = Nekos.getImages()
+                                                when {
+                                                    response != null -> {
+                                                        HomeScreenState.images.apply {
+                                                            clear()
+                                                            addAll(response.images.filter { !it.tags.contains(App.buggedTag) })
+                                                        }
+                                                        refreshState.value = false
+                                                    }
+                                                    exception != null -> {
+                                                        App.snackbarHost.showCustomSnackbar(
+                                                            message = exception.message ?: "Failed to fetch images",
+                                                            actionLabel = "x",
+                                                            withDismissAction = true,
+                                                            snackbarType = SnackbarType.DANGER,
+                                                            duration = SnackbarDuration.Long
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
                                     ) {
-                                        Home(
-                                            navController = navController
-                                        )
+                                        NekosAppBar(
+                                            navController = navController,
+                                            dataStore = dataStore,
+                                            route = currentRoute
+                                        ) {
+                                            Home(
+                                                navController = navController
+                                            )
+                                        }
                                     }
                                 }
                             }
