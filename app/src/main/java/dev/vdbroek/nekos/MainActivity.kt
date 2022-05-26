@@ -1,11 +1,15 @@
 package dev.vdbroek.nekos
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.WindowInsetsController
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
@@ -62,9 +66,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
+            val launcher = rememberLauncherForActivityResult(
+                contract = ActivityResultContracts.RequestPermission()
+            ) { granted ->
+                App.permissionGranted = granted
+            }
+
             val navController = rememberNavController()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute by remember { derivedStateOf { navBackStackEntry?.destination?.route } }
+
+            LaunchedEffect(key1 = true) {
+                if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                } else {
+                    App.permissionGranted = true
+                }
+            }
 
             CompositionLocalProvider(LocalActivity provides this) {
                 NekosTheme {

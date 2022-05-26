@@ -1,18 +1,20 @@
 package dev.vdbroek.nekos.ui.screens
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.Drawable
+import android.os.Build
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.ThumbUp
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,11 +22,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.accompanist.flowlayout.FlowRow
 import dev.vdbroek.nekos.api.RelationshipType
 import dev.vdbroek.nekos.api.User
@@ -38,8 +47,18 @@ import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.imageShape
 import dev.vdbroek.nekos.utils.App
+import dev.vdbroek.nekos.utils.App.saveImageBitmap
+import dev.vdbroek.nekos.utils.App.saveImageBitmap29
 import dev.vdbroek.nekos.utils.rememberMutableStateOf
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+
+enum class LoadingState {
+    LOADING,
+    FAILED,
+    SUCCESS,
+    NONE
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,6 +67,18 @@ fun Post(
     data: Neko
 ) {
     App.screenTitle = "Post Info"
+
+    val context = LocalContext.current
+
+    var loadingState by rememberMutableStateOf(LoadingState.NONE)
+    val infiniteTransition = rememberInfiniteTransition()
+    val angle by infiniteTransition.animateFloat(
+        initialValue = 0F,
+        targetValue = 360F,
+        animationSpec = infiniteRepeatable(
+            animation = tween(2000, easing = LinearEasing)
+        )
+    )
 
     val groupedTags = data.tags.chunked(3)
     val scrollState = rememberLazyListState()
@@ -118,10 +149,20 @@ fun Post(
                         ),
                         onClick = {
                             coroutine.launch {
-                                val (success) = User.patchRelationship(data.id, RelationshipType.Like.value, false)
-                                if (success == true) {
-                                    liked = false
-                                    likeCount--
+                                val (success, exception) = User.patchRelationship(data.id, RelationshipType.Like.value, false)
+                                when {
+                                    success == true -> {
+                                        liked = false
+                                        likeCount--
+                                    }
+                                    exception != null -> {
+                                        App.snackbarHost.showCustomSnackbar(
+                                            message = exception.message ?: "Failed removing like",
+                                            actionLabel = "x",
+                                            withDismissAction = true,
+                                            snackbarType = SnackbarType.DANGER
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -151,10 +192,20 @@ fun Post(
                         ),
                         onClick = {
                             coroutine.launch {
-                                val (success) = User.patchRelationship(data.id, RelationshipType.Like.value, true)
-                                if (success == true) {
-                                    liked = true
-                                    likeCount++
+                                val (success, exception) = User.patchRelationship(data.id, RelationshipType.Like.value, true)
+                                when {
+                                    success == true -> {
+                                        liked = true
+                                        likeCount++
+                                    }
+                                    exception != null -> {
+                                        App.snackbarHost.showCustomSnackbar(
+                                            message = exception.message ?: "Failed adding like",
+                                            actionLabel = "x",
+                                            withDismissAction = true,
+                                            snackbarType = SnackbarType.DANGER
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -182,10 +233,20 @@ fun Post(
                         ),
                         onClick = {
                             coroutine.launch {
-                                val (success) = User.patchRelationship(data.id, RelationshipType.Favorite.value, false)
-                                if (success == true) {
-                                    favorited = false
-                                    favoriteCount--
+                                val (success, exception) = User.patchRelationship(data.id, RelationshipType.Favorite.value, false)
+                                when {
+                                    success == true -> {
+                                        favorited = false
+                                        favoriteCount--
+                                    }
+                                    exception != null -> {
+                                        App.snackbarHost.showCustomSnackbar(
+                                            message = exception.message ?: "Failed removing favorite",
+                                            actionLabel = "x",
+                                            withDismissAction = true,
+                                            snackbarType = SnackbarType.DANGER
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -213,10 +274,20 @@ fun Post(
                         ),
                         onClick = {
                             coroutine.launch {
-                                val (success) = User.patchRelationship(data.id, RelationshipType.Favorite.value, true)
-                                if (success == true) {
-                                    favorited = true
-                                    favoriteCount++
+                                val (success, exception) = User.patchRelationship(data.id, RelationshipType.Favorite.value, true)
+                                when {
+                                    success == true -> {
+                                        favorited = true
+                                        favoriteCount++
+                                    }
+                                    exception != null -> {
+                                        App.snackbarHost.showCustomSnackbar(
+                                            message = exception.message ?: "Failed adding favorite",
+                                            actionLabel = "x",
+                                            withDismissAction = true,
+                                            snackbarType = SnackbarType.DANGER
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -232,6 +303,96 @@ fun Post(
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.titleMedium
                         )
+                    }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(end = 12.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    val modifier = Modifier
+                        .graphicsLayer {
+                            rotationZ = angle
+                        }
+
+                    FilledIconButton(
+                        modifier = if (loadingState == LoadingState.LOADING) modifier else Modifier,
+                        shape = CircleShape,
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        ),
+                        onClick = {
+                            if (loadingState == LoadingState.NONE && App.permissionGranted) {
+                                Glide.with(context)
+                                    .asBitmap()
+                                    .load(data.getImageUrl())
+                                    .into(object : CustomTarget<Bitmap>() {
+                                        override fun onLoadCleared(p: Drawable?) {
+                                            loadingState = LoadingState.LOADING
+                                        }
+
+                                        override fun onLoadFailed(errorDrawable: Drawable?) {
+                                            loadingState = LoadingState.FAILED
+                                        }
+
+                                        override fun onResourceReady(resource: Bitmap, transition: Transition<in Bitmap>?) {
+                                            try {
+                                                val success = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                                    context.saveImageBitmap29(resource, data.id)
+                                                } else {
+                                                    context.saveImageBitmap(resource, data.id)
+                                                }
+
+                                                loadingState = if (success) {
+                                                    LoadingState.SUCCESS
+                                                } else {
+                                                    LoadingState.FAILED
+                                                }
+                                            } catch (e: Exception) {
+                                                loadingState = LoadingState.FAILED
+                                                coroutine.launch {
+                                                    App.snackbarHost.showCustomSnackbar(
+                                                        message = e.message ?: "Failed downloading image",
+                                                        actionLabel = "x",
+                                                        withDismissAction = true,
+                                                        snackbarType = SnackbarType.DANGER
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    })
+                            }
+                        }
+                    ) {
+                        when (loadingState) {
+                            LoadingState.LOADING -> {
+                                Icon(
+                                    imageVector = Icons.Filled.Autorenew,
+                                    contentDescription = "Downloading image"
+                                )
+                            }
+                            LoadingState.FAILED -> {
+                                Icon(
+                                    imageVector = Icons.Filled.Close,
+                                    contentDescription = "Failed downloading image"
+                                )
+                            }
+                            LoadingState.SUCCESS -> {
+                                Icon(
+                                    imageVector = Icons.Filled.Done,
+                                    contentDescription = "Success downloading image"
+                                )
+                            }
+                            else -> {
+                                Icon(
+                                    imageVector = Icons.Filled.Save,
+                                    contentDescription = "Save image"
+                                )
+                            }
+                        }
                     }
                 }
             }

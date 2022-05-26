@@ -1,8 +1,15 @@
 package dev.vdbroek.nekos.utils
 
+import android.content.ContentValues
 import android.content.Context
+import android.graphics.Bitmap
+import android.media.MediaScannerConnection
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.text.format.DateUtils
 import androidx.activity.ComponentActivity
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -22,10 +29,13 @@ import androidx.datastore.preferences.preferencesDataStore
 import io.iamjosephmj.flinger.configs.FlingConfiguration
 import io.iamjosephmj.flinger.flings.flingBehavior
 import me.onebone.toolbar.CollapsingToolbarState
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.ln
 import kotlin.math.min
+
 
 val LocalActivity = staticCompositionLocalOf<ComponentActivity> {
     error("CompositionLocal LocalActivity not present")
@@ -111,6 +121,7 @@ fun <T> rememberMutableStateOf(
 object App {
     const val baseUrl = "https://nekos.moe/api/v1"
 
+    var permissionGranted by mutableStateOf(false)
     var screenTitle by mutableStateOf("")
     val snackbarHost = SnackbarHostState()
 
@@ -205,5 +216,64 @@ object App {
         val percentAvailable = 100f * (1f - used.toFloat() / available)
 
         return percentAvailable <= 5.0f
+    }
+
+    fun Context.saveImageBitmap(image: Bitmap, id: String): Boolean {
+        val mediaStorage = File("${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM)}${File.separator}Nekos${File.separator}")
+        if (!mediaStorage.exists()) {
+            mediaStorage.mkdirs()
+        }
+
+        val file = File(mediaStorage, "$id.jpg").also {
+            it.createNewFile()
+        }
+        val fos = FileOutputStream(file)
+
+        return image
+            .compress(Bitmap.CompressFormat.JPEG, 100, fos)
+            .also {
+                MediaScannerConnection.scanFile(this, arrayOf(file.toString()), arrayOf(file.name), null)
+                fos.flush()
+                fos.close()
+            }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    fun Context.saveImageBitmap29(image: Bitmap, id: String): Boolean {
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, id)
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Nekos")
+        }
+        val uri = contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values) ?: return false
+        val fos = contentResolver.openOutputStream(uri) ?: return false
+
+        return image
+            .compress(Bitmap.CompressFormat.JPEG, 100, fos)
+            .also {
+                fos.flush()
+                fos.close()
+            }
+
+//        val root = Environment.getExternalStorageDirectory().toString()
+//        println(root)
+//        val myDir = File(root, "/nekos")
+//        println(myDir)
+//        if (!myDir.exists()) {
+//            myDir.mkdirs()
+//        }
+//
+//        val fname = "Neko-$id.jpg"
+//        val file = File(myDir, fname)
+//        println(file)
+//        if (file.exists()) {
+//            file.delete()
+//        }
+//
+//        file.createNewFile() // if file already exists will do nothing
+//        val out = FileOutputStream(file)
+//        image.compress(Bitmap.CompressFormat.JPEG, 100, out)
+//        out.flush()
+//        out.close()
     }
 }
