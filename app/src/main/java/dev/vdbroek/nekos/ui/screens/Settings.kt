@@ -169,49 +169,51 @@ fun Settings() {
                 }
             }
 
-            Text(
-                modifier = Modifier.padding(start = 24.dp),
-                text = "Miscellaneous",
-                color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Divider(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-            Column {
-                Row(
+            if (App.uncensored) {
+                Text(
+                    modifier = Modifier.padding(start = 24.dp),
+                    text = "Miscellaneous",
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.headlineSmall
+                )
+                Divider(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            App.nsfw = !App.nsfw
-                            coroutine.launch {
-                                context.dataStore.edit { it[NSFW] = App.nsfw }
-                                updateImages()
-                            }
-                        }
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+                Column {
+                    Row(
                         modifier = Modifier
-                            .padding(all = 8.dp),
-                        checked = App.nsfw,
-                        onCheckedChange = { value ->
-                            App.nsfw = value
-                            coroutine.launch {
-                                context.dataStore.edit { it[NSFW] = value }
-                                updateImages()
+                            .fillMaxWidth()
+                            .clickable {
+                                App.nsfw = !App.nsfw
+                                coroutine.launch {
+                                    context.dataStore.edit { it[NSFW] = App.nsfw }
+                                    updateImages()
+                                }
                             }
-                        },
-                        colors = CheckboxDefaults.colors()
-                    )
-                    Text(
-                        modifier = Modifier
-                            .padding(start = 4.dp),
-                        text = "NSFW",
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            modifier = Modifier
+                                .padding(all = 8.dp),
+                            checked = App.nsfw,
+                            onCheckedChange = { value ->
+                                App.nsfw = value
+                                coroutine.launch {
+                                    context.dataStore.edit { it[NSFW] = value }
+                                    updateImages()
+                                }
+                            },
+                            colors = CheckboxDefaults.colors()
+                        )
+                        Text(
+                            modifier = Modifier
+                                .padding(start = 4.dp),
+                            text = "NSFW",
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
                 }
             }
         }
