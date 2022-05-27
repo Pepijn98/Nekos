@@ -58,19 +58,21 @@ class MainActivity : ComponentActivity() {
         FuelManager.instance.baseHeaders = mapOf("User-Agent" to App.userAgent)
 
         lifecycleScope.launchWhenCreated {
-            dataStore.data
-                .first()
-                .also {
-                    ThemeState.isDark = it[IS_DARK] ?: true
-                    ThemeState.manual = it[MANUAL] ?: false
-                    ThemeState.staggered = it[STAGGERED] ?: false
+            val prefs = dataStore.data.first()
 
-                    UserState.isLoggedIn = it[IS_LOGGED_IN] ?: false
-                    if (UserState.isLoggedIn) {
-                        UserState.token = it[TOKEN]
-                        UserState.username = it[USERNAME]
-                    }
-                }
+            ThemeState.isDark = prefs[IS_DARK] ?: true
+            ThemeState.manual = prefs[MANUAL] ?: false
+            ThemeState.staggered = prefs[STAGGERED] ?: false
+
+            UserState.isLoggedIn = prefs[IS_LOGGED_IN] ?: false
+            if (UserState.isLoggedIn) {
+                UserState.token = prefs[TOKEN]
+                UserState.username = prefs[USERNAME]
+            }
+
+            if (App.uncensored) {
+                App.nsfw = prefs[NSFW] ?: false
+            }
 
             val (tagsResponse) = Nekos.getTags()
             if (tagsResponse != null) {

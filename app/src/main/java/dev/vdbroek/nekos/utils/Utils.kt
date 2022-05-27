@@ -15,6 +15,7 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -25,12 +26,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import dev.vdbroek.nekos.BuildConfig
 import io.iamjosephmj.flinger.configs.FlingConfiguration
 import io.iamjosephmj.flinger.flings.flingBehavior
 import me.onebone.toolbar.CollapsingToolbarState
@@ -54,7 +57,7 @@ val Int.px: Float @Composable get() = with(LocalDensity.current) { this@px.dp.to
 /**
  * Simple data store for key, value pairs
  */
-val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = if (App.uncensored) "nekos-uncensored-settings" else "nekos-settings")
 
 /**
  * Dim color
@@ -143,6 +146,12 @@ fun <T> rememberMutableStateOf(
 object App {
     const val baseUrl = "https://nekos.moe/api/v1"
 
+    /**
+     * Uncensored build version (only on github)
+     */
+    const val uncensored = BuildConfig.BUILD_TYPE == "uncensored"
+
+    var nsfw by mutableStateOf(false)
     var permissionGranted by mutableStateOf(false)
     var screenTitle by mutableStateOf("")
     val snackbarHost = SnackbarHostState()
@@ -156,8 +165,8 @@ object App {
 
     val tags = mutableStateListOf<String>()
     const val defaultSort = "newest"
-    const val buggedTag = "off-shoulder shirt"
-    val defaultTags = listOf(
+    val buggedTag = if (uncensored) "" else "off-shoulder shirt"
+    val defaultTags = if (uncensored) listOf() else listOf(
         "-bare shoulders",
         "-bikini",
         "-crop top",

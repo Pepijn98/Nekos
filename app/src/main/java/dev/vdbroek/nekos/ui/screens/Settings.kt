@@ -2,6 +2,7 @@ package dev.vdbroek.nekos.ui.screens
 
 import android.content.Intent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
@@ -25,10 +26,16 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import dev.vdbroek.nekos.MainActivity
+import dev.vdbroek.nekos.api.Nekos
+import dev.vdbroek.nekos.api.NekosRequestState
+import dev.vdbroek.nekos.components.HtmlText
+import dev.vdbroek.nekos.components.SnackbarType
+import dev.vdbroek.nekos.components.showCustomSnackbar
 import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.*
 import kotlinx.coroutines.launch
+import java.util.*
 
 private var openStaggeredWarning by mutableStateOf(false)
 
@@ -64,66 +71,86 @@ fun Settings() {
     }
     var selectedLayoutOption by remember { mutableStateOf(defaultLayoutOption) }
 
-    Column {
-        Text(
-            modifier = Modifier.padding(start = 24.dp),
-            text = "Theme",
-            color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.headlineSmall
-        )
-        Divider(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+    ) {
         Column {
-            themeOptions.forEach { text ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .selectable(
-                            selected = text == selectedThemeOption,
+            Text(
+                modifier = Modifier.padding(start = 24.dp),
+                text = "Theme",
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Divider(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            Column {
+                themeOptions.forEach { text ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectable(
+                                selected = text == selectedThemeOption,
+                                onClick = {
+                                    selectedThemeOption = text
+                                    coroutine.launch { changeTheme(text, isSystemInDarkTheme, context.dataStore) }
+                                }
+                            )
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            modifier = Modifier.padding(all = Dp(value = 8F)),
+                            selected = (text == selectedThemeOption),
                             onClick = {
                                 selectedThemeOption = text
                                 coroutine.launch { changeTheme(text, isSystemInDarkTheme, context.dataStore) }
                             }
                         )
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RadioButton(
-                        modifier = Modifier.padding(all = Dp(value = 8F)),
-                        selected = (text == selectedThemeOption),
-                        onClick = {
-                            selectedThemeOption = text
-                            coroutine.launch { changeTheme(text, isSystemInDarkTheme, context.dataStore) }
-                        }
-                    )
-                    Text(
-                        modifier = Modifier.padding(start = 4.dp),
-                        text = text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() },
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
+                        Text(
+                            modifier = Modifier.padding(start = 4.dp),
+                            text = text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() },
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
                 }
             }
-        }
 
-        Text(
-            modifier = Modifier.padding(start = 24.dp),
-            text = "Layout",
-            color = MaterialTheme.colorScheme.onBackground,
-            style = MaterialTheme.typography.headlineSmall
-        )
-        Divider(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        )
-        Column {
-            layoutOptions.forEach { text ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .selectable(
-                            selected = text == selectedLayoutOption,
+            Text(
+                modifier = Modifier.padding(start = 24.dp),
+                text = "Layout",
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Divider(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            Column {
+                layoutOptions.forEach { text ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectable(
+                                selected = text == selectedLayoutOption,
+                                onClick = {
+                                    if (text == "staggered") {
+                                        openStaggeredWarning = true
+                                    } else {
+                                        selectedLayoutOption = text
+                                        coroutine.launch { changeLayout(text, context.dataStore) }
+                                    }
+                                }
+                            )
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            modifier = Modifier
+                                .padding(all = 8.dp),
+                            selected = (text == selectedLayoutOption),
                             onClick = {
                                 if (text == "staggered") {
                                     openStaggeredWarning = true
@@ -133,35 +160,86 @@ fun Settings() {
                                 }
                             }
                         )
+                        Text(
+                            modifier = Modifier.padding(start = 4.dp),
+                            text = text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() },
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                }
+            }
+
+            Text(
+                modifier = Modifier.padding(start = 24.dp),
+                text = "Miscellaneous",
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Divider(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            App.nsfw = !App.nsfw
+                            coroutine.launch {
+                                context.dataStore.edit { it[NSFW] = App.nsfw }
+                                updateImages()
+                            }
+                        }
                         .padding(horizontal = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    RadioButton(
-                        modifier = Modifier.padding(all = Dp(value = 8F)),
-                        selected = (text == selectedLayoutOption),
-                        onClick = {
-                            if (text == "staggered") {
-                                openStaggeredWarning = true
-                            } else {
-                                selectedLayoutOption = text
-                                coroutine.launch { changeLayout(text, context.dataStore) }
+                    Checkbox(
+                        modifier = Modifier
+                            .padding(all = 8.dp),
+                        checked = App.nsfw,
+                        onCheckedChange = { value ->
+                            App.nsfw = value
+                            coroutine.launch {
+                                context.dataStore.edit { it[NSFW] = value }
+                                updateImages()
                             }
-                        }
+                        },
+                        colors = CheckboxDefaults.colors()
                     )
                     Text(
-                        modifier = Modifier.padding(start = 4.dp),
-                        text = text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() },
+                        modifier = Modifier
+                            .padding(start = 4.dp),
+                        text = "NSFW",
                         color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 100.dp)
+                .fillMaxWidth()
+        ) {
+            val year = Calendar.getInstance().get(Calendar.YEAR)
+            HtmlText(
+                modifier = Modifier
+                    .align(Alignment.Center),
+                html = """
+                    <p>© $year — <a href="https://vdbroek.dev">Pepijn</a> | v${App.version} (${App.versionCode})<br/>
+                    Made possible with <a href="https://nekos.moe">nekos.moe</a><br/></p>
+                    """.trimIndent()
+            )
         }
     }
 
     // TODO : Move Dialog to components/dialog as StaggeredWarningDialog
     if (openStaggeredWarning) {
         Dialog(
-            onDismissRequest = { openStaggeredWarning = false }
+            onDismissRequest = {
+                openStaggeredWarning = false
+            }
         ) {
             Card(
                 shape = RoundedCornerShape(10.dp),
@@ -242,7 +320,6 @@ fun Settings() {
     }
 }
 
-// TODO : Move functions to utils/Utils.kt in App
 suspend fun changeTheme(
     theme: String,
     isSystemInDarkTheme: Boolean,
@@ -284,5 +361,28 @@ suspend fun changeLayout(
 
     dataStore.edit { preferences ->
         preferences[STAGGERED] = ThemeState.staggered
+    }
+}
+
+suspend fun updateImages() {
+    HomeScreenState.images.clear()
+    NekosRequestState.apply {
+        end = false
+        skip = 0
+    }
+
+    val (response, exception) = Nekos.getImages()
+    when {
+        response != null -> {
+            HomeScreenState.images.addAll(response.images)
+        }
+        exception != null -> {
+            App.snackbarHost.showCustomSnackbar(
+                message = exception.message ?: "Failed requesting images",
+                actionLabel = "x",
+                withDismissAction = true,
+                snackbarType = SnackbarType.DANGER
+            )
+        }
     }
 }

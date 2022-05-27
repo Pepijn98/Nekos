@@ -29,8 +29,6 @@ sealed class RelationshipType(val value: String) {
 object UserRequestState {
     var end by mutableStateOf(false)
     var skip by mutableStateOf(0)
-
-    //    var tags = mutableStateListOf<String>()
     var tags = App.defaultTags.toMutableStateList()
 }
 
@@ -148,7 +146,7 @@ object User : Api() {
         }
 
         val bodyData = Nekos.ImageSearchBody(
-//            nsfw = true,
+            nsfw = if (App.uncensored) App.nsfw else false,
             tags = tags,
             skip = UserRequestState.skip,
             sort = "newest",

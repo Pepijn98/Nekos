@@ -34,6 +34,15 @@ android {
         }
     }
 
+    signingConfigs {
+        create("default") {
+            storeFile = file(System.getenv("NEKOS_KEYSTORE"))
+            storePassword = System.getenv("NEKOS_KEYSTORE_PASS")
+            keyAlias = System.getenv("NEKOS_KEYSTORE_ALIAS")
+            keyPassword = System.getenv("NEKOS_KEYSTORE_PASS")
+        }
+    }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
@@ -42,19 +51,21 @@ android {
             isJniDebuggable = false
             isRenderscriptDebuggable = false
             isPseudoLocalesEnabled = false
+            signingConfig = signingConfigs.getByName("default")
 
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
 
-        create("beta") {
-            versionNameSuffix = "-BETA"
-            applicationIdSuffix = ".beta"
+        create("uncensored") {
+            versionNameSuffix = "-UNCENSORED"
+            applicationIdSuffix = ".uncensored"
             isShrinkResources = false
             isMinifyEnabled = false
-            isDebuggable = false
-            isJniDebuggable = false
-            isRenderscriptDebuggable = false
+            isDebuggable = true
+            isJniDebuggable = true
+            isRenderscriptDebuggable = true
             isPseudoLocalesEnabled = false
+            signingConfig = signingConfigs.getByName("default")
 
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
@@ -66,8 +77,9 @@ android {
             isMinifyEnabled = false
             isDebuggable = true // Set to false whenever publishing debug app to play console otherwise the AAB/APK will show as not signed.
             isJniDebuggable = true
-            isRenderscriptDebuggable = true // Set to false whenever publishing debug app to play console otherwise the AAB/APK will show as not signed.
+            isRenderscriptDebuggable = true
             isPseudoLocalesEnabled = false
+            signingConfig = signingConfigs.getByName("default")
 
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }

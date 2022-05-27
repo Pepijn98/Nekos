@@ -26,8 +26,6 @@ import kotlin.properties.Delegates
 object NekosRequestState {
     var end by mutableStateOf(false)
     var skip by mutableStateOf(0)
-
-    //    var tags = mutableStateListOf<String>()
     var tags = App.defaultTags.toMutableStateList()
     var sort by Delegates.observable("newest") { _, _, _ ->
         // Clear current loaded images and request new ones with the updated sorting option
@@ -79,7 +77,7 @@ object Nekos : Api() {
         }
 
         val bodyData = ImageSearchBody(
-//            nsfw = true,
+            nsfw = if (App.uncensored) App.nsfw else false,
             tags = tags,
             skip = NekosRequestState.skip,
             sort = NekosRequestState.sort
