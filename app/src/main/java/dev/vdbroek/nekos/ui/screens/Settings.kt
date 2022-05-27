@@ -24,7 +24,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import dev.vdbroek.nekos.SplashActivity
+import dev.vdbroek.nekos.MainActivity
 import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.*
@@ -34,13 +34,12 @@ private var openStaggeredWarning by mutableStateOf(false)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Settings(
-    dataStore: DataStore<Preferences>
-) {
+fun Settings() {
     App.screenTitle = "Settings"
 
     val activity = LocalActivity.current
     val context = LocalContext.current
+
     val locale = context.resources.configuration.locales[0]
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val coroutine = rememberCoroutineScope()
@@ -85,7 +84,7 @@ fun Settings(
                             selected = text == selectedThemeOption,
                             onClick = {
                                 selectedThemeOption = text
-                                coroutine.launch { changeTheme(text, isSystemInDarkTheme, dataStore) }
+                                coroutine.launch { changeTheme(text, isSystemInDarkTheme, context.dataStore) }
                             }
                         )
                         .padding(horizontal = 16.dp),
@@ -96,7 +95,7 @@ fun Settings(
                         selected = (text == selectedThemeOption),
                         onClick = {
                             selectedThemeOption = text
-                            coroutine.launch { changeTheme(text, isSystemInDarkTheme, dataStore) }
+                            coroutine.launch { changeTheme(text, isSystemInDarkTheme, context.dataStore) }
                         }
                     )
                     Text(
@@ -130,7 +129,7 @@ fun Settings(
                                     openStaggeredWarning = true
                                 } else {
                                     selectedLayoutOption = text
-                                    coroutine.launch { changeLayout(text, dataStore) }
+                                    coroutine.launch { changeLayout(text, context.dataStore) }
                                 }
                             }
                         )
@@ -145,7 +144,7 @@ fun Settings(
                                 openStaggeredWarning = true
                             } else {
                                 selectedLayoutOption = text
-                                coroutine.launch { changeLayout(text, dataStore) }
+                                coroutine.launch { changeLayout(text, context.dataStore) }
                             }
                         }
                     )
@@ -222,13 +221,13 @@ fun Settings(
                         }
                         TextButton(onClick = {
                             selectedLayoutOption = layoutOptions[1]
-                            coroutine.launch { changeLayout(layoutOptions[1], dataStore) }
+                            coroutine.launch { changeLayout(layoutOptions[1], context.dataStore) }
                             openStaggeredWarning = false
 
                             // Restart app
-                            val splashActivity = Intent(context, SplashActivity::class.java)
+                            val mainActivity = Intent(context, MainActivity::class.java)
                             activity.finish()
-                            activity.startActivity(splashActivity)
+                            activity.startActivity(mainActivity)
                         }) {
                             Text(
                                 text = "I Understand",

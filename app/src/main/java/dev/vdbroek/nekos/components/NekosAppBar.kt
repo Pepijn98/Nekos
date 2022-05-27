@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.core.DataStore
@@ -23,20 +24,18 @@ import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.screens.ProfileScreenState
 import dev.vdbroek.nekos.ui.screens.UserScreenState
-import dev.vdbroek.nekos.utils.App
-import dev.vdbroek.nekos.utils.IS_LOGGED_IN
-import dev.vdbroek.nekos.utils.TOKEN
-import dev.vdbroek.nekos.utils.USERNAME
+import dev.vdbroek.nekos.utils.*
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.*
 
 @Composable
 fun NekosAppBar(
     navController: NavHostController,
-    dataStore: DataStore<Preferences>,
     route: String?,
     body: @Composable (CollapsingToolbarScaffoldScope.(CollapsingToolbarState) -> Unit)
 ) {
+    val context = LocalContext.current
+
     val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
     val coroutine = rememberCoroutineScope()
     val toolbarState by remember { derivedStateOf { toolbarScaffoldState.toolbarState } }
@@ -156,7 +155,7 @@ fun NekosAppBar(
                             }
 
                             coroutine.launch {
-                                dataStore.edit { preferences ->
+                                context.dataStore.edit { preferences ->
                                     preferences[IS_LOGGED_IN] = false
                                     preferences[TOKEN] = ""
                                     preferences[USERNAME] = ""

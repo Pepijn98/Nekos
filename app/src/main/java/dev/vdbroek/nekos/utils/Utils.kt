@@ -10,6 +10,11 @@ import android.provider.MediaStore
 import android.text.format.DateUtils
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -109,6 +114,23 @@ fun <T> SnapshotStateList<T>.copy() = mutableStateListOf<T>().also { it.addAll(t
  * Capitalize string (defaults to Locale.ROOT)
  */
 fun String.capitalize() = replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
+
+@Composable
+fun EnterAnimation(content: @Composable () -> Unit) {
+    AnimatedVisibility(
+        visibleState = remember {
+            MutableTransitionState(
+                initialState = false
+            )
+        }.apply {
+            targetState = true
+        },
+        enter = fadeIn(animationSpec = tween(200), initialAlpha = 0.3f),
+        exit = fadeOut(animationSpec = tween(200))
+    ) {
+        content()
+    }
+}
 
 @Composable
 fun <T> rememberMutableStateOf(
@@ -254,26 +276,5 @@ object App {
                 fos.flush()
                 fos.close()
             }
-
-//        val root = Environment.getExternalStorageDirectory().toString()
-//        println(root)
-//        val myDir = File(root, "/nekos")
-//        println(myDir)
-//        if (!myDir.exists()) {
-//            myDir.mkdirs()
-//        }
-//
-//        val fname = "Neko-$id.jpg"
-//        val file = File(myDir, fname)
-//        println(file)
-//        if (file.exists()) {
-//            file.delete()
-//        }
-//
-//        file.createNewFile() // if file already exists will do nothing
-//        val out = FileOutputStream(file)
-//        image.compress(Bitmap.CompressFormat.JPEG, 100, out)
-//        out.flush()
-//        out.close()
     }
 }

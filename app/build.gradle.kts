@@ -7,7 +7,7 @@ plugins {
 object Versions {
     private const val versionMajor = 2
     private const val versionMinor = 0
-    private const val versionPatch = 0
+    private const val versionPatch = 1
 
     const val minSdk = 28
     const val targetSdk = 32
@@ -27,8 +27,8 @@ android {
         targetSdk = Versions.targetSdk
         versionCode = Versions.generateVersionCode()
         versionName = Versions.generateVersionName()
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -36,21 +36,19 @@ android {
 
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = true
-            isShrinkResources = true
-
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-
+            isMinifyEnabled = false
+            isShrinkResources = false
             isDebuggable = false
             isJniDebuggable = false
             isRenderscriptDebuggable = false
             isPseudoLocalesEnabled = false
+
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
 
         create("beta") {
             versionNameSuffix = "-BETA"
             applicationIdSuffix = ".beta"
-
             isShrinkResources = false
             isMinifyEnabled = false
             isDebuggable = false
@@ -64,13 +62,14 @@ android {
         getByName("debug") {
             versionNameSuffix = "-DEBUG"
             applicationIdSuffix = ".debug"
-
             isShrinkResources = false
             isMinifyEnabled = false
             isDebuggable = true // Set to false whenever publishing debug app to play console otherwise the AAB/APK will show as not signed.
             isJniDebuggable = true
-            isRenderscriptDebuggable = true
+            isRenderscriptDebuggable = true // Set to false whenever publishing debug app to play console otherwise the AAB/APK will show as not signed.
             isPseudoLocalesEnabled = false
+
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 

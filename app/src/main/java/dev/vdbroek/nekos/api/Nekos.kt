@@ -11,7 +11,9 @@ import com.github.kittinunf.result.Result
 import com.google.gson.Gson
 import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
-import dev.vdbroek.nekos.models.*
+import dev.vdbroek.nekos.models.EndException
+import dev.vdbroek.nekos.models.NekosResponse
+import dev.vdbroek.nekos.models.TagsResponse
 import dev.vdbroek.nekos.ui.screens.HomeScreenState
 import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.Response
@@ -24,6 +26,7 @@ import kotlin.properties.Delegates
 object NekosRequestState {
     var end by mutableStateOf(false)
     var skip by mutableStateOf(0)
+
     //    var tags = mutableStateListOf<String>()
     var tags = App.defaultTags.toMutableStateList()
     var sort by Delegates.observable("newest") { _, _, _ ->

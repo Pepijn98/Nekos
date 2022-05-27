@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -32,19 +33,17 @@ import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.ThemeState
-import dev.vdbroek.nekos.utils.App
-import dev.vdbroek.nekos.utils.IS_LOGGED_IN
-import dev.vdbroek.nekos.utils.TOKEN
-import dev.vdbroek.nekos.utils.USERNAME
+import dev.vdbroek.nekos.utils.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Login(
-    dataStore: DataStore<Preferences>,
     navController: NavHostController
 ) {
     App.screenTitle = "Login"
+
+    val context = LocalContext.current
 
     val coroutine = rememberCoroutineScope()
 
@@ -203,7 +202,7 @@ fun Login(
                                         userData != null -> {
                                             UserState.username = userData.user.username
 
-                                            dataStore.edit { preferences ->
+                                            context.dataStore.edit { preferences ->
                                                 preferences[TOKEN] = UserState.token ?: ""
                                                 preferences[USERNAME] = UserState.username ?: ""
                                                 preferences[IS_LOGGED_IN] = UserState.isLoggedIn
