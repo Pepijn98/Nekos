@@ -5,6 +5,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,11 +28,12 @@ private val noNavBar = listOf(
 @Composable
 fun NekosAppContent() {
     val navController = LocalNavigation.current
+    val current by LocalScreen.current
 
     Scaffold(
         contentColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            if (!noNavBar.contains(LocalScreen.current)) {
+            if (!noNavBar.contains(current)) {
                 NekosNavBar()
             }
         },

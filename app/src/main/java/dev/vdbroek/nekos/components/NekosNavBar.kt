@@ -15,10 +15,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
+import androidx.navigation.compose.currentBackStackEntryAsState
 import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.utils.App
@@ -31,7 +29,7 @@ import me.onebone.toolbar.ExperimentalToolbarApi
 @Composable
 fun NekosNavBar() {
     val navController = LocalNavigation.current
-    val screen = LocalScreen.current
+    val screen by LocalScreen.current
 
     val coroutine = rememberCoroutineScope()
 

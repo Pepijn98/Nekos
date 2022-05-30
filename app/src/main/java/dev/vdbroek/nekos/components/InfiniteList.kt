@@ -1,5 +1,6 @@
 package dev.vdbroek.nekos.components
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.*
@@ -165,7 +166,10 @@ fun InfiniteListHandler(
             .distinctUntilChanged()
             .collect {
                 // Only load more when true
-                if (it) onLoadMore()
+                if (!App.initialLoad && App.isReady && it) {
+                    Log.e("LOAD_MORE", "$it")
+                    onLoadMore()
+                }
             }
     }
 }

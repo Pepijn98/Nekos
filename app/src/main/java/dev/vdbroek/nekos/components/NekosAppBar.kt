@@ -31,6 +31,7 @@ fun NekosAppBar(
 ) {
     val navigation = LocalNavigation.current
     val context = LocalContext.current
+    val current by LocalScreen.current
 
     val coroutine = rememberCoroutineScope()
     val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
@@ -50,7 +51,7 @@ fun NekosAppBar(
                     .height(100.dp)
                     .parallax(ratio = 0.2f)
             )
-            when (LocalScreen.current) {
+            when (current) {
                 Screens.Home.route -> {
                     Box(
                         modifier = Modifier

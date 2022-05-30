@@ -74,13 +74,20 @@ fun Settings(
     val contentOptions = listOf("everything", "no_nsfw", "only_nsfw")
     var selectedContentOption by remember { mutableStateOf(App.nsfw) }
 
-    Column(
-        modifier = Modifier
+    val modifier = if (App.uncensored) {
+        Modifier
             .fillMaxSize()
             .scrollable(
                 state = toolbarState,
                 orientation = Orientation.Vertical
             )
+    } else {
+        Modifier
+            .fillMaxSize()
+    }
+
+    Column(
+        modifier = modifier
     ) {
         Text(
             modifier = Modifier.padding(start = 24.dp),
@@ -350,9 +357,9 @@ suspend fun changeTheme(
         }
     }
 
-    dataStore.edit { preferences ->
-        preferences[MANUAL] = ThemeState.manual
-        preferences[IS_DARK] = ThemeState.isDark
+    dataStore.edit { prefs ->
+        prefs[MANUAL] = ThemeState.manual
+        prefs[IS_DARK] = ThemeState.isDark
     }
 }
 
@@ -369,8 +376,8 @@ suspend fun changeLayout(
         }
     }
 
-    dataStore.edit { preferences ->
-        preferences[STAGGERED] = ThemeState.staggered
+    dataStore.edit { prefs ->
+        prefs[STAGGERED] = ThemeState.staggered
     }
 }
 

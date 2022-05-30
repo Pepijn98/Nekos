@@ -7,7 +7,7 @@ val IS_DARK = booleanPreferencesKey("is_dark")
 val MANUAL = booleanPreferencesKey("manual")
 val STAGGERED = booleanPreferencesKey("staggered")
 val NSFW = stringPreferencesKey("nsfw")
-
+val READY = booleanPreferencesKey("ready")
 val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
 val TOKEN = stringPreferencesKey("token")
 val USERNAME = stringPreferencesKey("username")

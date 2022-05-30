@@ -53,7 +53,7 @@ val LocalNavigation = staticCompositionLocalOf<NavHostController> {
     error("CompositionLocal LocalNavigation not present")
 }
 
-val LocalScreen = staticCompositionLocalOf<String> {
+val LocalScreen = staticCompositionLocalOf<State<String>> {
     error("CompositionLocal LocalScreen not present")
 }
 
@@ -172,6 +172,9 @@ object App {
      * Uncensored build version (only on github)
      */
     const val uncensored = BuildConfig.BUILD_TYPE == "uncensored"
+
+    var isReady by mutableStateOf(false)
+    var initialLoad by mutableStateOf(true)
 
     const val defaultNsfw = "no_nsfw"
     var nsfw by mutableStateOf(defaultNsfw)

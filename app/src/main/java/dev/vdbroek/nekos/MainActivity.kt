@@ -74,18 +74,23 @@ class MainActivity : ComponentActivity() {
                 UserState.username = prefs[USERNAME]
             }
 
+            App.isReady = prefs[READY] ?: true
+
             val (tagsResponse) = Nekos.getTags()
             if (tagsResponse != null) {
                 App.tags.addAll(tagsResponse.tags)
             }
 
-            val (response, exception) = Nekos.getImages()
-            when {
-                response != null -> {
-                    HomeScreenState.images.addAll(if (App.uncensored) response.images else response.images.filter { !it.tags.contains(App.buggedTag) })
-                    isSplashActive = false
+            if (App.isReady) {
+                val (response, exception) = Nekos.getImages()
+                when {
+                    response != null -> {
+                        HomeScreenState.images.addAll(if (App.uncensored) response.images else response.images.filter { !it.tags.contains(App.buggedTag) })
+                        isSplashActive = false
+                        App.initialLoad = false
+                    }
+                    exception != null -> finish()
                 }
-                exception != null -> finish()
             }
         }
 
@@ -106,16 +111,17 @@ class MainActivity : ComponentActivity() {
 
             val navigation = rememberNavController()
             val entry by navigation.currentBackStackEntryAsState()
-            val screen by remember { derivedStateOf { entry?.destination?.route ?: "" } }
+            val screen = remember { derivedStateOf { entry?.destination?.route ?: "" } }
 
             CompositionLocalProvider(
                 LocalActivity provides this,
                 LocalNavigation provides navigation,
                 LocalScreen provides screen
             ) {
-
                 NekosTheme {
-                    when (LocalScreen.current) {
+                    val current by LocalScreen.current
+
+                    when (current) {
                         Screens.Login.route,
                         Screens.Register.route -> {
                             window.statusBarColor = MaterialTheme.colorScheme.primary.toArgb()
