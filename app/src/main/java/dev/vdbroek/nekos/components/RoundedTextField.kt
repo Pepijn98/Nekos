@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
@@ -33,6 +34,7 @@ fun RoundedTextField(
     text: String,
     placeholder: String,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     counter: Boolean = false,
     maxChar: Int = 10,
     isPassword: Boolean = false,
@@ -74,6 +76,7 @@ fun RoundedTextField(
                     )
                 },
                 keyboardOptions = keyboardOptions,
+                keyboardActions = keyboardActions,
                 visualTransformation = if (!pwVisible && isPassword) {
                     PasswordVisualTransformation()
                 } else {

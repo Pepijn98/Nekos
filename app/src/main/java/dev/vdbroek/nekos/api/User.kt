@@ -146,7 +146,7 @@ object User : Api() {
         }
 
         val bodyData = Nekos.ImageSearchBody(
-            nsfw = if (App.uncensored) App.nsfw else false,
+            nsfw = if (App.uncensored && App.nsfw) null else false,
             tags = tags,
             skip = UserRequestState.skip,
             sort = "newest",

@@ -31,8 +31,8 @@ import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.imageShape
 import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.LocalNavigation
-import dev.vdbroek.nekos.utils.LocalToolbar
 import kotlinx.coroutines.launch
+import me.onebone.toolbar.CollapsingToolbarState
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -44,11 +44,12 @@ object ProfileScreenState {
 }
 
 @Composable
-fun Profile() {
+fun Profile(
+    toolbarState: CollapsingToolbarState
+) {
     App.screenTitle = UserState.username ?: "Profile"
 
     val navigation = LocalNavigation.current
-    val toolbarHost = LocalToolbar.current
     val coroutine = rememberCoroutineScope()
 
     BackHandler {
@@ -111,7 +112,7 @@ fun Profile() {
     Column(
         Modifier
             .scrollable(
-                state = toolbarHost.toolbarState,
+                state = toolbarState,
                 orientation = Orientation.Vertical
             )
     ) {

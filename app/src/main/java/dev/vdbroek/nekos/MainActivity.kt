@@ -112,8 +112,7 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(
                 LocalActivity provides this,
                 LocalNavigation provides navigation,
-                LocalScreen provides screen,
-                LocalToolbar provides ToolbarScaffoldHost(rememberCollapsingToolbarScaffoldState())
+                LocalScreen provides screen
             ) {
 
                 NekosTheme {

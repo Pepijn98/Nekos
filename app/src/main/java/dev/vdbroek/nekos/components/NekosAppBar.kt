@@ -9,9 +9,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.toMutableStateList
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -25,26 +23,25 @@ import dev.vdbroek.nekos.ui.screens.ProfileScreenState
 import dev.vdbroek.nekos.ui.screens.UserScreenState
 import dev.vdbroek.nekos.utils.*
 import kotlinx.coroutines.launch
-import me.onebone.toolbar.CollapsingToolbarScaffold
-import me.onebone.toolbar.CollapsingToolbarScaffoldScope
-import me.onebone.toolbar.ScrollStrategy
+import me.onebone.toolbar.*
 
 @Composable
 fun NekosAppBar(
-    body: @Composable (CollapsingToolbarScaffoldScope.() -> Unit)
+    body: @Composable ((CollapsingToolbarState) -> Unit)
 ) {
     val navigation = LocalNavigation.current
-    val toolbarHost = LocalToolbar.current
     val context = LocalContext.current
 
     val coroutine = rememberCoroutineScope()
+    val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
+    val toolbarState by remember { derivedStateOf { toolbarScaffoldState.toolbarState } }
 
-    App.globalToolbarState = toolbarHost.toolbarState
+    App.globalToolbarState = toolbarState
 
     CollapsingToolbarScaffold(
         modifier = Modifier
             .fillMaxSize(),
-        state = toolbarHost.scaffoldState,
+        state = toolbarScaffoldState,
         scrollStrategy = ScrollStrategy.EnterAlwaysCollapsed,
         toolbar = {
             Box(
@@ -208,10 +205,10 @@ fun NekosAppBar(
                         whenExpanded = Alignment.BottomStart
                     ),
                 text = App.screenTitle,
-                fontSize = (MaterialTheme.typography.headlineLarge.fontSize.value + (30 - 18) * toolbarHost.toolbarState.progress).sp,
+                fontSize = (MaterialTheme.typography.headlineLarge.fontSize.value + (30 - 18) * toolbarState.progress).sp,
                 color = MaterialTheme.colorScheme.onBackground
             )
         },
-        body = body
+        body = { body(toolbarState) }
     )
 }

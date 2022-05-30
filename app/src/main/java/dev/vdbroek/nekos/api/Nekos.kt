@@ -55,7 +55,7 @@ object NekosRequestState {
 
 object Nekos : Api() {
     data class ImageSearchBody(
-        val nsfw: Boolean = false,
+        val nsfw: Boolean? = false,
         val tags: List<String>,
         val limit: Int = 30,
         val skip: Int,
@@ -77,7 +77,7 @@ object Nekos : Api() {
         }
 
         val bodyData = ImageSearchBody(
-            nsfw = if (App.uncensored) App.nsfw else false,
+            nsfw = if (App.uncensored && App.nsfw) null else false,
             tags = tags,
             skip = NekosRequestState.skip,
             sort = NekosRequestState.sort

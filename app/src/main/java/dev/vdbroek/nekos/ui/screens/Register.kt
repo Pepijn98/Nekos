@@ -6,16 +6,23 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import dev.vdbroek.nekos.api.User
@@ -25,25 +32,126 @@ import dev.vdbroek.nekos.components.showCustomSnackbar
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.LocalNavigation
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+private object RegisterState {
+    var email by mutableStateOf("")
+    var username by mutableStateOf("")
+    var password by mutableStateOf("")
+    var confirmPassword by mutableStateOf("")
+
+    var emailError by mutableStateOf(false)
+    var usernameError by mutableStateOf(false)
+    var passwordError by mutableStateOf(false)
+    var confirmPasswordError by mutableStateOf(false)
+}
+
+private fun register() {
+    val coroutine = CoroutineScope(Dispatchers.Default)
+    coroutine.launch {
+        if (RegisterState.emailError) {
+            App.snackbarHost.showCustomSnackbar(
+                message = "Invalid email address",
+                actionLabel = "x",
+                withDismissAction = true,
+                snackbarType = SnackbarType.WARNING,
+                duration = SnackbarDuration.Short
+            )
+            return@launch
+        }
+
+        if (RegisterState.usernameError) {
+            App.snackbarHost.showCustomSnackbar(
+                message = "Invalid username",
+                actionLabel = "x",
+                withDismissAction = true,
+                snackbarType = SnackbarType.WARNING,
+                duration = SnackbarDuration.Short
+            )
+            return@launch
+        }
+
+        if (RegisterState.passwordError) {
+            App.snackbarHost.showCustomSnackbar(
+                message = "Invalid password",
+                actionLabel = "x",
+                withDismissAction = true,
+                snackbarType = SnackbarType.WARNING,
+                duration = SnackbarDuration.Short
+            )
+            return@launch
+        }
+
+        if (RegisterState.confirmPasswordError) {
+            App.snackbarHost.showCustomSnackbar(
+                message = "Invalid password confirmation",
+                actionLabel = "x",
+                withDismissAction = true,
+                snackbarType = SnackbarType.WARNING,
+                duration = SnackbarDuration.Short
+            )
+            return@launch
+        }
+
+        if (
+            RegisterState.email.isBlank() ||
+            RegisterState.username.isBlank() ||
+            RegisterState.password.isBlank() ||
+            RegisterState.confirmPassword.isBlank()
+        ) {
+            App.snackbarHost.showCustomSnackbar(
+                message = "One or more required fields are blank",
+                actionLabel = "x",
+                withDismissAction = true,
+                snackbarType = SnackbarType.WARNING,
+                duration = SnackbarDuration.Short
+            )
+            return@launch
+        }
+
+        val (message, exception) = User.register(
+            email = RegisterState.email,
+            username = RegisterState.username,
+            password = RegisterState.password
+        )
+
+        when {
+            message != null -> {
+                RegisterState.apply {
+                    email = ""
+                    username = ""
+                    password = ""
+                    confirmPassword = ""
+                }
+
+                App.snackbarHost.showCustomSnackbar(
+                    message = message,
+                    actionLabel = "x",
+                    withDismissAction = true,
+                    snackbarType = SnackbarType.INFO
+                )
+            }
+            exception != null -> {
+                App.snackbarHost.showCustomSnackbar(
+                    message = exception.message ?: "Failed to register",
+                    actionLabel = "x",
+                    withDismissAction = true,
+                    snackbarType = SnackbarType.DANGER
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun Register() {
     App.screenTitle = "Register"
 
+    val keyboard = LocalSoftwareKeyboardController.current
     val navigation = LocalNavigation.current
-    val coroutine = rememberCoroutineScope()
-
-    var email by remember { mutableStateOf("") }
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-
-    var emailError by remember { mutableStateOf(false) }
-    var usernameError by remember { mutableStateOf(false) }
-    var passwordError by remember { mutableStateOf(false) }
-    var confirmPasswordError by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -93,13 +201,14 @@ fun Register() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 2.dp),
-                text = email,
+                text = RegisterState.email,
                 placeholder = "Email",
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next
                 ),
                 counter = true,
-                isError = emailError,
+                isError = RegisterState.emailError,
                 maxChar = App.maxEmailChars,
                 icon = {
                     Icon(
@@ -109,8 +218,10 @@ fun Register() {
                 }
             ) {
                 if (it.length <= App.maxEmailChars) {
-                    email = it
-                    emailError = !App.validateEmail(it)
+                    RegisterState.apply {
+                        email = it
+                        emailError = !App.validateEmail(it)
+                    }
                 }
             }
 
@@ -118,10 +229,14 @@ fun Register() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 2.dp),
-                text = username,
+                text = RegisterState.username,
                 placeholder = "Username",
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
                 counter = true,
-                isError = usernameError,
+                isError = RegisterState.usernameError,
                 maxChar = App.maxUsernameChars,
                 icon = {
                     Icon(
@@ -131,8 +246,10 @@ fun Register() {
                 }
             ) {
                 if (it.length <= App.maxUsernameChars) {
-                    username = it
-                    usernameError = !App.validateUsername(it)
+                    RegisterState.apply {
+                        username = it
+                        usernameError = !App.validateUsername(it)
+                    }
                 }
             }
 
@@ -140,13 +257,14 @@ fun Register() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 2.dp),
-                text = password,
+                text = RegisterState.password,
                 placeholder = "Password",
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Next
                 ),
                 counter = true,
-                isError = passwordError,
+                isError = RegisterState.passwordError,
                 maxChar = App.maxPasswordChars,
                 isPassword = true,
                 icon = {
@@ -157,8 +275,10 @@ fun Register() {
                 }
             ) {
                 if (it.length <= App.maxPasswordChars) {
-                    password = it
-                    passwordError = !App.validatePassword(it)
+                    RegisterState.apply {
+                        password = it
+                        passwordError = !App.validatePassword(it)
+                    }
                 }
             }
 
@@ -166,13 +286,20 @@ fun Register() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 2.dp),
-                text = confirmPassword,
+                text = RegisterState.confirmPassword,
                 placeholder = "Confirm Password",
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        keyboard?.hide()
+                        register()
+                    }
                 ),
                 counter = true,
-                isError = confirmPasswordError,
+                isError = RegisterState.confirmPasswordError,
                 maxChar = App.maxPasswordChars,
                 isPassword = true,
                 icon = {
@@ -183,8 +310,10 @@ fun Register() {
                 }
             ) {
                 if (it.length <= App.maxPasswordChars) {
-                    confirmPassword = it
-                    confirmPasswordError = !App.validatePassword(it) || confirmPassword != password
+                    RegisterState.apply {
+                        confirmPassword = it
+                        confirmPasswordError = !App.validatePassword(it) || confirmPassword != password
+                    }
                 }
             }
             // -END: INPUT
@@ -198,97 +327,7 @@ fun Register() {
                         .fillMaxWidth(),
                     shape = CircleShape,
                     onClick = {
-                        coroutine.launch {
-                            if (emailError) {
-                                App.snackbarHost.showCustomSnackbar(
-                                    message = "Invalid email address",
-                                    actionLabel = "x",
-                                    withDismissAction = true,
-                                    snackbarType = SnackbarType.WARNING,
-                                    duration = SnackbarDuration.Short
-                                )
-                                return@launch
-                            }
-
-                            if (usernameError) {
-                                App.snackbarHost.showCustomSnackbar(
-                                    message = "Invalid username",
-                                    actionLabel = "x",
-                                    withDismissAction = true,
-                                    snackbarType = SnackbarType.WARNING,
-                                    duration = SnackbarDuration.Short
-                                )
-                                return@launch
-                            }
-
-                            if (passwordError) {
-                                App.snackbarHost.showCustomSnackbar(
-                                    message = "Invalid password",
-                                    actionLabel = "x",
-                                    withDismissAction = true,
-                                    snackbarType = SnackbarType.WARNING,
-                                    duration = SnackbarDuration.Short
-                                )
-                                return@launch
-                            }
-
-                            if (confirmPasswordError) {
-                                App.snackbarHost.showCustomSnackbar(
-                                    message = "Invalid password confirmation",
-                                    actionLabel = "x",
-                                    withDismissAction = true,
-                                    snackbarType = SnackbarType.WARNING,
-                                    duration = SnackbarDuration.Short
-                                )
-                                return@launch
-                            }
-
-                            if (
-                                email.isBlank() ||
-                                username.isBlank() ||
-                                password.isBlank() ||
-                                confirmPassword.isBlank()
-                            ) {
-                                App.snackbarHost.showCustomSnackbar(
-                                    message = "One or more required fields are blank",
-                                    actionLabel = "x",
-                                    withDismissAction = true,
-                                    snackbarType = SnackbarType.WARNING,
-                                    duration = SnackbarDuration.Short
-                                )
-                                return@launch
-                            }
-
-                            val (message, exception) = User.register(
-                                email = email,
-                                username = username,
-                                password = password
-                            )
-
-                            when {
-                                message != null -> {
-                                    email = ""
-                                    username = ""
-                                    password = ""
-                                    confirmPassword = ""
-
-                                    App.snackbarHost.showCustomSnackbar(
-                                        message = message,
-                                        actionLabel = "x",
-                                        withDismissAction = true,
-                                        snackbarType = SnackbarType.INFO
-                                    )
-                                }
-                                exception != null -> {
-                                    App.snackbarHost.showCustomSnackbar(
-                                        message = exception.message ?: "Failed to register",
-                                        actionLabel = "x",
-                                        withDismissAction = true,
-                                        snackbarType = SnackbarType.DANGER
-                                    )
-                                }
-                            }
-                        }
+                        register()
                     }
                 ) {
                     Text(text = "Register")

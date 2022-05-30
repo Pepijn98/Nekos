@@ -65,7 +65,7 @@ fun NekosAppContent() {
                 val data = Gson().fromJson(jsonData, Neko::class.java)
                 EnterAnimation {
                     NekosAppBar {
-                        Post(data = data)
+                        Post(data)
                     }
                 }
             }
@@ -93,8 +93,8 @@ fun NekosAppContent() {
 
             composable(Screens.Profile.route) {
                 EnterAnimation {
-                    NekosAppBar {
-                        Profile()
+                    NekosAppBar { toolbar ->
+                        Profile(toolbar)
                     }
                 }
             }
@@ -102,8 +102,8 @@ fun NekosAppContent() {
             composable(Screens.User.route) {
                 val id = it.arguments?.getString("id") ?: return@composable
                 EnterAnimation {
-                    NekosAppBar {
-                        User(id)
+                    NekosAppBar { toolbar ->
+                        User(id, toolbar)
                     }
                 }
             }

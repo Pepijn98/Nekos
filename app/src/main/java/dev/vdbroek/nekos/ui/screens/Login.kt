@@ -1,11 +1,13 @@
 package dev.vdbroek.nekos.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -15,14 +17,18 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.edit
+import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.api.User
 import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.components.RoundedTextField
@@ -31,23 +37,110 @@ import dev.vdbroek.nekos.components.showCustomSnackbar
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+private object LoginState {
+    var username by mutableStateOf("")
+    var password by mutableStateOf("")
+
+    var usernameError by mutableStateOf(false)
+    var passwordError by mutableStateOf(false)
+}
+
+private fun login(
+    coroutine: CoroutineScope,
+    context: Context,
+    navigation: NavHostController
+) {
+    coroutine.launch {
+        if (LoginState.usernameError) {
+            App.snackbarHost.showCustomSnackbar(
+                message = "Invalid username",
+                actionLabel = "x",
+                withDismissAction = true,
+                snackbarType = SnackbarType.WARNING,
+                duration = SnackbarDuration.Short
+            )
+            return@launch
+        }
+
+        if (LoginState.passwordError) {
+            App.snackbarHost.showCustomSnackbar(
+                message = "Invalid password",
+                actionLabel = "x",
+                withDismissAction = true,
+                snackbarType = SnackbarType.WARNING,
+                duration = SnackbarDuration.Short
+            )
+            return@launch
+        }
+
+        if (LoginState.username.isBlank() || LoginState.password.isBlank()) {
+            App.snackbarHost.showCustomSnackbar(
+                message = "One or more required fields are blank",
+                actionLabel = "x",
+                withDismissAction = true,
+                snackbarType = SnackbarType.WARNING,
+                duration = SnackbarDuration.Short
+            )
+            return@launch
+        }
+
+        val (login, loginException) = User.authenticate(
+            username = LoginState.username,
+            password = LoginState.password
+        )
+        when {
+            login != null -> {
+                UserState.token = login.token
+                UserState.isLoggedIn = true
+                val (userData, userException) = User.getMe()
+                when {
+                    userData != null -> {
+                        UserState.username = userData.user.username
+
+                        context.dataStore.edit { preferences ->
+                            preferences[TOKEN] = UserState.token ?: ""
+                            preferences[USERNAME] = UserState.username ?: ""
+                            preferences[IS_LOGGED_IN] = UserState.isLoggedIn
+                        }
+
+                        navigation.backQueue.clear()
+                        navigation.navigate(Screens.Home.route)
+                    }
+                    userException != null -> {
+                        App.snackbarHost.showCustomSnackbar(
+                            message = userException.message ?: "Could not retrieve user data",
+                            actionLabel = "x",
+                            withDismissAction = true,
+                            snackbarType = SnackbarType.DANGER
+                        )
+                    }
+                }
+            }
+            loginException != null -> {
+                App.snackbarHost.showCustomSnackbar(
+                    message = loginException.message ?: "Failed to login",
+                    actionLabel = "x",
+                    withDismissAction = true,
+                    snackbarType = SnackbarType.DANGER
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun Login() {
     App.screenTitle = "Login"
 
+    val keyboard = LocalSoftwareKeyboardController.current
     val navigation = LocalNavigation.current
     val context = LocalContext.current
 
     val coroutine = rememberCoroutineScope()
-
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-
-    var usernameError by remember { mutableStateOf(false) }
-    var passwordError by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -97,10 +190,14 @@ fun Login() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 2.dp),
-                text = username,
+                text = LoginState.username,
                 placeholder = "Username",
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
                 counter = true,
-                isError = usernameError,
+                isError = LoginState.usernameError,
                 maxChar = App.maxUsernameChars,
                 icon = {
                     Icon(
@@ -110,8 +207,10 @@ fun Login() {
                 }
             ) {
                 if (it.length <= App.maxUsernameChars) {
-                    username = it
-                    usernameError = !App.validateUsername(it)
+                    LoginState.apply {
+                        username = it
+                        usernameError = !App.validateUsername(it)
+                    }
                 }
             }
 
@@ -119,13 +218,20 @@ fun Login() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 2.dp),
-                text = password,
+                text = LoginState.password,
                 placeholder = "Password",
                 keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password
+                    keyboardType = KeyboardType.Password,
+                    imeAction = ImeAction.Done
+                ),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        keyboard?.hide()
+                        login(coroutine, context, navigation)
+                    }
                 ),
                 counter = true,
-                isError = passwordError,
+                isError = LoginState.passwordError,
                 maxChar = App.maxPasswordChars,
                 isPassword = true,
                 icon = {
@@ -136,8 +242,11 @@ fun Login() {
                 }
             ) {
                 if (it.length <= App.maxPasswordChars) {
-                    password = it
-                    passwordError = !App.validatePassword(it)
+                    LoginState.apply {
+                        password = it
+                        passwordError = !App.validatePassword(it)
+
+                    }
                 }
             }
             // -END: INPUT
@@ -151,82 +260,7 @@ fun Login() {
                         .fillMaxWidth(),
                     shape = CircleShape,
                     onClick = {
-                        coroutine.launch {
-                            if (usernameError) {
-                                App.snackbarHost.showCustomSnackbar(
-                                    message = "Invalid username",
-                                    actionLabel = "x",
-                                    withDismissAction = true,
-                                    snackbarType = SnackbarType.WARNING,
-                                    duration = SnackbarDuration.Short
-                                )
-                                return@launch
-                            }
-
-                            if (passwordError) {
-                                App.snackbarHost.showCustomSnackbar(
-                                    message = "Invalid password",
-                                    actionLabel = "x",
-                                    withDismissAction = true,
-                                    snackbarType = SnackbarType.WARNING,
-                                    duration = SnackbarDuration.Short
-                                )
-                                return@launch
-                            }
-
-                            if (username.isBlank() || password.isBlank()) {
-                                App.snackbarHost.showCustomSnackbar(
-                                    message = "One or more required fields are blank",
-                                    actionLabel = "x",
-                                    withDismissAction = true,
-                                    snackbarType = SnackbarType.WARNING,
-                                    duration = SnackbarDuration.Short
-                                )
-                                return@launch
-                            }
-
-                            val (login, loginException) = User.authenticate(
-                                username = username,
-                                password = password
-                            )
-                            when {
-                                login != null -> {
-                                    UserState.token = login.token
-                                    UserState.isLoggedIn = true
-                                    val (userData, userException) = User.getMe()
-                                    when {
-                                        userData != null -> {
-                                            UserState.username = userData.user.username
-
-                                            context.dataStore.edit { preferences ->
-                                                preferences[TOKEN] = UserState.token ?: ""
-                                                preferences[USERNAME] = UserState.username ?: ""
-                                                preferences[IS_LOGGED_IN] = UserState.isLoggedIn
-                                            }
-
-                                            navigation.backQueue.clear()
-                                            navigation.navigate(Screens.Home.route)
-                                        }
-                                        userException != null -> {
-                                            App.snackbarHost.showCustomSnackbar(
-                                                message = userException.message ?: "Could not retrieve user data",
-                                                actionLabel = "x",
-                                                withDismissAction = true,
-                                                snackbarType = SnackbarType.DANGER
-                                            )
-                                        }
-                                    }
-                                }
-                                loginException != null -> {
-                                    App.snackbarHost.showCustomSnackbar(
-                                        message = loginException.message ?: "Failed to login",
-                                        actionLabel = "x",
-                                        withDismissAction = true,
-                                        snackbarType = SnackbarType.DANGER
-                                    )
-                                }
-                            }
-                        }
+                        login(coroutine, context, navigation)
                     }
                 ) {
                     Text(text = "Login")

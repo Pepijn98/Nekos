@@ -57,10 +57,6 @@ val LocalScreen = staticCompositionLocalOf<String> {
     error("CompositionLocal LocalScreen not present")
 }
 
-val LocalToolbar = staticCompositionLocalOf<ToolbarScaffoldHost> {
-    error("CompositionLocal LocalToolbar not present")
-}
-
 /**
  * Converts dp to px using LocalDensity.
  */
