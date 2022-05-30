@@ -229,7 +229,7 @@ fun Settings(
 
         Box(
             modifier = Modifier
-                .padding(top = 32.dp)
+                .padding(top = if (App.uncensored) 32.dp else 168.dp)
                 .fillMaxWidth()
         ) {
             val year = Calendar.getInstance().get(Calendar.YEAR)
