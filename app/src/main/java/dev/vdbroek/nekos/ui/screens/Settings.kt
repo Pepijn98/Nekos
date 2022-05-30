@@ -2,7 +2,8 @@ package dev.vdbroek.nekos.ui.screens
 
 import android.content.Intent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
@@ -35,13 +36,16 @@ import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.*
 import kotlinx.coroutines.launch
+import me.onebone.toolbar.CollapsingToolbarState
 import java.util.*
 
 private var openStaggeredWarning by mutableStateOf(false)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Settings() {
+fun Settings(
+    toolbarState: CollapsingToolbarState
+) {
     App.screenTitle = "Settings"
 
     val activity = LocalActivity.current
@@ -64,93 +68,79 @@ fun Settings() {
     var selectedThemeOption by remember { mutableStateOf(defaultThemeOption) }
 
     val layoutOptions = listOf("fixed", "staggered")
-    val defaultLayoutOption = if (ThemeState.staggered) {
-        layoutOptions[1]
-    } else {
-        layoutOptions[0]
-    }
+    val defaultLayoutOption = if (ThemeState.staggered) layoutOptions[1] else layoutOptions[0]
     var selectedLayoutOption by remember { mutableStateOf(defaultLayoutOption) }
 
-    Box(
+    val contentOptions = listOf("everything", "no_nsfw", "only_nsfw")
+    var selectedContentOption by remember { mutableStateOf(App.nsfw) }
+
+    Column(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .scrollable(
+                state = toolbarState,
+                orientation = Orientation.Vertical
+            )
     ) {
+        Text(
+            modifier = Modifier.padding(start = 24.dp),
+            text = "Theme",
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.headlineSmall
+        )
+        Divider(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        )
         Column {
-            Text(
-                modifier = Modifier.padding(start = 24.dp),
-                text = "Theme",
-                color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Divider(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-            Column {
-                themeOptions.forEach { text ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .selectable(
-                                selected = text == selectedThemeOption,
-                                onClick = {
-                                    selectedThemeOption = text
-                                    coroutine.launch { changeTheme(text, isSystemInDarkTheme, context.dataStore) }
-                                }
-                            )
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            modifier = Modifier.padding(all = Dp(value = 8F)),
-                            selected = (text == selectedThemeOption),
+            themeOptions.forEach { text ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .selectable(
+                            selected = text == selectedThemeOption,
                             onClick = {
                                 selectedThemeOption = text
                                 coroutine.launch { changeTheme(text, isSystemInDarkTheme, context.dataStore) }
                             }
                         )
-                        Text(
-                            modifier = Modifier.padding(start = 4.dp),
-                            text = text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() },
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        modifier = Modifier.padding(all = Dp(value = 8F)),
+                        selected = (text == selectedThemeOption),
+                        onClick = {
+                            selectedThemeOption = text
+                            coroutine.launch { changeTheme(text, isSystemInDarkTheme, context.dataStore) }
+                        }
+                    )
+                    Text(
+                        modifier = Modifier.padding(start = 4.dp),
+                        text = text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() },
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
                 }
             }
+        }
 
-            Text(
-                modifier = Modifier.padding(start = 24.dp),
-                text = "Layout",
-                color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.headlineSmall
-            )
-            Divider(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-            Column {
-                layoutOptions.forEach { text ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .selectable(
-                                selected = text == selectedLayoutOption,
-                                onClick = {
-                                    if (text == "staggered") {
-                                        openStaggeredWarning = true
-                                    } else {
-                                        selectedLayoutOption = text
-                                        coroutine.launch { changeLayout(text, context.dataStore) }
-                                    }
-                                }
-                            )
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            modifier = Modifier
-                                .padding(all = 8.dp),
-                            selected = (text == selectedLayoutOption),
+        Text(
+            modifier = Modifier.padding(start = 24.dp),
+            text = "Layout",
+            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.headlineSmall
+        )
+        Divider(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+        Column {
+            layoutOptions.forEach { text ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .selectable(
+                            selected = text == selectedLayoutOption,
                             onClick = {
                                 if (text == "staggered") {
                                     openStaggeredWarning = true
@@ -160,57 +150,76 @@ fun Settings() {
                                 }
                             }
                         )
-                        Text(
-                            modifier = Modifier.padding(start = 4.dp),
-                            text = text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() },
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
+                        .padding(horizontal = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        modifier = Modifier
+                            .padding(all = 8.dp),
+                        selected = (text == selectedLayoutOption),
+                        onClick = {
+                            if (text == "staggered") {
+                                openStaggeredWarning = true
+                            } else {
+                                selectedLayoutOption = text
+                                coroutine.launch { changeLayout(text, context.dataStore) }
+                            }
+                        }
+                    )
+                    Text(
+                        modifier = Modifier.padding(start = 4.dp),
+                        text = text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() },
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
                 }
             }
+        }
 
-            if (App.uncensored) {
-                Text(
-                    modifier = Modifier.padding(start = 24.dp),
-                    text = "Miscellaneous",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Divider(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-                Column {
+        if (App.uncensored) {
+            Text(
+                modifier = Modifier.padding(start = 24.dp),
+                text = "Content",
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.headlineSmall
+            )
+            Divider(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            Column {
+                contentOptions.forEach { text ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                App.nsfw = !App.nsfw
+                            .selectable(
+                                selected = text == selectedContentOption,
+                                onClick = {
+                                    selectedContentOption = text
+                                    App.nsfw = text
+                                    coroutine.launch {
+                                        context.dataStore.edit { it[NSFW] = App.nsfw }
+                                        updateImages()
+                                    }
+                                }
+                            )
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            modifier = Modifier.padding(all = Dp(value = 8F)),
+                            selected = (text == selectedContentOption),
+                            onClick = {
+                                selectedContentOption = text
+                                App.nsfw = text
                                 coroutine.launch {
                                     context.dataStore.edit { it[NSFW] = App.nsfw }
                                     updateImages()
                                 }
                             }
-                            .padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            modifier = Modifier
-                                .padding(all = 8.dp),
-                            checked = App.nsfw,
-                            onCheckedChange = { value ->
-                                App.nsfw = value
-                                coroutine.launch {
-                                    context.dataStore.edit { it[NSFW] = value }
-                                    updateImages()
-                                }
-                            },
-                            colors = CheckboxDefaults.colors()
                         )
                         Text(
-                            modifier = Modifier
-                                .padding(start = 4.dp),
-                            text = "NSFW",
+                            modifier = Modifier.padding(start = 4.dp),
+                            text = text.split("_").joinToString(" ") { it.capitalize() },
                             color = MaterialTheme.colorScheme.onBackground
                         )
                     }
@@ -220,8 +229,7 @@ fun Settings() {
 
         Box(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 100.dp)
+                .padding(top = 32.dp)
                 .fillMaxWidth()
         ) {
             val year = Calendar.getInstance().get(Calendar.YEAR)

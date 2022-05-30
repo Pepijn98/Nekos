@@ -35,7 +35,6 @@ import dev.vdbroek.nekos.ui.theme.NekosTheme
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.*
 import kotlinx.coroutines.flow.first
-import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 class MainActivity : ComponentActivity() {
     private var isSplashActive by mutableStateOf(true)
@@ -61,6 +60,10 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launchWhenCreated {
             val prefs = dataStore.data.first()
 
+            if (App.uncensored) {
+                App.nsfw = prefs[NSFW] ?: App.defaultNsfw
+            }
+
             ThemeState.isDark = prefs[IS_DARK] ?: true
             ThemeState.manual = prefs[MANUAL] ?: false
             ThemeState.staggered = prefs[STAGGERED] ?: false
@@ -71,10 +74,6 @@ class MainActivity : ComponentActivity() {
                 UserState.username = prefs[USERNAME]
             }
 
-            if (App.uncensored) {
-                App.nsfw = prefs[NSFW] ?: false
-            }
-
             val (tagsResponse) = Nekos.getTags()
             if (tagsResponse != null) {
                 App.tags.addAll(tagsResponse.tags)
@@ -83,7 +82,7 @@ class MainActivity : ComponentActivity() {
             val (response, exception) = Nekos.getImages()
             when {
                 response != null -> {
-                    HomeScreenState.images.addAll(response.images.filter { !it.tags.contains(App.buggedTag) })
+                    HomeScreenState.images.addAll(if (App.uncensored) response.images else response.images.filter { !it.tags.contains(App.buggedTag) })
                     isSplashActive = false
                 }
                 exception != null -> finish()

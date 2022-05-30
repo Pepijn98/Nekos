@@ -76,8 +76,15 @@ object Nekos : Api() {
             }
         }
 
+        val nsfw = when (App.nsfw) {
+            "everything" -> null
+            "no_nsfw" -> false
+            "only_nsfw" -> true
+            else -> false // default to false
+        }
+
         val bodyData = ImageSearchBody(
-            nsfw = if (App.uncensored && App.nsfw) null else false,
+            nsfw = if (App.uncensored) nsfw else false,
             tags = tags,
             skip = NekosRequestState.skip,
             sort = NekosRequestState.sort

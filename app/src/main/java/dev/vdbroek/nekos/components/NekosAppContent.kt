@@ -72,8 +72,8 @@ fun NekosAppContent() {
 
             composable(Screens.Settings.route) {
                 EnterAnimation {
-                    NekosAppBar {
-                        Settings()
+                    NekosAppBar { toolbar ->
+                        Settings(toolbar)
                     }
                 }
             }

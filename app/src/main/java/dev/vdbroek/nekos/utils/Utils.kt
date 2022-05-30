@@ -173,7 +173,8 @@ object App {
      */
     const val uncensored = BuildConfig.BUILD_TYPE == "uncensored"
 
-    var nsfw by mutableStateOf(false)
+    const val defaultNsfw = "no_nsfw"
+    var nsfw by mutableStateOf(defaultNsfw)
     var permissionGranted by mutableStateOf(false)
     var screenTitle by mutableStateOf("")
     val snackbarHost = SnackbarHostState()

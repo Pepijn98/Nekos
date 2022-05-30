@@ -6,7 +6,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 val IS_DARK = booleanPreferencesKey("is_dark")
 val MANUAL = booleanPreferencesKey("manual")
 val STAGGERED = booleanPreferencesKey("staggered")
-val NSFW = booleanPreferencesKey("nsfw")
+val NSFW = stringPreferencesKey("nsfw")
 
 val IS_LOGGED_IN = booleanPreferencesKey("is_logged_in")
 val TOKEN = stringPreferencesKey("token")
