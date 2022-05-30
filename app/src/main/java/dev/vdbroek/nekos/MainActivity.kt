@@ -35,6 +35,7 @@ import dev.vdbroek.nekos.ui.theme.NekosTheme
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.*
 import kotlinx.coroutines.flow.first
+import me.onebone.toolbar.rememberCollapsingToolbarScaffoldState
 
 class MainActivity : ComponentActivity() {
     private var isSplashActive by mutableStateOf(true)
@@ -96,10 +97,6 @@ class MainActivity : ComponentActivity() {
                 App.permissionGranted = granted
             }
 
-            val navController = rememberNavController()
-            val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val currentRoute by remember { derivedStateOf { navBackStackEntry?.destination?.route } }
-
             LaunchedEffect(key1 = true) {
                 if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                     launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -108,9 +105,19 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            CompositionLocalProvider(LocalActivity provides this) {
+            val navigation = rememberNavController()
+            val entry by navigation.currentBackStackEntryAsState()
+            val screen by remember { derivedStateOf { entry?.destination?.route ?: "" } }
+
+            CompositionLocalProvider(
+                LocalActivity provides this,
+                LocalNavigation provides navigation,
+                LocalScreen provides screen,
+                LocalToolbar provides ToolbarScaffoldHost(rememberCollapsingToolbarScaffoldState())
+            ) {
+
                 NekosTheme {
-                    when (currentRoute) {
+                    when (LocalScreen.current) {
                         Screens.Login.route,
                         Screens.Register.route -> {
                             window.statusBarColor = MaterialTheme.colorScheme.primary.toArgb()
@@ -150,10 +157,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                     } else {
-                        NekosAppContent(
-                            navController = navController,
-                            currentRoute = currentRoute
-                        )
+                        NekosAppContent()
                     }
                 }
             }

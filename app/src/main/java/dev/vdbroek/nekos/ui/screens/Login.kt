@@ -22,10 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.api.User
 import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.components.RoundedTextField
@@ -38,11 +35,10 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Login(
-    navController: NavHostController
-) {
+fun Login() {
     App.screenTitle = "Login"
 
+    val navigation = LocalNavigation.current
     val context = LocalContext.current
 
     val coroutine = rememberCoroutineScope()
@@ -208,8 +204,8 @@ fun Login(
                                                 preferences[IS_LOGGED_IN] = UserState.isLoggedIn
                                             }
 
-                                            navController.backQueue.clear()
-                                            navController.navigate(Screens.Home.route)
+                                            navigation.backQueue.clear()
+                                            navigation.navigate(Screens.Home.route)
                                         }
                                         userException != null -> {
                                             App.snackbarHost.showCustomSnackbar(
@@ -241,7 +237,7 @@ fun Login(
                         .fillMaxWidth(),
                     shape = CircleShape,
                     onClick = {
-                        navController.navigate(Screens.Register.route)
+                        navigation.navigate(Screens.Register.route)
                     }
                 ) {
                     Text(text = "New User? Register Now")
@@ -269,7 +265,7 @@ fun Login(
                         }
                     ),
                     onClick = {
-                        navController.popBackStack()
+                        navigation.popBackStack()
                     }
                 ) {
                     Icon(

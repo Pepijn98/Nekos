@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.R
 import dev.vdbroek.nekos.api.User
 import dev.vdbroek.nekos.api.UserRequestState
@@ -30,8 +29,9 @@ import dev.vdbroek.nekos.models.UserData
 import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.imageShape
 import dev.vdbroek.nekos.utils.App
+import dev.vdbroek.nekos.utils.LocalNavigation
+import dev.vdbroek.nekos.utils.LocalToolbar
 import kotlinx.coroutines.launch
-import me.onebone.toolbar.CollapsingToolbarState
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
@@ -43,17 +43,15 @@ object UserScreenState {
 }
 
 @Composable
-fun User(
-    scrollState: CollapsingToolbarState,
-    navController: NavHostController,
-    id: String
-) {
+fun User(id: String) {
     App.screenTitle = ""
 
+    val navigation = LocalNavigation.current
+    val toolbarHost = LocalToolbar.current
     val coroutine = rememberCoroutineScope()
 
     BackHandler {
-        navController.popBackStack()
+        navigation.popBackStack()
 
         UserRequestState.apply {
             end = false
@@ -111,7 +109,7 @@ fun User(
     Column(
         Modifier
             .scrollable(
-                state = scrollState,
+                state = toolbarHost.toolbarState,
                 orientation = Orientation.Vertical
             )
     ) {
@@ -200,8 +198,7 @@ fun User(
                 )
             }
             InfiniteRow(
-                items = UserScreenState.uploaderImages,
-                navController = navController
+                items = UserScreenState.uploaderImages
             ) {
                 coroutine.launch {
                     if (!UserScreenState.initialRequest)

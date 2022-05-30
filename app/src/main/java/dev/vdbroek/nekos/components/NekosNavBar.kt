@@ -19,35 +19,36 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.utils.App
+import dev.vdbroek.nekos.utils.LocalNavigation
+import dev.vdbroek.nekos.utils.LocalScreen
 import kotlinx.coroutines.launch
 import me.onebone.toolbar.ExperimentalToolbarApi
 
 @OptIn(ExperimentalToolbarApi::class)
 @Composable
-fun NekosNavBar(
-    navController: NavHostController,
-    currentRoute: String?
-) {
+fun NekosNavBar() {
+    val navController = LocalNavigation.current
+    val screen = LocalScreen.current
+
     val coroutine = rememberCoroutineScope()
 
     NavigationBar {
         NavigationBarItem(
-            selected = currentRoute == Screens.Home.route,
+            selected = screen == Screens.Home.route,
             label = {
                 Text(text = "Home")
             },
             icon = {
                 Icon(
-                    imageVector = if (currentRoute == Screens.Home.route) Icons.Filled.Home else Icons.Outlined.Home,
+                    imageVector = if (screen == Screens.Home.route) Icons.Filled.Home else Icons.Outlined.Home,
                     contentDescription = "Home"
                 )
             },
             onClick = {
-                if (currentRoute != Screens.Home.route) {
+                if (screen != Screens.Home.route) {
                     navController.backQueue.clear()
                     navController.navigate(Screens.Home.route)
                 } else {
@@ -78,18 +79,18 @@ fun NekosNavBar(
         )
         if (UserState.isLoggedIn) {
             NavigationBarItem(
-                selected = currentRoute == Screens.Profile.route,
+                selected = screen == Screens.Profile.route,
                 label = {
                     Text(text = "Profile")
                 },
                 icon = {
                     Icon(
-                        imageVector = if (currentRoute == Screens.Profile.route) Icons.Filled.Person else Icons.Outlined.Person,
+                        imageVector = if (screen == Screens.Profile.route) Icons.Filled.Person else Icons.Outlined.Person,
                         contentDescription = "Profile"
                     )
                 },
                 onClick = {
-                    if (currentRoute != Screens.Profile.route) {
+                    if (screen != Screens.Profile.route) {
                         navController.navigate(Screens.Profile.route)
                     }
                 }
@@ -102,7 +103,7 @@ fun NekosNavBar(
                 },
                 icon = {
                     Icon(
-                        imageVector = if (currentRoute == Screens.Login.route) Icons.Filled.Login else Icons.Outlined.Login,
+                        imageVector = if (screen == Screens.Login.route) Icons.Filled.Login else Icons.Outlined.Login,
                         contentDescription = "Login"
                     )
                 },
@@ -112,13 +113,13 @@ fun NekosNavBar(
             )
         }
         NavigationBarItem(
-            selected = currentRoute == Screens.Settings.route,
+            selected = screen == Screens.Settings.route,
             label = {
                 Text(text = "Settings")
             },
             icon = {
                 Icon(
-                    imageVector = if (currentRoute == Screens.Settings.route) Icons.Filled.Settings else Icons.Outlined.Settings,
+                    imageVector = if (screen == Screens.Settings.route) Icons.Filled.Settings else Icons.Outlined.Settings,
                     contentDescription = "Settings"
                 )
             },

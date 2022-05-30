@@ -15,7 +15,6 @@ import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
@@ -26,16 +25,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.BuildConfig
 import io.iamjosephmj.flinger.configs.FlingConfiguration
 import io.iamjosephmj.flinger.flings.flingBehavior
+import me.onebone.toolbar.CollapsingToolbarScaffoldState
 import me.onebone.toolbar.CollapsingToolbarState
 import java.io.File
 import java.io.FileOutputStream
@@ -47,6 +47,18 @@ import kotlin.math.min
 
 val LocalActivity = staticCompositionLocalOf<ComponentActivity> {
     error("CompositionLocal LocalActivity not present")
+}
+
+val LocalNavigation = staticCompositionLocalOf<NavHostController> {
+    error("CompositionLocal LocalNavigation not present")
+}
+
+val LocalScreen = staticCompositionLocalOf<String> {
+    error("CompositionLocal LocalScreen not present")
+}
+
+val LocalToolbar = staticCompositionLocalOf<ToolbarScaffoldHost> {
+    error("CompositionLocal LocalToolbar not present")
 }
 
 /**
@@ -141,6 +153,20 @@ fun <T> rememberMutableStateOf(
     policy: SnapshotMutationPolicy<T> = structuralEqualityPolicy()
 ): MutableState<T> = remember {
     mutableStateOf(value, policy)
+}
+
+//class NavigationHost(val controller: NavHostController) {
+//
+//    val entry
+//        @Composable
+//        get() = controller.currentBackStackEntryAsState()
+//
+//    val currentScreen by derivedStateOf { controller.currentBackStackEntry?.destination?.route }
+//}
+
+class ToolbarScaffoldHost(val scaffoldState: CollapsingToolbarScaffoldState) {
+
+    val toolbarState by derivedStateOf { scaffoldState.toolbarState }
 }
 
 object App {

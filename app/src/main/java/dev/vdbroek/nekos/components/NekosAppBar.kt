@@ -9,16 +9,15 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.api.UserRequestState
 import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.ui.Screens
@@ -26,26 +25,26 @@ import dev.vdbroek.nekos.ui.screens.ProfileScreenState
 import dev.vdbroek.nekos.ui.screens.UserScreenState
 import dev.vdbroek.nekos.utils.*
 import kotlinx.coroutines.launch
-import me.onebone.toolbar.*
+import me.onebone.toolbar.CollapsingToolbarScaffold
+import me.onebone.toolbar.CollapsingToolbarScaffoldScope
+import me.onebone.toolbar.ScrollStrategy
 
 @Composable
 fun NekosAppBar(
-    navController: NavHostController,
-    route: String?,
-    body: @Composable (CollapsingToolbarScaffoldScope.(CollapsingToolbarState) -> Unit)
+    body: @Composable (CollapsingToolbarScaffoldScope.() -> Unit)
 ) {
+    val navigation = LocalNavigation.current
+    val toolbarHost = LocalToolbar.current
     val context = LocalContext.current
 
-    val toolbarScaffoldState = rememberCollapsingToolbarScaffoldState()
     val coroutine = rememberCoroutineScope()
-    val toolbarState by remember { derivedStateOf { toolbarScaffoldState.toolbarState } }
 
-    App.globalToolbarState = toolbarState
+    App.globalToolbarState = toolbarHost.toolbarState
 
     CollapsingToolbarScaffold(
         modifier = Modifier
             .fillMaxSize(),
-        state = toolbarScaffoldState,
+        state = toolbarHost.scaffoldState,
         scrollStrategy = ScrollStrategy.EnterAlwaysCollapsed,
         toolbar = {
             Box(
@@ -54,7 +53,7 @@ fun NekosAppBar(
                     .height(100.dp)
                     .parallax(ratio = 0.2f)
             )
-            when (route) {
+            when (LocalScreen.current) {
                 Screens.Home.route -> {
                     Box(
                         modifier = Modifier
@@ -87,7 +86,7 @@ fun NekosAppBar(
                                 whenExpanded = Alignment.TopStart
                             ),
                         onClick = {
-                            navController.popBackStack()
+                            navigation.popBackStack()
                         }
                     ) {
                         Icon(
@@ -105,7 +104,7 @@ fun NekosAppBar(
                                 whenExpanded = Alignment.TopStart
                             ),
                         onClick = {
-                            navController.popBackStack()
+                            navigation.popBackStack()
 
                             UserRequestState.apply {
                                 end = false
@@ -133,8 +132,8 @@ fun NekosAppBar(
                                 whenExpanded = Alignment.TopEnd
                             ),
                         onClick = {
-                            navController.backQueue.clear()
-                            navController.navigate(Screens.Home.route)
+                            navigation.backQueue.clear()
+                            navigation.navigate(Screens.Home.route)
 
                             UserState.apply {
                                 isLoggedIn = false
@@ -178,7 +177,7 @@ fun NekosAppBar(
                                 whenExpanded = Alignment.TopStart
                             ),
                         onClick = {
-                            navController.popBackStack()
+                            navigation.popBackStack()
 
                             UserRequestState.apply {
                                 end = false
@@ -209,12 +208,10 @@ fun NekosAppBar(
                         whenExpanded = Alignment.BottomStart
                     ),
                 text = App.screenTitle,
-                fontSize = (MaterialTheme.typography.headlineLarge.fontSize.value + (30 - 18) * toolbarState.progress).sp,
+                fontSize = (MaterialTheme.typography.headlineLarge.fontSize.value + (30 - 18) * toolbarHost.toolbarState.progress).sp,
                 color = MaterialTheme.colorScheme.onBackground
             )
         },
-        body = {
-            body(toolbarState)
-        }
+        body = body
     )
 }

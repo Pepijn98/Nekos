@@ -19,7 +19,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.google.gson.Gson
 import com.nesyou.staggeredgrid.LazyStaggeredGrid
 import com.nesyou.staggeredgrid.StaggeredCells
@@ -29,6 +29,7 @@ import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.ui.theme.imageShape
 import dev.vdbroek.nekos.utils.App
+import dev.vdbroek.nekos.utils.LocalNavigation
 import kotlinx.coroutines.flow.distinctUntilChanged
 import java.net.URLEncoder
 
@@ -39,16 +40,17 @@ object InfiniteListState {
 @Composable
 fun InfiniteList(
     items: SnapshotStateList<Neko>,
-    navController: NavController,
     cells: Int,
     onLoadMore: () -> Unit
 ) {
+    val navigation = LocalNavigation.current
+
     if (ThemeState.staggered) {
         InfiniteListState.scrollState = rememberLazyListState()
         StaggeredItems(
             listState = InfiniteListState.scrollState as LazyListState,
             items = items,
-            navController = navController,
+            controller = navigation,
             cells = cells
         )
     } else {
@@ -56,7 +58,7 @@ fun InfiniteList(
         FixedItems(
             gridState = InfiniteListState.scrollState as LazyGridState,
             items = items,
-            navController = navController,
+            controller = navigation,
             cells = cells
         )
     }
@@ -70,7 +72,7 @@ fun InfiniteList(
 fun StaggeredItems(
     listState: LazyListState,
     items: SnapshotStateList<Neko>,
-    navController: NavController,
+    controller: NavHostController,
     cells: Int
 ) {
     LazyStaggeredGrid(
@@ -89,7 +91,7 @@ fun StaggeredItems(
                 val jsonData = Gson().toJson(it)
                 // We HAVE to urlencode the json since there's a tag that contains a forward slash (":/") which breaks the navigation routing obviously
                 val encoded = URLEncoder.encode(jsonData, "utf-8")
-                navController.navigate(Screens.Post.route.replace("{data}", encoded))
+                controller.navigate(Screens.Post.route.replace("{data}", encoded))
             }
         }
     }
@@ -99,7 +101,7 @@ fun StaggeredItems(
 fun FixedItems(
     gridState: LazyGridState,
     items: SnapshotStateList<Neko>,
-    navController: NavController,
+    controller: NavHostController,
     cells: Int
 ) {
     LazyVerticalGrid(
@@ -119,7 +121,7 @@ fun FixedItems(
                 val jsonData = Gson().toJson(it)
                 // We HAVE to urlencode the json since there's a tag that contains a forward slash (":/") which breaks the navigation routing obviously
                 val encoded = URLEncoder.encode(jsonData, "utf-8")
-                navController.navigate(Screens.Post.route.replace("{data}", encoded))
+                controller.navigate(Screens.Post.route.replace("{data}", encoded))
             }
         }
     }

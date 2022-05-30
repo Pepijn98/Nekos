@@ -1,7 +1,6 @@
 package dev.vdbroek.nekos.ui.screens
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.compose.animation.core.*
@@ -22,15 +21,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
@@ -49,9 +45,9 @@ import dev.vdbroek.nekos.ui.theme.imageShape
 import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.App.saveImageBitmap
 import dev.vdbroek.nekos.utils.App.saveImageBitmap29
+import dev.vdbroek.nekos.utils.LocalNavigation
 import dev.vdbroek.nekos.utils.rememberMutableStateOf
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
 
 enum class LoadingState {
     LOADING,
@@ -62,12 +58,10 @@ enum class LoadingState {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Post(
-    navController: NavHostController,
-    data: Neko
-) {
+fun Post(data: Neko) {
     App.screenTitle = "Post Info"
 
+    val navigation = LocalNavigation.current
     val context = LocalContext.current
 
     var loadingState by rememberMutableStateOf(LoadingState.NONE)
@@ -425,7 +419,7 @@ fun Post(
                                 user = null
                             }
 
-                            navController.navigate(Screens.User.route.replace("{id}", data.uploader.id))
+                            navigation.navigate(Screens.User.route.replace("{id}", data.uploader.id))
                         },
                     text = data.uploader.username,
                     color = MaterialTheme.colorScheme.primary,
@@ -462,7 +456,7 @@ fun Post(
                                     user = null
                                 }
 
-                                navController.navigate(Screens.User.route.replace("{id}", data.approver.id))
+                                navigation.navigate(Screens.User.route.replace("{id}", data.approver.id))
                             },
                         text = data.approver.username,
                         color = MaterialTheme.colorScheme.primary,

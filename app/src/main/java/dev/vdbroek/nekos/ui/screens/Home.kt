@@ -4,7 +4,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.api.Nekos
 import dev.vdbroek.nekos.components.InfiniteList
 import dev.vdbroek.nekos.components.SnackbarType
@@ -19,16 +18,13 @@ object HomeScreenState {
 }
 
 @Composable
-fun Home(
-    navController: NavHostController
-) {
+fun Home() {
     App.screenTitle = "Posts"
 
     val coroutine = rememberCoroutineScope()
 
     InfiniteList(
         items = HomeScreenState.images,
-        navController = navController,
         cells = 2
     ) {
         coroutine.launch {

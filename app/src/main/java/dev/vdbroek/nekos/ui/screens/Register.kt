@@ -18,22 +18,21 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.api.User
 import dev.vdbroek.nekos.components.RoundedTextField
 import dev.vdbroek.nekos.components.SnackbarType
 import dev.vdbroek.nekos.components.showCustomSnackbar
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.App
+import dev.vdbroek.nekos.utils.LocalNavigation
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Register(
-    navController: NavHostController
-) {
+fun Register() {
     App.screenTitle = "Register"
 
+    val navigation = LocalNavigation.current
     val coroutine = rememberCoroutineScope()
 
     var email by remember { mutableStateOf("") }
@@ -317,7 +316,7 @@ fun Register(
                         }
                     ),
                     onClick = {
-                        navController.popBackStack()
+                        navigation.popBackStack()
                     }
                 ) {
                     Icon(

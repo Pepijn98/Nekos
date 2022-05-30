@@ -18,21 +18,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import com.google.gson.Gson
 import dev.vdbroek.nekos.models.Neko
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.NekoColors
 import dev.vdbroek.nekos.ui.theme.imageShape
+import dev.vdbroek.nekos.utils.LocalNavigation
 import kotlinx.coroutines.flow.distinctUntilChanged
 import java.net.URLEncoder
 
 @Composable
 fun InfiniteRow(
     items: SnapshotStateList<Neko>,
-    navController: NavController,
     onLoadMore: () -> Unit
 ) {
+    val navigation = LocalNavigation.current
     val listState = rememberLazyListState()
 
     LazyRow(
@@ -50,7 +50,7 @@ fun InfiniteRow(
                 val jsonData = Gson().toJson(it)
                 // We HAVE to urlencode the json since there's a tag that contains a forward slash (":/") which breaks the navigation routing obviously
                 val encoded = URLEncoder.encode(jsonData, "utf-8")
-                navController.navigate(Screens.Post.route.replace("{data}", encoded))
+                navigation.navigate(Screens.Post.route.replace("{data}", encoded))
             }
         }
     }

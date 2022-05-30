@@ -6,7 +6,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.google.gson.Gson
@@ -15,6 +14,8 @@ import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.screens.*
 import dev.vdbroek.nekos.utils.App
 import dev.vdbroek.nekos.utils.EnterAnimation
+import dev.vdbroek.nekos.utils.LocalNavigation
+import dev.vdbroek.nekos.utils.LocalScreen
 
 private val noNavBar = listOf(
     Screens.Login.route,
@@ -24,18 +25,14 @@ private val noNavBar = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NekosAppContent(
-    navController: NavHostController,
-    currentRoute: String?
-) {
+fun NekosAppContent() {
+    val navController = LocalNavigation.current
+
     Scaffold(
         contentColor = MaterialTheme.colorScheme.background,
         bottomBar = {
-            if (!noNavBar.contains(currentRoute)) {
-                NekosNavBar(
-                    navController = navController,
-                    currentRoute = currentRoute
-                )
+            if (!noNavBar.contains(LocalScreen.current)) {
+                NekosNavBar()
             }
         },
         snackbarHost = {
@@ -53,105 +50,60 @@ fun NekosAppContent(
             navController = navController,
             startDestination = Screens.Home.route
         ) {
-            composable(
-                route = Screens.Home.route
-            ) {
+            composable(Screens.Home.route) {
                 EnterAnimation {
                     HomeRefresh {
-                        NekosAppBar(
-                            navController = navController,
-                            route = currentRoute
-                        ) {
-                            Home(
-                                navController = navController
-                            )
+                        NekosAppBar {
+                            Home()
                         }
                     }
                 }
             }
 
-            composable(
-                route = Screens.Post.route
-            ) {
+            composable(Screens.Post.route) {
                 val jsonData = it.arguments?.getString("data")
                 val data = Gson().fromJson(jsonData, Neko::class.java)
                 EnterAnimation {
-                    NekosAppBar(
-                        navController = navController,
-                        route = currentRoute
-                    ) {
-                        Post(
-                            navController = navController,
-                            data = data
-                        )
+                    NekosAppBar {
+                        Post(data = data)
                     }
                 }
             }
 
-            composable(
-                route = Screens.Settings.route
-            ) {
+            composable(Screens.Settings.route) {
                 EnterAnimation {
-                    NekosAppBar(
-                        navController = navController,
-                        route = currentRoute
-                    ) {
+                    NekosAppBar {
                         Settings()
                     }
                 }
             }
 
             // -BEGIN: PROFILE FLOW
-            composable(
-                route = Screens.Login.route
-            ) {
+            composable(Screens.Login.route) {
                 EnterAnimation {
-                    Login(
-                        navController = navController
-                    )
+                    Login()
                 }
             }
 
-            composable(
-                route = Screens.Register.route
-            ) {
+            composable(Screens.Register.route) {
                 EnterAnimation {
-                    Register(
-                        navController = navController
-                    )
+                    Register()
                 }
             }
 
-            composable(
-                route = Screens.Profile.route
-            ) {
+            composable(Screens.Profile.route) {
                 EnterAnimation {
-                    NekosAppBar(
-                        navController = navController,
-                        route = currentRoute
-                    ) { toolbarState ->
-                        Profile(
-                            scrollState = toolbarState,
-                            navController = navController
-                        )
+                    NekosAppBar {
+                        Profile()
                     }
                 }
             }
 
-            composable(
-                route = Screens.User.route
-            ) {
-                val userID = it.arguments?.getString("id") ?: return@composable
+            composable(Screens.User.route) {
+                val id = it.arguments?.getString("id") ?: return@composable
                 EnterAnimation {
-                    NekosAppBar(
-                        navController = navController,
-                        route = currentRoute
-                    ) { toolbarState ->
-                        User(
-                            scrollState = toolbarState,
-                            navController = navController,
-                            id = userID
-                        )
+                    NekosAppBar {
+                        User(id)
                     }
                 }
             }
