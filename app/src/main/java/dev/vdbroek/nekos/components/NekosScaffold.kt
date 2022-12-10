@@ -1,9 +1,8 @@
 package dev.vdbroek.nekos.components
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Login
@@ -22,9 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import dev.vdbroek.nekos.api.UserState
 import dev.vdbroek.nekos.ui.Screens
+import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.App
 import kotlinx.coroutines.launch
 
+@ExperimentalFoundationApi
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NekosScaffold(
@@ -60,24 +61,19 @@ fun NekosScaffold(
                             navController.navigate(Screens.Home.route)
                         } else {
                             coroutine.launch {
-                                when (InfiniteListState.scrollState) {
-                                    is LazyListState -> {
-                                        val state = (InfiniteListState.scrollState as LazyListState)
-                                        val firstVisibleItemIndex by derivedStateOf { state.firstVisibleItemIndex }
+                                if (ThemeState.staggered) {
+                                    val firstVisibleItemIndex by derivedStateOf { InfiniteListState.staggeredScrollState.firstVisibleItemIndex }
 
-                                        if (firstVisibleItemIndex > 1) {
-                                            state.scrollToItem(0)
-//                                            toolbarState.expand()
-                                        }
+                                    if (firstVisibleItemIndex > 1) {
+                                        InfiniteListState.staggeredScrollState.scrollToItem(0)
+                                        //toolbarState.expand()
                                     }
-                                    is LazyGridState -> {
-                                        val state = (InfiniteListState.scrollState as LazyGridState)
-                                        val firstVisibleItemIndex by derivedStateOf { state.firstVisibleItemIndex }
+                                } else {
+                                    val firstVisibleItemIndex by derivedStateOf { InfiniteListState.scrollState.firstVisibleItemIndex }
 
-                                        if (firstVisibleItemIndex > 1) {
-                                            state.scrollToItem(0)
-//                                            toolbarState.expand()
-                                        }
+                                    if (firstVisibleItemIndex > 1) {
+                                        InfiniteListState.scrollState.scrollToItem(0)
+                                        //toolbarState.expand()
                                     }
                                 }
                             }

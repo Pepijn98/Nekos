@@ -1,17 +1,21 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package dev.vdbroek.nekos.components
 
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridState
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -22,8 +26,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.google.gson.Gson
-import com.nesyou.staggeredgrid.LazyStaggeredGrid
-import com.nesyou.staggeredgrid.StaggeredCells
 import dev.vdbroek.nekos.models.Neko
 import dev.vdbroek.nekos.ui.Screens
 import dev.vdbroek.nekos.ui.theme.NekoColors
@@ -35,7 +37,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import java.net.URLEncoder
 
 object InfiniteListState {
-    var scrollState: ScrollableState? = null
+    lateinit var scrollState: LazyGridState
+    lateinit var staggeredScrollState: LazyStaggeredGridState
 }
 
 @Composable
@@ -47,9 +50,9 @@ fun InfiniteList(
     val navigation = LocalNavigation.current
 
     if (ThemeState.staggered) {
-        InfiniteListState.scrollState = rememberLazyListState()
+        InfiniteListState.staggeredScrollState = rememberLazyStaggeredGridState()
         StaggeredItems(
-            listState = InfiniteListState.scrollState as LazyListState,
+            state = InfiniteListState.staggeredScrollState,
             items = items,
             controller = navigation,
             cells = cells
@@ -57,29 +60,29 @@ fun InfiniteList(
     } else {
         InfiniteListState.scrollState = rememberLazyGridState()
         FixedItems(
-            gridState = InfiniteListState.scrollState as LazyGridState,
+            state = InfiniteListState.scrollState,
             items = items,
             controller = navigation,
             cells = cells
         )
     }
 
-    InfiniteListHandler(scrollableState = InfiniteListState.scrollState!!) {
+    InfiniteListHandler(state = if (ThemeState.staggered) InfiniteListState.staggeredScrollState else InfiniteListState.scrollState) {
         onLoadMore()
     }
 }
 
 @Composable
 fun StaggeredItems(
-    listState: LazyListState,
+    state: LazyStaggeredGridState,
     items: SnapshotStateList<Neko>,
     controller: NavHostController,
     cells: Int
 ) {
-    LazyStaggeredGrid(
+    LazyVerticalStaggeredGrid(
         modifier = Modifier.fillMaxWidth(),
-        state = listState,
-        cells = StaggeredCells.Fixed(cells),
+        state = state,
+        columns = StaggeredGridCells.Fixed(cells),
         contentPadding = PaddingValues(
             start = 6.dp,
             top = 8.dp,
@@ -100,15 +103,15 @@ fun StaggeredItems(
 
 @Composable
 fun FixedItems(
-    gridState: LazyGridState,
+    state: LazyGridState,
     items: SnapshotStateList<Neko>,
     controller: NavHostController,
     cells: Int
 ) {
     LazyVerticalGrid(
         modifier = Modifier.fillMaxWidth(),
-        state = gridState,
-        flingBehavior = App.flingBehavior(),
+        state = state,
+        //flingBehavior = App.flingBehavior(),
         columns = GridCells.Fixed(cells),
         contentPadding = PaddingValues(
             start = 6.dp,
@@ -130,31 +133,31 @@ fun FixedItems(
 
 @Composable
 fun InfiniteListHandler(
-    scrollableState: ScrollableState,
+    state: ScrollableState,
     buffer: Int = 10,
     onLoadMore: () -> Unit
 ) {
     // InfiniteListHandler should only accept LazyListState and LazyGridState
-    check(scrollableState is LazyListState || scrollableState is LazyGridState) {
-        "InfiniteListHandler state has to be either LazyListState or LazyGridState"
+    check(state is LazyGridState || state is LazyStaggeredGridState) {
+        "InfiniteListHandler state has to be either LazyGridState or LazyStaggeredGridState"
     }
 
     val loadMore = remember {
         derivedStateOf {
             val totalItemsNumber: Int
             val lastVisibleItemIndex: Int
-            when (scrollableState) {
-                is LazyListState -> {
-                    val layoutInfo = scrollableState.layoutInfo
+            when (state) {
+                is LazyStaggeredGridState -> {
+                    val layoutInfo = state.layoutInfo
                     totalItemsNumber = layoutInfo.totalItemsCount
                     lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
                 }
                 is LazyGridState -> {
-                    val layoutInfo = scrollableState.layoutInfo
+                    val layoutInfo = state.layoutInfo
                     totalItemsNumber = layoutInfo.totalItemsCount
                     lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
                 }
-                else -> throw IllegalStateException("InfiniteListHandler state has to be either LazyListState or LazyGridState")
+                else -> throw IllegalStateException("InfiniteListHandler state has to be either LazyGridState or LazyStaggeredGridState")
             }
 
             lastVisibleItemIndex > (totalItemsNumber - buffer)
@@ -174,7 +177,66 @@ fun InfiniteListHandler(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun InfiniteListHandler(
+//    state: LazyGridState,
+//    buffer: Int = 10,
+//    onLoadMore: () -> Unit
+//) {
+//    val loadMore = remember {
+//        derivedStateOf {
+//            val totalItemsNumber: Int
+//            val lastVisibleItemIndex: Int
+//            val layoutInfo = state.layoutInfo
+//            totalItemsNumber = layoutInfo.totalItemsCount
+//            lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
+//
+//            lastVisibleItemIndex > (totalItemsNumber - buffer)
+//        }
+//    }
+//
+//    LaunchedEffect(loadMore) {
+//        snapshotFlow { loadMore.value }
+//            .distinctUntilChanged()
+//            .collect {
+//                // Only load more when true
+//                if (!App.initialLoad && App.isReady && it) {
+//                    Log.e("LOAD_MORE", "$it")
+//                    onLoadMore()
+//                }
+//            }
+//    }
+//}
+//
+//@Composable
+//fun InfiniteStaggeredListHandler(
+//    state: LazyStaggeredGridState,
+//    buffer: Int = 10,
+//    onLoadMore: () -> Unit
+//) {
+//    val loadMore = remember {
+//        derivedStateOf {
+//            val layoutInfo = state.layoutInfo
+//            val totalItemsNumber = layoutInfo.totalItemsCount
+//            val lastVisibleItemIndex = (layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0) + 1
+//
+//            lastVisibleItemIndex > (totalItemsNumber - buffer)
+//        }
+//    }
+//
+//    LaunchedEffect(loadMore) {
+//        snapshotFlow { loadMore.value }
+//            .distinctUntilChanged()
+//            .collect {
+//                // Only load more when true
+//                if (!App.initialLoad && App.isReady && it) {
+//                    Log.e("LOAD_MORE", "$it")
+//                    onLoadMore()
+//                }
+//            }
+//    }
+//}
+
 @Composable
 private fun ListItem(data: Neko, onItemClicked: (Neko) -> Unit) {
     Card(

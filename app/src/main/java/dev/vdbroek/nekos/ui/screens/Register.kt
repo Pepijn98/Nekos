@@ -145,7 +145,7 @@ private fun register() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun Register() {
     App.screenTitle = "Register"

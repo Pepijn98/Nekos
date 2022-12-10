@@ -1,5 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+plugins {
+    id("co.uzzu.dotenv.gradle") version "2.0.0"
+}
+
 buildscript {
     repositories {
         google()
@@ -7,7 +11,7 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.android.tools.build:gradle:7.2.1")
+        classpath("com.android.tools.build:gradle:7.3.1")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.21")
     }
 }
@@ -19,7 +23,7 @@ allprojects {
             jvmTarget = JavaVersion.VERSION_17.toString()
 
             freeCompilerArgs += listOf(
-                "-Xopt-in=kotlin.RequiresOptIn"
+                "-opt-in=kotlin.RequiresOptIn"
             )
         }
     }

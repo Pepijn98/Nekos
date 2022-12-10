@@ -7,10 +7,10 @@ plugins {
 object Versions {
     private const val versionMajor = 2
     private const val versionMinor = 0
-    private const val versionPatch = 4
+    private const val versionPatch = 5
 
     const val minSdk = 28
-    const val targetSdk = 32
+    const val targetSdk = 33
 
     fun generateVersionCode(): Int = minSdk * 10000000 + versionMajor * 10000 + versionMinor * 100 + versionPatch
 
@@ -37,10 +37,10 @@ android {
 
     signingConfigs {
         create("default") {
-            storeFile = file(System.getenv("NEKOS_KEYSTORE"))
-            storePassword = System.getenv("NEKOS_KEYSTORE_PASS")
-            keyAlias = System.getenv("NEKOS_KEYSTORE_ALIAS")
-            keyPassword = System.getenv("NEKOS_KEYSTORE_PASS")
+            storeFile = file(env.NEKOS_KEYSTORE.value)
+            storePassword = env.NEKOS_KEYSTORE_PASS.value
+            keyAlias = env.NEKOS_KEYSTORE_ALIAS.value
+            keyPassword = env.NEKOS_KEYSTORE_PASS.value
         }
     }
 
@@ -113,48 +113,44 @@ android {
 
 dependencies {
     // Android libraries
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.core:core-splashscreen:1.0.0-rc01")
+    implementation("androidx.core:core-ktx:1.9.0")
+    implementation("androidx.core:core-splashscreen:1.0.0")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.4.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.1")
 
     // Compose libraries
-    implementation("androidx.activity:activity-compose:1.4.0")
-    implementation("androidx.compose.ui:ui:1.2.0-beta02")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.2.0-beta02")
-    implementation("androidx.compose.material3:material3:1.0.0-alpha12")
-    implementation("androidx.compose.material:material-icons-extended:1.2.0-beta02")
-    implementation("androidx.navigation:navigation-compose:2.4.2")
+    implementation("androidx.activity:activity-compose:1.6.1")
+    implementation("androidx.compose.ui:ui:1.4.0-alpha03")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.4.0-alpha03")
+    implementation("androidx.compose.material3:material3:1.1.0-alpha03")
+    implementation("androidx.compose.material:material-icons-extended:1.4.0-alpha03")
+    implementation("androidx.navigation:navigation-compose:2.5.3")
 
     // Google accompanist components
-    implementation("com.google.accompanist:accompanist-flowlayout:0.24.9-beta")
-    implementation("com.google.accompanist:accompanist-swiperefresh:0.24.9-beta")
+    implementation("com.google.accompanist:accompanist-flowlayout:0.28.0")
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.28.0")
 
     // Better fling behaviour modification
     implementation("com.github.iamjosephmj:Flinger:1.1.1")
-    // Until lazy staggered grid is officially supported this is the best implementation I could find
-    // It is on the roadmap https://developer.android.com/jetpack/androidx/compose-roadmap
-    // So surely some day it will be added to jetpack compose :)
-    implementation("com.github.nesyou01:LazyStaggeredGrid:1.1")
     // Collapsing toolbar
-    implementation("me.onebone:toolbar-compose:2.3.3")
+    implementation("me.onebone:toolbar-compose:2.3.5")
 
     // HTTP Requests
-    implementation("com.google.code.gson:gson:2.9.0")
+    implementation("com.google.code.gson:gson:2.10")
     implementation("com.github.kittinunf.fuel:fuel:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-android:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
     implementation("com.github.kittinunf.fuel:fuel-gson:2.3.1")
-    implementation("com.squareup.okhttp3:okhttp:4.9.3")
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
 
     // Loading network images
     implementation("com.github.bumptech.glide:glide:4.13.2")
     kapt("com.github.bumptech.glide:compiler:4.13.2")
 
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.2.0-beta02")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.2.0-beta02")
-    debugImplementation("androidx.compose.ui:ui-test-manifest:1.2.0-beta02")
+    androidTestImplementation("androidx.test.ext:junit:1.1.4")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.0")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.4.0-alpha03")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.4.0-alpha03")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.4.0-alpha03")
 }

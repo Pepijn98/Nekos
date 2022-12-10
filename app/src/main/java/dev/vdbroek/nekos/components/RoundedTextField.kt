@@ -17,17 +17,16 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import dev.vdbroek.nekos.R
 import dev.vdbroek.nekos.ui.theme.ThemeState
 import dev.vdbroek.nekos.utils.alpha
 import dev.vdbroek.nekos.utils.dim
 import dev.vdbroek.nekos.utils.lighten
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoundedTextField(
     modifier: Modifier = Modifier,

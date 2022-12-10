@@ -41,7 +41,6 @@ import java.util.*
 
 private var openStaggeredWarning by mutableStateOf(false)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Settings(
     toolbarState: CollapsingToolbarState
@@ -237,7 +236,8 @@ fun Settings(
         Box(
             modifier = Modifier
                 .padding(top = if (App.uncensored) 32.dp else 168.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
             val year = Calendar.getInstance().get(Calendar.YEAR)
             HtmlText(
