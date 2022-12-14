@@ -44,7 +44,6 @@ import java.util.*
 import kotlin.math.ln
 import kotlin.math.min
 
-
 val LocalActivity = staticCompositionLocalOf<ComponentActivity> {
     error("CompositionLocal LocalActivity not present")
 }

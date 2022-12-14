@@ -1,9 +1,13 @@
 package dev.vdbroek.nekos.models
 
+import androidx.annotation.Keep
+
+@Keep
 data class UserResponse(
     val user: UserData
 )
 
+@Keep
 data class UserData(
     val id: String,
     val username: String,
@@ -18,6 +22,7 @@ data class UserData(
     val savedTags: ArrayList<String>
 )
 
+@Keep
 data class LoginResponse(
     val token: String
 )

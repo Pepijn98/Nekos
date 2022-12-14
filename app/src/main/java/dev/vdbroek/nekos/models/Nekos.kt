@@ -1,15 +1,20 @@
 package dev.vdbroek.nekos.models
 
+import androidx.annotation.Keep
+
+@Keep
 data class Uploader(
     val id: String,
     val username: String
 )
 
+@Keep
 data class Approver(
     val id: String,
     val username: String
 )
 
+@Keep
 data class Neko(
     val id: String,
     val originalHash: String,
@@ -28,11 +33,13 @@ data class Neko(
     fun getThumbnailUrl(): String = "https://nekos.moe/thumbnail/$id"
 }
 
+@Keep
 data class TagsResponse(
     val options: Any?,
     val tags: ArrayList<String>
 )
 
+@Keep
 data class NekosResponse(
     val images: MutableList<Neko>
 )

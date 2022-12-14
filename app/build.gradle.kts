@@ -7,7 +7,7 @@ plugins {
 object Versions {
     private const val versionMajor = 2
     private const val versionMinor = 0
-    private const val versionPatch = 5
+    private const val versionPatch = 6
 
     const val minSdk = 28
     const val targetSdk = 33
@@ -46,8 +46,8 @@ android {
 
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             isDebuggable = false
             isJniDebuggable = false
             isRenderscriptDebuggable = false
