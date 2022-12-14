@@ -60,11 +60,11 @@ android {
         create("uncensored") {
             versionNameSuffix = "-UNCENSORED"
             applicationIdSuffix = ".uncensored"
-            isShrinkResources = false
-            isMinifyEnabled = false
-            isDebuggable = true
-            isJniDebuggable = true
-            isRenderscriptDebuggable = true
+            isShrinkResources = true
+            isMinifyEnabled = true
+            isDebuggable = false
+            isJniDebuggable = false
+            isRenderscriptDebuggable = false
             isPseudoLocalesEnabled = false
             signingConfig = signingConfigs.getByName("default")
 
