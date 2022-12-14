@@ -15,7 +15,14 @@
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
 #-keepattributes SourceFile,LineNumberTable
+-dontobfuscate
+#-dontshrink
+#-dontoptimize
+-verbose
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Fix crash when using minify/shrinkingresource
+-keep class dev.vdbroek.nekos.models.** { *; }
